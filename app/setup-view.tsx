@@ -11,6 +11,7 @@ import {
   deleteUnitRecord,
   reorderLessonRecord,
   renameClassRecord,
+  setClassPosition,
   setClassLesson,
   setCurrentUnit,
   setExpectedLesson,
@@ -93,7 +94,7 @@ export function SetupView({ planner, onChange, onBack }: {
     const title = (newUnitNames[yearLevelId] ?? "").trim();
     if (!title) return setMessage("Enter a unit name first.");
     const unitId = makeId("unit");
-    if (planner.classes.some((item) => item.yearLevelId === yearLevelId) && !window.confirm("Make this the current unit? Class progress for this year level will start at Lesson 1.")) return;
+    if (planner.classes.some((item) => item.yearLevelId === yearLevelId) && !window.confirm("Make this the cohort reference unit? Existing classes will keep their individual units and lessons.")) return;
     apply(() => createUnitRecord(planner, {
       id: unitId, yearLevelId, title, lessons: [{ id: makeId("lesson"), title: "First lesson", sequence: 1 }],
     }));
@@ -102,7 +103,7 @@ export function SetupView({ planner, onChange, onBack }: {
 
   function switchUnit(yearLevelId: string, unitId: string) {
     const cohortHasClasses = planner.classes.some((item) => item.yearLevelId === yearLevelId);
-    if (cohortHasClasses && !window.confirm("Switch current unit? Every class in this year level will move to Lesson 1 of the selected unit.")) return;
+    if (cohortHasClasses && !window.confirm("Switch the cohort reference unit? Individual class units and lessons will stay unchanged.")) return;
     apply(() => setCurrentUnit(planner, yearLevelId, unitId));
   }
 
@@ -182,8 +183,8 @@ export function SetupView({ planner, onChange, onBack }: {
         <aside className="setup-menu" aria-label="Setup sections">
           <div className="setup-subject-card">
             <span>Active subject</span>
-            <input aria-label="Active subject name" value={activeSubject.name} onChange={(event) => { if (event.target.value.trim()) onChange(touchPlanner({ ...planner, subjects: planner.subjects.map((item) => item.id === activeSubject.id ? { ...item, name: event.target.value } : item) })); }} />
-            <small>Single-subject mode for v0.2</small>
+            <input aria-label="Active subject name" value={activeSubject.name} onChange={(event) => onChange(touchPlanner({ ...planner, subjects: planner.subjects.map((item) => item.id === activeSubject.id ? { ...item, name: event.target.value } : item) }))} />
+            <small>Single-subject mode for v0.2.1</small>
           </div>
           {([['cohorts', 'Year levels & units'], ['timetable', 'Weekly timetable'], ['notes', `Trial notes (${planner.trialNotes.length})`], ['data', 'Backup & reset']] as [SetupSection, string][]).map(([id, label]) => (
             <button type="button" key={id} className={section === id ? "active" : ""} onClick={() => setSection(id)}>{label}<span>→</span></button>
@@ -195,7 +196,7 @@ export function SetupView({ planner, onChange, onBack }: {
 
           {section === "cohorts" && <>
             <div className="setup-section-title">
-              <div><p className="section-kicker">Step 1–3</p><h2>Year levels, classes & units</h2><p>Create the groups you teach, then define each group’s current unit and ordered lessons.</p></div>
+              <div><p className="section-kicker">Step 1–3</p><h2>Year levels, classes & units</h2><p>Define the cohort reference, then set each class’s actual unit and next lesson independently.</p></div>
             </div>
             <div className="add-row top-add-row">
               <input value={newYearLabel} onChange={(event) => setNewYearLabel(event.target.value)} placeholder="New year level, e.g. Year 4" onKeyDown={(event) => event.key === "Enter" && addYearLevel()} />
@@ -212,8 +213,8 @@ export function SetupView({ planner, onChange, onBack }: {
                 return <article className="cohort-editor" key={level.id}>
                   <div className="cohort-editor-head">
                     <span className="year-badge">{level.shortLabel}</span>
-                    <label><span>Year level name</span><input value={level.label} onChange={(event) => { if (event.target.value.trim()) onChange(touchPlanner({ ...planner, yearLevels: planner.yearLevels.map((item) => item.id === level.id ? { ...item, label: event.target.value } : item) })); }} /></label>
-                    <label className="short-label"><span>Short</span><input maxLength={2} value={level.shortLabel} onChange={(event) => { if (event.target.value.trim()) onChange(touchPlanner({ ...planner, yearLevels: planner.yearLevels.map((item) => item.id === level.id ? { ...item, shortLabel: event.target.value } : item) })); }} /></label>
+                    <label><span>Year level name</span><input value={level.label} onChange={(event) => onChange(touchPlanner({ ...planner, yearLevels: planner.yearLevels.map((item) => item.id === level.id ? { ...item, label: event.target.value } : item) }))} /></label>
+                    <label className="short-label"><span>Short</span><input maxLength={2} value={level.shortLabel} onChange={(event) => onChange(touchPlanner({ ...planner, yearLevels: planner.yearLevels.map((item) => item.id === level.id ? { ...item, shortLabel: event.target.value } : item) }))} /></label>
                     <button className="text-button danger" type="button" onClick={() => removeYearLevel(level.id)}>Remove year level</button>
                   </div>
 
@@ -223,11 +224,14 @@ export function SetupView({ planner, onChange, onBack }: {
                       <div className="editable-list">
                         {cohort.map((item) => {
                           const progress = planner.classProgress[item.id];
+                          const classUnit = levelUnits.find((unit) => unit.id === progress?.unitId) ?? currentUnit;
                           return <div className="editable-class" key={item.id}>
                             <input aria-label={`${item.name} class name`} value={item.name} onChange={(event) => apply(() => renameClassRecord(planner, item.id, event.target.value))} />
-                            {currentUnit ? <select aria-label={`${item.name} next lesson`} value={progress?.lessonId ?? currentUnit.lessons[0].id} onChange={(event) => apply(() => setClassLesson(planner, item.id, event.target.value))}>
-                              {currentUnit.lessons.map((lesson, index) => <option value={lesson.id} key={lesson.id}>L{index + 1} · {lesson.title}</option>)}
-                            </select> : <span className="needs-unit">Add a unit first</span>}
+                            {classUnit ? <><select aria-label={`${item.name} current unit`} value={classUnit.id} onChange={(event) => { const nextUnit = levelUnits.find((unit) => unit.id === event.target.value); if (nextUnit) apply(() => setClassPosition(planner, item.id, nextUnit.id, nextUnit.lessons[0].id)); }}>
+                              {levelUnits.map((unit) => <option value={unit.id} key={unit.id}>{unit.title}</option>)}
+                            </select><select aria-label={`${item.name} next lesson`} value={progress?.lessonId ?? classUnit.lessons[0].id} onChange={(event) => apply(() => setClassLesson(planner, item.id, event.target.value))}>
+                              {classUnit.lessons.map((lesson, index) => <option value={lesson.id} key={lesson.id}>L{index + 1} · {lesson.title}</option>)}
+                            </select></> : <span className="needs-unit">Add a unit first</span>}
                             <button className="icon-button danger" type="button" onClick={() => removeClass(item.id, item.name)} aria-label={`Remove ${item.name}`}>×</button>
                           </div>;
                         })}
@@ -240,13 +244,13 @@ export function SetupView({ planner, onChange, onBack }: {
 
                     <div className="editor-panel unit-editor-panel">
                       <div className="editor-panel-title unit-switcher">
-                        <div><span>Current unit</span>{currentUnit && <strong>{currentUnit.title}</strong>}</div>
-                        {levelUnits.length > 0 && <select value={currentUnit?.id ?? ""} onChange={(event) => switchUnit(level.id, event.target.value)} aria-label={`${level.label} current unit`}>
+                        <div><span>Cohort reference unit</span>{currentUnit && <strong>{currentUnit.title}</strong>}</div>
+                        {levelUnits.length > 0 && <select value={currentUnit?.id ?? ""} onChange={(event) => switchUnit(level.id, event.target.value)} aria-label={`${level.label} cohort reference unit`}>
                           {levelUnits.map((unit) => <option value={unit.id} key={unit.id}>{unit.title}</option>)}
                         </select>}
                       </div>
 
-                      {!currentUnit ? <div className="mini-empty"><p>No current unit yet.</p></div> : <>
+                      {!currentUnit ? <div className="mini-empty"><p>No cohort reference unit yet.</p></div> : <>
                         <div className="unit-fields">
                           <label><span>Unit name</span><input value={currentUnit.title} onChange={(event) => apply(() => updateUnitDetails(planner, currentUnit.id, event.target.value, currentUnit.description))} /></label>
                           <label><span>Short description <i>optional</i></span><input value={currentUnit.description ?? ""} onChange={(event) => apply(() => updateUnitDetails(planner, currentUnit.id, currentUnit.title, event.target.value))} /></label>
@@ -336,7 +340,7 @@ export function SetupView({ planner, onChange, onBack }: {
             <div className="setup-section-title"><div><p className="section-kicker">Safety</p><h2>Backup & reset</h2><p>Your data lives in this browser. Export a backup regularly during the live trial.</p></div></div>
             <div className="data-actions">
               <article><span className="data-icon">↓</span><div><h3>Export planner backup</h3><p>Downloads subjects, cohorts, units, lessons, progress, timetable and notes as JSON.</p><button className="secondary-button" type="button" onClick={() => downloadBackup(planner)}>Export JSON</button></div></article>
-              <article><span className="data-icon">↑</span><div><h3>Import planner backup</h3><p>Validates a v0.2 backup before asking to replace current local data.</p><button className="secondary-button" type="button" onClick={() => importRef.current?.click()}>Choose JSON file</button><input className="visually-hidden" ref={importRef} type="file" accept="application/json,.json" onChange={(event) => importBackup(event.target.files?.[0])} /></div></article>
+              <article><span className="data-icon">↑</span><div><h3>Import planner backup</h3><p>Validates v0.2.1 and compatible v0.2 backups before asking to replace current local data.</p><button className="secondary-button" type="button" onClick={() => importRef.current?.click()}>Choose JSON file</button><input className="visually-hidden" ref={importRef} type="file" accept="application/json,.json" onChange={(event) => importBackup(event.target.files?.[0])} /></div></article>
             </div>
             <div className="danger-zone"><div><h3>Start over</h3><p>These actions replace the complete planner. Export a backup first.</p></div><div>
               <button className="secondary-button" type="button" onClick={() => window.confirm("Replace all current data with the Mandarin sample planner?") && onChange(freshSamplePlanner())}>Load sample data</button>

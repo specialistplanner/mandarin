@@ -8,6 +8,7 @@ import {
   deleteClassRecord,
   deleteLessonRecord,
   deleteUnitRecord,
+  getCohortProgressStatus,
   getProgressStatus,
   getTeachingSessionsForWeekday,
   getYearLevelExceptions,
@@ -15,11 +16,16 @@ import {
   moveProgress,
   renameClassRecord,
   reorderLessonRecord,
+  setClassLesson,
+  setClassPosition,
+  setCurrentUnit,
   setProgress,
+  updateUnitDetails,
   updateLessonRecord,
 } from "../lib/domain.ts";
 import {
   LEGACY_STORAGE_KEY,
+  LEGACY_V2_STORAGE_KEY,
   STORAGE_KEY,
   exportPlannerData,
   importPlannerData,
@@ -52,6 +58,23 @@ function fixture() {
   };
 }
 
+function mixedUnitFixture() {
+  const planner = fixture();
+  planner.yearLevels[0] = { id: "y5", label: "Year 1", shortLabel: "1", currentUnitId: "pets", expectedLessonId: "pets-l1" };
+  planner.classes = [{ id: "1c", name: "1C", yearLevelId: "y5" }, { id: "1d", name: "1D", yearLevelId: "y5" }];
+  planner.units = [
+    { id: "body", yearLevelId: "y5", title: "Body Parts", lessons: [1, 2, 3].map((number) => ({ id: `body-l${number}`, title: `Lesson ${number}`, sequence: number })) },
+    { id: "pets", yearLevelId: "y5", title: "Pets", lessons: [1, 2, 3].map((number) => ({ id: `pets-l${number}`, title: `Lesson ${number}`, sequence: number })) },
+  ];
+  planner.classProgress = {
+    "1c": { classId: "1c", unitId: "body", lessonId: "body-l3" },
+    "1d": { classId: "1d", unitId: "pets", lessonId: "pets-l1" },
+  };
+  planner.timetableSessions = [];
+  planner.trialNotes = [];
+  return planner;
+}
+
 const oldClasses = [{ id: "5e", name: "5E", yearLevelId: "y5" }, { id: "5c", name: "5C", yearLevelId: "y5" }];
 
 test("classes hold independent lesson progress", () => {
@@ -80,6 +103,46 @@ test("creating and editing a class uses a stable ID and independent progress", (
   assert.equal(renamed.classes.find((item) => item.id === "5blue").name, "5 North");
   assert.equal(renamed.classProgress["5blue"].lessonId, "u5-l1");
   assert.equal(renamed.classProgress["5e"].lessonId, "u5-l4");
+});
+
+test("editable multi-word values preserve spaces during controlled input updates", () => {
+  const classRenamed = renameClassRecord(fixture(), "5e", "Grade 5 Blue ");
+  assert.equal(classRenamed.classes.find((item) => item.id === "5e").name, "Grade 5 Blue ");
+  const unitRenamed = updateUnitDetails(classRenamed, "u5", "Body Parts ", "Australian States and Territories ");
+  assert.equal(unitRenamed.units[0].title, "Body Parts ");
+  assert.equal(unitRenamed.units[0].description, "Australian States and Territories ");
+  const lessonRenamed = updateLessonRecord(unitRenamed, "u5", "u5-l3", "Where are you from? ");
+  assert.equal(lessonRenamed.units[0].lessons[2].title, "Where are you from? ");
+});
+
+test("classes in one cohort can independently reference different units", () => {
+  const planner = mixedUnitFixture();
+  assert.deepEqual(planner.classProgress["1c"], { classId: "1c", unitId: "body", lessonId: "body-l3" });
+  assert.deepEqual(planner.classProgress["1d"], { classId: "1d", unitId: "pets", lessonId: "pets-l1" });
+
+  const moved = setClassPosition(planner, "1c", "pets", "pets-l2");
+  assert.deepEqual(moved.classProgress["1c"], { classId: "1c", unitId: "pets", lessonId: "pets-l2" });
+  assert.deepEqual(moved.classProgress["1d"], { classId: "1d", unitId: "pets", lessonId: "pets-l1" });
+});
+
+test("lesson progress stays independent inside each class unit", () => {
+  const changed = setClassLesson(mixedUnitFixture(), "1c", "body-l2");
+  assert.equal(changed.classProgress["1c"].lessonId, "body-l2");
+  assert.equal(changed.classProgress["1d"].lessonId, "pets-l1");
+});
+
+test("cross-unit progress is categorical, never lesson arithmetic", () => {
+  assert.deepEqual(getCohortProgressStatus("body", 3, "pets", 1), {
+    kind: "different-unit", difference: null, label: "Different unit",
+  });
+  assert.notEqual(getCohortProgressStatus("body", 3, "pets", 1).label, "2 lessons ahead");
+});
+
+test("changing the cohort reference unit does not move either class", () => {
+  const planner = mixedUnitFixture();
+  const changed = setCurrentUnit(planner, "y5", "body");
+  assert.equal(changed.yearLevels[0].currentUnitId, "body");
+  assert.deepEqual(changed.classProgress, planner.classProgress);
 });
 
 test("creating a unit sets stable current-unit, expected-lesson and progress references", () => {
@@ -118,14 +181,13 @@ test("timetable filtering excludes cover and every non-teaching session", () => 
 });
 
 test("export contains the complete planner and import restores it", () => {
-  const planner = fixture();
+  const planner = mixedUnitFixture();
   const json = exportPlannerData(planner);
   const parsed = JSON.parse(json);
   assert.equal(parsed.subjects[0].name, "Mandarin");
-  assert.equal(parsed.units[0].lessons.length, 5);
-  assert.equal(parsed.classProgress["5c"].lessonId, "u5-l3");
-  assert.equal(parsed.timetableSessions.length, 2);
-  assert.equal(parsed.trialNotes[0].text, "Half a lesson");
+  assert.equal(parsed.units.length, 2);
+  assert.deepEqual(parsed.classProgress["1c"], { classId: "1c", unitId: "body", lessonId: "body-l3" });
+  assert.deepEqual(parsed.classProgress["1d"], { classId: "1d", unitId: "pets", lessonId: "pets-l1" });
   assert.deepEqual(JSON.parse(JSON.stringify(importPlannerData(json))), parsed);
 });
 
@@ -137,14 +199,22 @@ test("invalid import is rejected without returning partial data", () => {
   assert.throws(() => importPlannerData(JSON.stringify(invalid)), /no valid year level/);
 });
 
-test("localStorage v2 persists fully and v0.1 numeric progress migrates safely", () => {
+test("localStorage v3 persists fully and v0.2 class units migrate safely", () => {
   const memory = new Map();
   const storage = { getItem: (key) => memory.get(key) ?? null, setItem: (key, value) => memory.set(key, value), removeItem: (key) => memory.delete(key) };
   persistPlanner(storage, fixture());
-  assert.equal(loadPlanner(storage, fixture()).source, "v2");
+  assert.equal(loadPlanner(storage, fixture()).source, "v3");
   assert.equal(JSON.parse(memory.get(STORAGE_KEY)).trialNotes.length, 1);
 
   memory.delete(STORAGE_KEY);
+  const v2 = fixture();
+  v2.schemaVersion = 2;
+  memory.set(LEGACY_V2_STORAGE_KEY, JSON.stringify(v2));
+  const v2Migrated = loadPlanner(storage, fixture());
+  assert.equal(v2Migrated.source, "migrated-v2");
+  assert.deepEqual(v2Migrated.planner.classProgress["5e"], { classId: "5e", unitId: "u5", lessonId: "u5-l4" });
+
+  memory.delete(LEGACY_V2_STORAGE_KEY);
   memory.set(LEGACY_STORAGE_KEY, JSON.stringify({ "5e": 2, "5c": 3 }));
   const migrated = loadPlanner(storage, fixture());
   assert.equal(migrated.source, "migrated-v1");

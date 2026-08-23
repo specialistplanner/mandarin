@@ -1,6 +1,6 @@
-# Specialist Planner v0.2 — Live Classroom Trial
+# Specialist Planner v0.2.1 — Live Trial Hotfix
 
-An editable, local-first planner for specialist teachers to configure real cohorts, units, lesson progress and a recurring weekly timetable while retaining the core question: **Where is every class up to?**
+An editable, local-first planner for specialist teachers. v0.2.1 preserves natural spaces while typing and allows classes in the same year level to be in different units.
 
 The Dashboard is the daily view; Setup manages teaching data, backups and trial notes. Detailed architecture and live-trial guidance are in [`dashboard/README.md`](dashboard/README.md).
 

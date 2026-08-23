@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
-  getProgressStatus,
+  getCohortProgressStatus,
   getTeachingSessionsForWeekday,
   lessonPosition,
   setClassLesson,
@@ -23,8 +23,8 @@ function timeLabel(time: string) {
   return `${hour % 12 || 12}:${minutes}${hour >= 12 ? "pm" : "am"}`;
 }
 
-function StatusLabel({ current, expected }: { current: number; expected: number }) {
-  const status = getProgressStatus(current, expected);
+function StatusLabel({ current, expected, currentUnitId, expectedUnitId }: { current: number; expected: number; currentUnitId: string; expectedUnitId: string }) {
+  const status = getCohortProgressStatus(currentUnitId, current, expectedUnitId, expected);
   return <span className={`status status-${status.kind}`}><span aria-hidden="true" className="status-dot" />{status.label}</span>;
 }
 
@@ -43,7 +43,7 @@ export function DashboardApp() {
     if (!loaded.planner) { setLoadState("empty"); return; }
     setPlanner(loaded.planner);
     setLoadState("ready");
-    if (loaded.source === "migrated-v1") {
+    if (loaded.source === "migrated-v1" || loaded.source === "migrated-v2") {
       persistPlanner(window.localStorage, loaded.planner);
       setMigrationNotice(true);
     }
@@ -69,7 +69,7 @@ export function DashboardApp() {
     return <main className="onboarding-screen">
       <div className="onboarding-card">
         <span className="brand-mark">SP</span>
-        <p className="eyebrow">Specialist Planner v0.2</p>
+        <p className="eyebrow">Specialist Planner v0.2.1</p>
         <h1>Make it yours.</h1>
         <p>Start with the Mandarin demonstration or begin with a blank planner. Either way, your data stays in this browser.</p>
         <div className="onboarding-actions">
@@ -87,20 +87,26 @@ export function DashboardApp() {
   const unitById = Object.fromEntries(planner.units.map((item) => [item.id, item]));
   const teachingSessions = getTeachingSessionsForWeekday(planner.timetableSessions, selectedDate.getDay());
 
-  const positionForClass = (classId: string, unit: Unit) => lessonPosition(unit, planner.classProgress[classId]?.lessonId);
+  const unitForClass = (classId: string) => unitById[planner.classProgress[classId]?.unitId];
+  const positionForClass = (classId: string, unit = unitForClass(classId)) => unit ? lessonPosition(unit, planner.classProgress[classId]?.lessonId) : 1;
   const expectedForLevel = (levelId: string, unit: Unit) => lessonPosition(unit, yearLevelById[levelId]?.expectedLessonId);
   const attentionCount = planner.yearLevels.reduce((total, level) => {
     const unit = level.currentUnitId ? unitById[level.currentUnitId] : undefined;
     if (!unit) return total;
     const expected = expectedForLevel(level.id, unit);
-    return total + planner.classes.filter((item) => item.yearLevelId === level.id && getProgressStatus(positionForClass(item.id, unit), expected).kind !== "on-track").length;
+    return total + planner.classes.filter((item) => {
+      if (item.yearLevelId !== level.id) return false;
+      const classUnit = unitForClass(item.id);
+      return !classUnit || getCohortProgressStatus(classUnit.id, positionForClass(item.id, classUnit), unit.id, expected).kind !== "on-track";
+    }).length;
   }, 0);
 
   const selectedClass = selectedClassId ? classById[selectedClassId] : null;
   const selectedLevel = selectedClass ? yearLevelById[selectedClass.yearLevelId] : null;
-  const selectedUnit = selectedLevel?.currentUnitId ? unitById[selectedLevel.currentUnitId] : null;
+  const selectedUnit = selectedClass ? unitForClass(selectedClass.id) : null;
+  const selectedCohortUnit = selectedLevel?.currentUnitId ? unitById[selectedLevel.currentUnitId] : null;
   const selectedPosition = selectedClass && selectedUnit ? positionForClass(selectedClass.id, selectedUnit) : 1;
-  const selectedExpected = selectedLevel && selectedUnit ? expectedForLevel(selectedLevel.id, selectedUnit) : 1;
+  const selectedExpected = selectedLevel && selectedCohortUnit ? expectedForLevel(selectedLevel.id, selectedCohortUnit) : 1;
 
   function choosePlanner(next: PlannerData) { setPlanner(next); setLoadState("ready"); }
   function shiftDay(offset: number) {
@@ -135,7 +141,7 @@ export function DashboardApp() {
       <button className="quick-note-button" type="button" onClick={() => setQuickNote({ context: view === "setup" ? "Setup" : "Dashboard" })}>＋ Quick note</button>
     </header>
 
-    {migrationNotice && <div className="migration-banner">Your v0.1 class progress was safely migrated to the editable planner.<button type="button" onClick={() => setMigrationNotice(false)}>×</button></div>}
+    {migrationNotice && <div className="migration-banner">Your existing class units and lesson progress were safely migrated to v0.2.1.<button type="button" onClick={() => setMigrationNotice(false)}>×</button></div>}
 
     {view === "setup" ? <SetupView planner={planner} onChange={choosePlanner} onBack={() => setView("dashboard")} /> : <main id="top">
       <section className="intro" aria-labelledby="page-title">
@@ -149,13 +155,14 @@ export function DashboardApp() {
           {teachingSessions.length ? <div className="session-strip">{teachingSessions.map((session) => {
             const item = classById[session.classId!];
             const level = item ? yearLevelById[item.yearLevelId] : undefined;
-            const unit = level?.currentUnitId ? unitById[level.currentUnitId] : undefined;
+            const cohortUnit = level?.currentUnitId ? unitById[level.currentUnitId] : undefined;
+            const unit = item ? unitForClass(item.id) : undefined;
             const current = item && unit ? positionForClass(item.id, unit) : 1;
-            const expected = level && unit ? expectedForLevel(level.id, unit) : 1;
-            const status = getProgressStatus(current, expected);
-            return <button type="button" className={`session-card ${unit && status.kind !== "on-track" ? "has-exception" : ""}`} key={session.id} onClick={() => item && setSelectedClassId(item.id)}>
+            const expected = level && cohortUnit ? expectedForLevel(level.id, cohortUnit) : 1;
+            const status = unit && cohortUnit ? getCohortProgressStatus(unit.id, current, cohortUnit.id, expected) : null;
+            return <button type="button" className={`session-card ${status && status.kind !== "on-track" ? "has-exception" : ""}`} key={session.id} onClick={() => item && setSelectedClassId(item.id)}>
               <span className="session-time">{timeLabel(session.startTime)}–{timeLabel(session.endTime)}</span><span className="session-class">{item?.name ?? "Missing class"}</span><span className="session-year">{level?.label}</span>
-              {unit ? <><span className="session-unit">{unit.title}</span><span className="session-lesson">Teach next: L{current} · {unit.lessons[current - 1]?.title}</span><StatusLabel current={current} expected={expected} /></> : <span className="session-lesson">Unit needs setup</span>}
+              {unit && cohortUnit ? <><span className="session-unit">{unit.title}</span><span className="session-lesson">Teach next: L{current} · {unit.lessons[current - 1]?.title}</span><StatusLabel current={current} expected={expected} currentUnitId={unit.id} expectedUnitId={cohortUnit.id} /></> : <span className="session-lesson">Unit needs setup</span>}
             </button>;
           })}</div> : <div className="no-sessions"><span aria-hidden="true">☀</span><p><strong>No specialist teaching sessions</strong><br />This day is clear in the {activeSubject.name || "specialist"} timetable.</p></div>}
         </section>
@@ -167,13 +174,18 @@ export function DashboardApp() {
             const cohort = planner.classes.filter((item) => item.yearLevelId === level.id);
             if (!unit) return <article className="year-card needs-setup" key={level.id}><div className="year-identity"><span className="year-badge">{level.shortLabel}</span><div><h3>{level.label}</h3><p>No current unit</p></div></div><button className="secondary-button" type="button" onClick={() => setView("setup")}>Complete setup</button></article>;
             const expected = expectedForLevel(level.id, unit);
-            const exceptions = cohort.filter((item) => getProgressStatus(positionForClass(item.id, unit), expected).kind !== "on-track");
+            const exceptions = cohort.filter((item) => {
+              const classUnit = unitForClass(item.id);
+              return !classUnit || getCohortProgressStatus(classUnit.id, positionForClass(item.id, classUnit), unit.id, expected).kind !== "on-track";
+            });
             return <article className={`year-card ${exceptions.length ? "diverged" : "aligned"}`} key={level.id}>
               <div className="year-identity"><span className="year-badge">{level.shortLabel}</span><div><h3>{level.label}</h3><p>{unit.title}</p></div></div>
               <div className="expected-block"><span>Expected / teach next</span><strong>Lesson {expected}</strong><small>{unit.lessons[expected - 1]?.title}</small></div>
               <div className="class-pills" aria-label={`${level.label} class progress`}>{cohort.map((item) => {
-                const current = positionForClass(item.id, unit); const status = getProgressStatus(current, expected);
-                return <button type="button" key={item.id} className={`class-pill ${status.kind}`} onClick={() => setSelectedClassId(item.id)} aria-label={`${item.name}, teach lesson ${current} next, ${status.label}`}><span>{item.name}</span><strong>L{current}</strong><i aria-hidden="true">{status.kind === "on-track" ? "✓" : status.kind === "behind" ? "↓" : "↑"}</i></button>;
+                const classUnit = unitForClass(item.id) ?? unit;
+                const current = positionForClass(item.id, classUnit);
+                const status = getCohortProgressStatus(classUnit.id, current, unit.id, expected);
+                return <button type="button" key={item.id} className={`class-pill ${status.kind}`} onClick={() => setSelectedClassId(item.id)} aria-label={`${item.name}, ${classUnit.title}, teach lesson ${current} next, ${status.label}`}><span className="class-pill-copy"><b>{item.name}</b><small>{classUnit.title}</small></span><strong>L{current}</strong><i aria-hidden="true">{status.kind === "on-track" ? "✓" : status.kind === "behind" ? "↓" : status.kind === "ahead" ? "↑" : "↔"}</i></button>;
               })}</div>
               <div className={`cohort-note ${exceptions.length ? "exception" : "calm"}`}>{exceptions.length ? <><span aria-hidden="true">!</span><p><strong>{exceptions.map((item) => item.name).join(" and ")}</strong> {exceptions.length === 1 ? "is" : "are"} out of sync</p></> : <><span aria-hidden="true">✓</span><p>{cohort.length ? "All classes aligned" : "No classes yet"}</p></>}</div>
             </article>;
@@ -182,16 +194,16 @@ export function DashboardApp() {
       </>}
     </main>}
 
-    <footer><span>Specialist Planner <strong>v0.2 Live Classroom Trial</strong></span><span>Saved locally on this device · <button type="button" onClick={() => setView("setup")}>Backup in Setup</button></span></footer>
+    <footer><span>Specialist Planner <strong>v0.2.1 Live Trial</strong></span><span>Saved locally on this device · <button type="button" onClick={() => setView("setup")}>Backup in Setup</button></span></footer>
 
     {selectedClass && selectedLevel && <div className="drawer-layer" role="presentation" onMouseDown={(event) => event.currentTarget === event.target && setSelectedClassId(null)}>
       <aside className="detail-drawer" role="dialog" aria-modal="true" aria-labelledby="detail-title">
         <div className="drawer-topline"><span>Class progress</span><button className="close-button" type="button" onClick={() => setSelectedClassId(null)} aria-label="Close class detail">×</button></div>
         <div className="drawer-title"><span className="drawer-class-badge">{selectedClass.name}</span><div><h2 id="detail-title">{selectedClass.name}</h2><p>{selectedLevel.label} · {activeSubject.name}</p></div></div>
         {!selectedUnit ? <div className="drawer-empty"><h3>No current unit</h3><p>Add a unit in Setup before setting progress.</p><button className="primary-button" type="button" onClick={() => { setSelectedClassId(null); setView("setup"); }}>Open Setup</button></div> : <>
-          <div className="detail-unit"><span>Current unit</span><strong>{selectedUnit.title}</strong><StatusLabel current={selectedPosition} expected={selectedExpected} /></div>
+          <div className="detail-unit"><span>Actual current unit</span><strong>{selectedUnit.title}</strong>{selectedCohortUnit && <StatusLabel current={selectedPosition} expected={selectedExpected} currentUnitId={selectedUnit.id} expectedUnitId={selectedCohortUnit.id} />}</div>
           <div className="lesson-detail-grid"><div><span>Last completed</span><strong>{selectedPosition === 1 ? "Not started" : `Lesson ${selectedPosition - 1}`}</strong><small>{selectedPosition > 1 ? selectedUnit.lessons[selectedPosition - 2]?.title : "Ready to begin"}</small></div><div className="next-lesson"><span>Teach next</span><strong>Lesson {selectedPosition}</strong><small>{selectedUnit.lessons[selectedPosition - 1]?.title}</small></div></div>
-          <div className="cohort-context"><span>Cohort reference</span><p>Expected next lesson is <strong>Lesson {selectedExpected}</strong>. {planner.classes.filter((item) => item.yearLevelId === selectedLevel.id && item.id !== selectedClass.id).map((item) => `${item.name} is on L${positionForClass(item.id, selectedUnit)}`).join(" · ") || "No other classes in this cohort."}</p></div>
+          <div className={`cohort-context ${selectedCohortUnit && selectedCohortUnit.id !== selectedUnit.id ? "unit-mismatch" : ""}`}><span>Cohort reference</span>{selectedCohortUnit ? <p>The cohort expects <strong>{selectedCohortUnit.title} · Lesson {selectedExpected}</strong>. {selectedCohortUnit.id !== selectedUnit.id ? `${selectedClass.name} is currently finishing ${selectedUnit.title}.` : planner.classes.filter((item) => item.yearLevelId === selectedLevel.id && item.id !== selectedClass.id).map((item) => { const peerUnit = unitForClass(item.id); return `${item.name} is on ${peerUnit?.title ?? "no unit"} L${positionForClass(item.id, peerUnit)}`; }).join(" · ") || "No other classes in this cohort."}</p> : <p>No cohort reference unit is set.</p>}</div>
           <div className="prototype-controls"><div><span className="prototype-tag">Live trial control</span><h3>Set the lesson to teach next</h3><p>Manual adjustment is intentional for this trial. “L4” means Lessons 1–3 are complete and Lesson 4 is next.</p></div><div className="stepper"><button type="button" onClick={() => shiftSelected(-1)} disabled={selectedPosition <= 1}>−</button><span><small>Teach next</small><strong>{selectedPosition}</strong></span><button type="button" onClick={() => shiftSelected(1)} disabled={selectedPosition >= selectedUnit.lessons.length}>+</button></div><label className="lesson-select"><span>Choose next lesson</span><select value={planner.classProgress[selectedClass.id]?.lessonId ?? selectedUnit.lessons[0].id} onChange={(event) => setPlanner(setClassLesson(planner, selectedClass.id, event.target.value))}>{selectedUnit.lessons.map((lesson, index) => <option key={lesson.id} value={lesson.id}>Lesson {index + 1} · {lesson.title}</option>)}</select></label></div>
           <button className="drawer-note-button" type="button" onClick={() => { setQuickNote({ classId: selectedClass.id, context: "Class drawer" }); setQuickNoteText(""); }}>＋ Add quick note about {selectedClass.name}</button>
         </>}

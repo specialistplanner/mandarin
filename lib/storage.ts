@@ -6,11 +6,12 @@ import {
   type SessionType,
 } from "./domain.ts";
 
-export const STORAGE_KEY = "specialist-planner.data.v2";
+export const STORAGE_KEY = "specialist-planner.data.v3";
+export const LEGACY_V2_STORAGE_KEY = "specialist-planner.data.v2";
 export const LEGACY_STORAGE_KEY = "specialist-planner.dashboard.progress.v1";
 
 export type StorageLike = Pick<Storage, "getItem" | "setItem"> & Partial<Pick<Storage, "removeItem">>;
-export type PlannerLoadResult = { planner: PlannerData | null; source: "v2" | "migrated-v1" | "empty" };
+export type PlannerLoadResult = { planner: PlannerData | null; source: "v3" | "migrated-v2" | "migrated-v1" | "empty" };
 
 const sessionTypes = new Set<SessionType>([
   "specialist-teaching", "cover-release", "planning", "meeting", "school-activity", "break", "other",
@@ -37,7 +38,7 @@ function uniqueIds(items: Array<{ id: string }>, label: string) {
 
 export function validatePlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== PLANNER_SCHEMA_VERSION) {
-    throw new Error("This file is not a Specialist Planner v0.2 backup.");
+    throw new Error("This file is not a Specialist Planner v0.2.1 backup.");
   }
   if (!Array.isArray(value.subjects) || !Array.isArray(value.yearLevels) || !Array.isArray(value.classes) ||
       !Array.isArray(value.units) || !Array.isArray(value.timetableSessions) || !Array.isArray(value.trialNotes) ||
@@ -107,7 +108,7 @@ export function validatePlannerData(value: unknown): PlannerData {
     };
     const specialistClass = classes.find((candidate) => candidate.id === classId && candidate.id === progress.classId);
     const level = yearLevels.find((candidate) => candidate.id === specialistClass?.yearLevelId);
-    const unit = units.find((candidate) => candidate.id === progress.unitId && candidate.id === level?.currentUnitId);
+    const unit = units.find((candidate) => candidate.id === progress.unitId && candidate.yearLevelId === level?.id);
     if (!specialistClass || !unit?.lessons.some((lesson) => lesson.id === progress.lessonId)) throw new Error(`Progress for ${classId} has an invalid reference.`);
     return [classId, progress];
   }));
@@ -160,8 +161,13 @@ export function validatePlannerData(value: unknown): PlannerData {
 export function loadPlanner(storage: StorageLike, sample: PlannerData): PlannerLoadResult {
   const current = storage.getItem(STORAGE_KEY);
   if (current) {
-    try { return { planner: validatePlannerData(JSON.parse(current)), source: "v2" }; }
+    try { return { planner: validatePlannerData(JSON.parse(current)), source: "v3" }; }
     catch { /* Leave invalid local data untouched so it can be recovered manually. */ }
+  }
+  const previous = storage.getItem(LEGACY_V2_STORAGE_KEY);
+  if (previous) {
+    try { return { planner: migrateV2PlannerData(JSON.parse(previous)), source: "migrated-v2" }; }
+    catch { /* Fall through to the v0.1 progress migration. */ }
   }
   const legacy = storage.getItem(LEGACY_STORAGE_KEY);
   if (!legacy) return { planner: null, source: "empty" };
@@ -200,7 +206,13 @@ export function importPlannerData(text: string): PlannerData {
   let parsed: unknown;
   try { parsed = JSON.parse(text); }
   catch { throw new Error("The selected file is not valid JSON."); }
+  if (record(parsed) && parsed.schemaVersion === 2) return migrateV2PlannerData(parsed);
   return validatePlannerData(parsed);
+}
+
+export function migrateV2PlannerData(value: unknown): PlannerData {
+  if (!record(value) || value.schemaVersion !== 2) throw new Error("This is not a valid Specialist Planner v0.2 backup.");
+  return validatePlannerData({ ...value, schemaVersion: PLANNER_SCHEMA_VERSION });
 }
 
 // v0.1 API retained to prove the migration source remains readable.

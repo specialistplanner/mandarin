@@ -1,4 +1,4 @@
-export const PLANNER_SCHEMA_VERSION = 2 as const;
+export const PLANNER_SCHEMA_VERSION = 3 as const;
 
 export type SessionType =
   | "specialist-teaching"
@@ -87,8 +87,8 @@ export type PlannerData = {
 };
 
 export type ProgressStatus = {
-  kind: "behind" | "on-track" | "ahead";
-  difference: number;
+  kind: "behind" | "on-track" | "ahead" | "different-unit";
+  difference: number | null;
   label: string;
 };
 
@@ -156,6 +156,18 @@ export function getProgressStatus(currentLesson: number, expectedLesson: number)
     : { kind: "ahead", difference, label: `${distance} ${unit} ahead` };
 }
 
+export function getCohortProgressStatus(
+  classUnitId: string,
+  classLesson: number,
+  expectedUnitId: string,
+  expectedLesson: number,
+): ProgressStatus {
+  if (classUnitId !== expectedUnitId) {
+    return { kind: "different-unit", difference: null, label: "Different unit" };
+  }
+  return getProgressStatus(classLesson, expectedLesson);
+}
+
 export function getYearLevelExceptions(
   classes: SpecialistClass[],
   progress: ProgressMap,
@@ -201,7 +213,7 @@ export function createClassRecord(
   if (unit?.lessons[0]) {
     classProgress[item.id] = { classId: item.id, unitId: unit.id, lessonId: unit.lessons[0].id };
   }
-  return touchPlanner({ ...planner, classes: [...planner.classes, { ...item, name: item.name.trim() }], classProgress });
+  return touchPlanner({ ...planner, classes: [...planner.classes, item], classProgress });
 }
 
 export function renameClassRecord(planner: PlannerData, classId: string, name: string): PlannerData {
@@ -209,7 +221,7 @@ export function renameClassRecord(planner: PlannerData, classId: string, name: s
   if (!planner.classes.some((item) => item.id === classId)) throw new Error("Class not found.");
   return touchPlanner({
     ...planner,
-    classes: planner.classes.map((item) => item.id === classId ? { ...item, name: name.trim() } : item),
+    classes: planner.classes.map((item) => item.id === classId ? { ...item, name } : item),
   });
 }
 
@@ -247,7 +259,7 @@ export function updateUnitDetails(
   return touchPlanner({
     ...planner,
     units: planner.units.map((unit) => unit.id === unitId
-      ? { ...unit, title: title.trim(), description: description.trim() || undefined }
+      ? { ...unit, title, description: description || undefined }
       : unit),
   });
 }
@@ -255,10 +267,11 @@ export function updateUnitDetails(
 export function setCurrentUnit(planner: PlannerData, yearLevelId: string, unitId: string): PlannerData {
   const unit = planner.units.find((candidate) => candidate.id === unitId && candidate.yearLevelId === yearLevelId);
   if (!unit?.lessons[0]) throw new Error("Choose a valid unit with lessons.");
-  const cohortIds = new Set(planner.classes.filter((item) => item.yearLevelId === yearLevelId).map((item) => item.id));
   const classProgress = { ...planner.classProgress };
-  for (const classId of cohortIds) {
-    classProgress[classId] = { classId, unitId, lessonId: unit.lessons[0].id };
+  for (const item of planner.classes.filter((candidate) => candidate.yearLevelId === yearLevelId)) {
+    if (!classProgress[item.id]) {
+      classProgress[item.id] = { classId: item.id, unitId, lessonId: unit.lessons[0].id };
+    }
   }
   return touchPlanner({
     ...planner,
@@ -272,6 +285,9 @@ export function setCurrentUnit(planner: PlannerData, yearLevelId: string, unitId
 export function deleteUnitRecord(planner: PlannerData, unitId: string): PlannerData {
   if (planner.yearLevels.some((level) => level.currentUnitId === unitId)) {
     throw new Error("Set another current unit before deleting this unit.");
+  }
+  if (Object.values(planner.classProgress).some((progress) => progress.unitId === unitId)) {
+    throw new Error("Move every class to another unit before deleting this unit.");
   }
   return touchPlanner({ ...planner, units: planner.units.filter((unit) => unit.id !== unitId) });
 }
@@ -299,7 +315,7 @@ export function updateLessonRecord(
     units: planner.units.map((unit) => unit.id === unitId ? {
       ...unit,
       lessons: unit.lessons.map((lesson) => lesson.id === lessonId
-        ? { ...lesson, title: title.trim(), description: description.trim() || undefined }
+        ? { ...lesson, title, description: description || undefined }
         : lesson),
     } : unit),
   });
@@ -348,13 +364,33 @@ export function deleteLessonRecord(planner: PlannerData, unitId: string, lessonI
 export function setClassLesson(planner: PlannerData, classId: string, lessonId: string): PlannerData {
   const item = planner.classes.find((candidate) => candidate.id === classId);
   const level = planner.yearLevels.find((candidate) => candidate.id === item?.yearLevelId);
-  const unit = planner.units.find((candidate) => candidate.id === level?.currentUnitId);
+  const existing = planner.classProgress[classId];
+  const unit = planner.units.find((candidate) => candidate.id === existing?.unitId && candidate.yearLevelId === level?.id);
   if (!item || !level || !unit?.lessons.some((lesson) => lesson.id === lessonId)) {
     throw new Error("Choose a valid lesson for this class.");
   }
   return touchPlanner({
     ...planner,
     classProgress: { ...planner.classProgress, [classId]: { classId, unitId: unit.id, lessonId } },
+  });
+}
+
+export function setClassPosition(
+  planner: PlannerData,
+  classId: string,
+  unitId: string,
+  lessonId: string,
+): PlannerData {
+  const item = planner.classes.find((candidate) => candidate.id === classId);
+  const unit = planner.units.find((candidate) =>
+    candidate.id === unitId &&
+    candidate.yearLevelId === item?.yearLevelId &&
+    candidate.lessons.some((lesson) => lesson.id === lessonId),
+  );
+  if (!item || !unit) throw new Error("Choose a valid unit and lesson for this class.");
+  return touchPlanner({
+    ...planner,
+    classProgress: { ...planner.classProgress, [classId]: { classId, unitId, lessonId } },
   });
 }
 
