@@ -13,17 +13,17 @@ export async function generateMetadata(): Promise<Metadata> {
   const metadataBase = new URL(`${protocol}://${host}`);
   return {
     metadataBase,
-    title: "Specialist Progress Dashboard",
-    description: "See where every specialist class is up to, at a glance.",
+    title: "Specialist Planner v0.2 — Live Classroom Trial",
+    description: "An editable, local-first planner for real specialist teaching weeks.",
     openGraph: {
-      title: "Specialist Progress Dashboard",
-      description: "Where is every class up to?",
+      title: "Specialist Planner v0.2 — Live Classroom Trial",
+      description: "Configure your real teaching week and see where every class is up to.",
       images: [{ url: "/og.png", width: 1732, height: 907 }],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Specialist Progress Dashboard",
-      description: "Where is every class up to?",
+      title: "Specialist Planner v0.2 — Live Classroom Trial",
+      description: "Configure your real teaching week and see where every class is up to.",
       images: ["/og.png"],
     },
   };

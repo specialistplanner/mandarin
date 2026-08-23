@@ -1,91 +1,137 @@
-# Dashboard prototype notes
+# Specialist Planner v0.2 — Live Classroom Trial
 
 ## Purpose
 
-Specialist Progress Dashboard v0.1 answers four questions at a glance:
+v0.2 turns the successful v0.1 Dashboard into a local-first planner that a specialist teacher can configure and use for several real school weeks without editing source code. It preserves the glanceable progress view while making the teaching data editable and safely exportable.
 
-1. What unit is each year level studying?
-2. What lesson is the cohort expected to be on?
-3. Where is every individual class actually up to?
-4. What specialist teaching sessions are scheduled for the selected day?
-
-It deliberately does not treat Calendar entries as the source of truth for class progress.
+It still does not treat Calendar records as the source of truth for progress, and it does not implement teaching-session outcomes yet.
 
 ## Architecture
 
-- `app/page.tsx` is the dashboard route.
-- `app/dashboard-app.tsx` contains the client UI and its lightweight interaction state.
-- `lib/domain.ts` contains subject-agnostic types and pure progress/timetable calculations.
-- `lib/sample-data.ts` contains Mandarin-only sample units, classes, initial progress, and the weekly timetable.
-- `lib/storage.ts` is the browser-persistence adapter.
-- `tests/` verifies domain behaviour and server rendering.
+- `app/dashboard-app.tsx` owns the Dashboard, first-run choice, progress drawer and Quick Note modal.
+- `app/setup-view.tsx` provides the single Setup experience for cohorts, units, lessons, timetable, trial notes and backup.
+- `lib/domain.ts` defines schema v2 and pure integrity-preserving mutations.
+- `lib/sample-data.ts` supplies optional Mandarin demonstration data and a blank-planner factory.
+- `lib/storage.ts` validates, persists, migrates, exports and imports the complete planner.
+- `tests/` covers domain behaviour, migration, backup safety and server rendering.
 
-The UI is intentionally separate from the reusable domain functions. A future Calendar view can consume the same shared entities without importing Dashboard components.
+The persisted conceptual shape is:
 
-## Data model
+`PlannerData → Subjects → YearLevels → Classes → Units → Lessons → ClassProgress → TimetableSessions → TrialNotes`
 
-The reusable model is:
+## Editable domain model
 
-- **Subject** — the specialist discipline, such as Mandarin, Music, Art, or PE.
-- **YearLevel** — owns the current unit reference and an explicit expected lesson.
-- **Class** — belongs to one year level.
-- **Unit** — contains an ordered lesson sequence.
-- **ClassProgress** — maps a class to its independent current/next lesson within a unit.
-- **TimetableSession** — has a weekday, time, session type, optional subject/class, and a future-compatible outcome.
+All entities use stable internal IDs. Display names can be changed without changing references.
 
-Session types already distinguish specialist teaching, cover/release, planning, meetings, school activities, breaks, and other work. Only `specialist-teaching` sessions appear in Today’s Teaching and may eventually affect subject progress. The sample `Prep B` cover session in the data proves that non-teaching sessions are filtered out.
+- **Subject**: v0.2 supports one active subject in the UI; the schema stores a subject collection and active subject ID.
+- **YearLevel**: editable display name and short label, plus stable references to its current unit and expected lesson.
+- **Class**: stable ID, editable name and year-level reference.
+- **Unit**: stable ID, year-level reference, editable title/optional description, and an ordered lesson collection.
+- **Lesson**: stable ID, editable title/optional description and normalized display sequence.
+- **ClassProgress**: references class, unit and the stable ID of the lesson to teach next.
+- **TimetableSession**: stable ID, recurring weekday/time, type, optional class and label, plus a reserved future outcome field.
+- **TrialNote**: stable ID, text, timestamp, optional context and optional class reference.
 
-The session outcome type reserves `planned`, `completed`, `partial`, and `cancelled`, but v0.1 does not apply outcome events yet.
+Lesson order is display order; progress does not store an array index. Renaming a lesson leaves progress unchanged. Reordering a lesson moves that lesson—and any class pointing to it—to its new displayed position.
 
-## Sample data
+## Progress semantics
 
-The 16 classes, Mandarin units and lessons, initial progress values, and weekly timetable are prototype content. The type names, progress calculations, storage adapter, and session filtering contain no Mandarin-specific assumptions.
+The stored class lesson means **the lesson to teach next**. If a class displays Lesson 4, Lessons 1–3 are considered completed for this lightweight trial model.
 
-The acceptance scenario starts Year 5 with both 5E and 5C on Lesson 4. Open 5C and use the minus control or lesson selector to move it to Lesson 3. Both the Year 5 row and Wednesday card immediately report that 5C is one lesson behind.
+Each year level also stores an expected next lesson by stable lesson ID. Dashboard status compares the class lesson’s current display position with the cohort expectation:
 
-## Cohort and divergence logic
+- zero difference: on track;
+- negative difference: behind;
+- positive difference: ahead.
 
-Each year level has an explicit `expectedLesson`. This is clearer for v0.1 than deriving a target from a majority/median, because the teacher can see and intentionally set the planned cohort position later. A class status is its actual lesson minus that expected lesson:
+Manual progress adjustment remains intentional during the trial. Completed, Partial and Cancelled session workflows are reserved but not applied.
 
-- `0`: on track
-- negative: behind by the absolute difference
-- positive: ahead by the difference
+## Local storage and migration
 
-The exact lesson remains visible alongside the status. Aligned rows stay visually quiet; amber is reserved for behind exceptions, while muted blue distinguishes ahead classes without making them look like errors.
+The complete document is stored under:
 
-Lesson values are clamped to the first and final lessons. The prototype models the lesson to teach next: if a class is on Lesson 4, Lesson 3 is the last completed lesson.
+`specialist-planner.data.v2`
 
-## Local persistence
+On first v0.2 load:
 
-Progress is stored in browser `localStorage` under the versioned key `specialist-planner.dashboard.progress.v1`. Stored data is validated and merged over defaults, so new classes can be introduced without losing known progress. Invalid or corrupt data safely falls back to sample defaults.
+1. valid schema-v2 data is restored;
+2. otherwise, `specialist-planner.dashboard.progress.v1` is checked;
+3. valid v0.1 numeric progress is applied to stable lesson IDs in a fresh copy of the sample configuration;
+4. the result is persisted as schema v2;
+5. the legacy key is left untouched as an additional recovery source.
 
-This device-local persistence is intentional for v0.1. No Firebase, production data, security rule, deployment configuration, or account state is touched.
+Invalid v2 data is never overwritten automatically. Mid-edit invalid fields are not persisted until the planner validates again.
 
-## Relationship to Calendar
+This browser storage is explicitly required for the trial. No Firebase, cloud database, account or cross-device sync is used.
 
-The task referenced an existing `calendar/` module and its README, but neither exists in this repository checkout. No Calendar code was removed, renamed, or refactored. The header shows Calendar as an unavailable separate module instead of linking to a broken route.
+## Setup workflow
 
-When Calendar is available, the recommended shared domain package should own:
+1. New users choose **Start blank planner** or **Explore sample data**.
+2. Rename the active subject.
+3. Add year levels, classes and class names.
+4. Create each current unit and edit its description.
+5. Add, rename, describe, reorder or remove lessons.
+6. Set the cohort expectation and every class’s next lesson.
+7. Add recurring weekly timetable sessions.
+8. Return to the Dashboard and begin daily use.
 
-- subjects, year levels, classes, units, and lesson identifiers;
-- typed timetable/teaching sessions;
-- stable session outcome values;
-- date/time and school-term conventions.
+Creating and switching current units intentionally starts that cohort at the first lesson after confirmation. Removing a class requires confirmation and removes its progress and timetable sessions; its notes remain but lose the class link. Removing a referenced lesson requires confirmation and safely moves affected progress/expectations to the nearest remaining lesson. A current unit cannot be deleted until another unit is selected.
 
-Calendar should retain scheduled and historical session records. Dashboard should retain derived/current class progress. A future completed-session application service can connect them:
+## Timetable session types
 
-`Timetable → TeachingSession → outcome → progress event → ClassProgress → Dashboard`
+- Specialist Teaching
+- Cover / Release
+- Planning
+- PLT / Meeting
+- Assembly / School Activity
+- Break
+- Other
 
-Completed sessions would normally advance progress, partial sessions would require a teacher decision, and cancelled sessions would retain history without advancing progress. This should be event-driven rather than having Calendar entries directly overwrite progress.
+Only Specialist Teaching sessions with a valid class appear in Dashboard teaching-progress cards. Cover, planning, meetings, activities, breaks and other sessions never enter that view and cannot advance progress.
 
-Because the Calendar source is absent, its proposed Firestore fields cannot be compared honestly. Before integration, inspect its class/unit/session identifiers and refactor only duplicated domain types into shared code; keep editor and view state module-local.
+## Backup and restore
 
-## Prototype-only elements
+**Export JSON** downloads the entire validated v2 document: configuration, progress, timetable and trial notes.
 
-- direct advance/back/reset controls;
-- hard-coded expected lessons and timetable;
-- initials/workspace presentation in the header;
-- local browser persistence;
-- Mandarin sample curriculum language.
+**Import JSON** parses and validates schema version, collection shape, stable IDs, references, lesson membership, times and teaching-session class requirements. Only after validation does the UI ask permission to replace current data. Invalid files are rejected without changing the planner.
 
-The next recommended step is a small shared-domain integration spike with the actual Calendar repository present: reconcile identifiers, introduce a teaching-session outcome event, and prove that one completed specialist-teaching session advances exactly one class while Calendar history remains unchanged.
+**Load sample data** and **Reset planner** are separate confirmed destructive actions. Export a backup first.
+
+## Quick Notes
+
+Use **+ Quick note** anywhere, or launch a class-linked note from the progress drawer. Notes persist with the planner, are reviewable and deletable in Setup, and are included in every JSON backup. They are intentionally not a general notes or analytics system.
+
+## Live Trial Guidance
+
+At the start of the week, confirm each cohort expectation and each class’s next lesson. Use the Today cards before teaching, then manually correct class progress as needed. Export a JSON backup at least weekly and before major setup changes.
+
+Record Quick Notes when reality challenges the model—for example:
+
+- a class finishes only part of a lesson;
+- a cancellation makes the expected lesson confusing;
+- the Dashboard lacks context needed before class;
+- a setup or correction takes too many steps;
+- different classes need genuinely different lesson sequences.
+
+Useful notes describe what happened, what the teacher expected, and what decision the product could not represent.
+
+## Known limitations and intentional deferrals
+
+- one active subject in the v0.2 UI;
+- device-and-browser-local data with no cross-device sync;
+- no automated teaching-session outcome engine;
+- no Calendar integration because Calendar is absent from this checkout;
+- no timetable drag-and-drop;
+- no curriculum, students, attendance, assessment, reporting, accounts, analytics or notifications.
+
+The Mandarin curriculum content and sample weekly schedule remain hard-coded only as optional demonstration data. The working planner is fully editable after it is loaded.
+
+## Recommended future Teaching Session model
+
+Keep scheduled/history data separate from current progress:
+
+`Timetable occurrence → TeachingSession → Completed / Partial / Cancelled → progress event → ClassProgress`
+
+A Completed outcome may advance exactly one class. Partial should preserve teacher judgment about the next lesson. Cancelled should retain history without advancing. Trial Notes from v0.2 should be reviewed before locking those semantics.
+
+Calendar integration should wait until the actual Calendar module is present and the shared stable IDs can be reconciled without copying its UI code.

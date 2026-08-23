@@ -13,15 +13,14 @@ async function render() {
   );
 }
 
-test("server-renders the Specialist Progress Dashboard", async () => {
+test("server-renders the Specialist Planner live-trial shell", async () => {
   const response = await render();
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>Specialist Progress Dashboard<\/title>/i);
-  assert.match(html, /Where is every class up to\?/);
-  assert.match(html, /Class progress overview/);
-  assert.match(html, /Specialist Progress Dashboard/);
+  assert.match(html, /<title>Specialist Planner v0\.2 — Live Classroom Trial<\/title>/i);
+  assert.match(html, /Opening your planner/);
+  assert.match(html, /Specialist Planner/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
