@@ -210,7 +210,14 @@ export function SetupView({ planner, onChange, onBack }: {
                 const cohort = planner.classes.filter((item) => item.yearLevelId === level.id);
                 const levelUnits = planner.units.filter((unit) => unit.yearLevelId === level.id);
                 const currentUnit = levelUnits.find((unit) => unit.id === level.currentUnitId);
-                return <article className="cohort-editor" key={level.id}>
+                return <details className="cohort-editor" key={level.id}>
+                  <summary className="cohort-editor-summary">
+                    <span className="year-badge">{level.shortLabel}</span>
+                    <span className="cohort-summary-name">{level.label}</span>
+                    <span className="cohort-summary-meta">{cohort.length} {cohort.length === 1 ? "class" : "classes"}</span>
+                    <span className="cohort-summary-meta">{currentUnit?.title ?? "No reference unit"}</span>
+                    <span className="cohort-summary-chevron" aria-hidden="true">⌄</span>
+                  </summary>
                   <div className="cohort-editor-head">
                     <span className="year-badge">{level.shortLabel}</span>
                     <label><span>Year level name</span><input value={level.label} onChange={(event) => onChange(touchPlanner({ ...planner, yearLevels: planner.yearLevels.map((item) => item.id === level.id ? { ...item, label: event.target.value } : item) }))} /></label>
@@ -289,7 +296,7 @@ export function SetupView({ planner, onChange, onBack }: {
                       </div>
                     </div>
                   </div>
-                </article>;
+                </details>;
               })}
             </div>
           </>}

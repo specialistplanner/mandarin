@@ -262,6 +262,15 @@ textarea { padding: 11px; resize: vertical; }
 .setup-empty p { margin: 5px 0 0; font-size: 12px; }
 .cohort-editor-list { display: grid; gap: 14px; }
 .cohort-editor { background: var(--white); border: 1px solid var(--line); border-radius: 17px; overflow: hidden; }
+.cohort-editor-summary { min-height: 72px; display: grid; grid-template-columns: auto minmax(140px, 1fr) auto minmax(120px, auto) auto; align-items: center; gap: 14px; padding: 14px 16px; background: #f0eee5; cursor: pointer; list-style: none; }
+.cohort-editor-summary::-webkit-details-marker { display: none; }
+.cohort-editor-summary:hover { background: #ebe9df; }
+.cohort-editor-summary:focus-visible { outline: 3px solid rgba(42, 91, 72, .32); outline-offset: -3px; }
+.cohort-summary-name { font-family: var(--font-display), serif; font-size: 20px; font-weight: 800; }
+.cohort-summary-meta { color: var(--muted); font-size: 11px; }
+.cohort-summary-chevron { width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid #c9c5b9; border-radius: 10px; background: rgba(255,255,255,.56); color: var(--forest); font-size: 22px; line-height: 1; transition: transform .18s ease; }
+.cohort-editor[open] > .cohort-editor-summary { border-bottom: 1px solid var(--line); }
+.cohort-editor[open] > .cohort-editor-summary .cohort-summary-chevron { transform: rotate(180deg); }
 .cohort-editor-head { display: grid; grid-template-columns: auto minmax(150px, 260px) 74px 1fr; align-items: end; gap: 10px; padding: 15px; background: #f0eee5; border-bottom: 1px solid var(--line); }
 .cohort-editor-head label, .unit-fields label, .session-form label { display: flex; flex-direction: column; gap: 5px; }
 .cohort-editor-head label span, .unit-fields label span, .session-form label span { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 8px; font-weight: 800; }
@@ -416,6 +425,9 @@ textarea { padding: 11px; resize: vertical; }
   .setup-menu > button { min-width: max-content; }
   .setup-subject-card { min-width: 190px; }
   .setup-content { padding: 14px; }
+  .cohort-editor-summary { min-height: 64px; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; padding: 12px; }
+  .cohort-editor-summary .cohort-summary-meta { display: none; }
+  .cohort-summary-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cohort-editor-head { grid-template-columns: auto 1fr 58px; padding: 12px; }
   .cohort-editor-grid { display: block; }
   .editable-class { grid-template-columns: 1fr 1fr 38px; }
