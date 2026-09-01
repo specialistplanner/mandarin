@@ -4,18 +4,21 @@ import {
   type PlannerData,
   type ProgressMap,
   type SessionType,
+  type TeachingSessionOutcome,
 } from "./domain.ts";
 
-export const STORAGE_KEY = "specialist-planner.data.v3";
+export const STORAGE_KEY = "specialist-planner.data.v4";
+export const LEGACY_V3_STORAGE_KEY = "specialist-planner.data.v3";
 export const LEGACY_V2_STORAGE_KEY = "specialist-planner.data.v2";
 export const LEGACY_STORAGE_KEY = "specialist-planner.dashboard.progress.v1";
 
 export type StorageLike = Pick<Storage, "getItem" | "setItem"> & Partial<Pick<Storage, "removeItem">>;
-export type PlannerLoadResult = { planner: PlannerData | null; source: "v3" | "migrated-v2" | "migrated-v1" | "empty" };
+export type PlannerLoadResult = { planner: PlannerData | null; source: "v4" | "migrated-v3" | "migrated-v2" | "migrated-v1" | "empty" };
 
 const sessionTypes = new Set<SessionType>([
   "specialist-teaching", "cover-release", "planning", "meeting", "school-activity", "break", "other",
 ]);
+const teachingOutcomes = new Set<TeachingSessionOutcome>(["planned", "completed", "partial", "not-taught"]);
 
 function record(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -38,11 +41,11 @@ function uniqueIds(items: Array<{ id: string }>, label: string) {
 
 export function validatePlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== PLANNER_SCHEMA_VERSION) {
-    throw new Error("This file is not a Specialist Planner v0.2.1 backup.");
+    throw new Error("This file is not a Specialist Planner v0.3 backup.");
   }
   if (!Array.isArray(value.subjects) || !Array.isArray(value.yearLevels) || !Array.isArray(value.classes) ||
-      !Array.isArray(value.units) || !Array.isArray(value.timetableSessions) || !Array.isArray(value.trialNotes) ||
-      !record(value.classProgress)) {
+      !Array.isArray(value.units) || !Array.isArray(value.timetableSessions) || !Array.isArray(value.teachingSessions) || !Array.isArray(value.trialNotes) ||
+      !record(value.classProgress) || !record(value.progressBaselines)) {
     throw new Error("Planner collections are missing or invalid.");
   }
 
@@ -105,11 +108,13 @@ export function validatePlannerData(value: unknown): PlannerData {
     if (!record(item)) throw new Error(`Progress for ${classId} is invalid.`);
     const progress = {
       classId: string(item.classId, "Progress class ID"), unitId: string(item.unitId, "Progress unit ID"), lessonId: string(item.lessonId, "Progress lesson ID"),
+      ...(item.unitComplete === true ? { unitComplete: true as const } : {}),
     };
     const specialistClass = classes.find((candidate) => candidate.id === classId && candidate.id === progress.classId);
     const level = yearLevels.find((candidate) => candidate.id === specialistClass?.yearLevelId);
     const unit = units.find((candidate) => candidate.id === progress.unitId && candidate.yearLevelId === level?.id);
     if (!specialistClass || !unit?.lessons.some((lesson) => lesson.id === progress.lessonId)) throw new Error(`Progress for ${classId} has an invalid reference.`);
+    if (progress.unitComplete && unit.lessons.at(-1)?.id !== progress.lessonId) throw new Error(`Progress for ${classId} marks an unfinished lesson as Unit complete.`);
     return [classId, progress];
   }));
   for (const specialistClass of classes) {
@@ -118,6 +123,21 @@ export function validatePlannerData(value: unknown): PlannerData {
       throw new Error(`Progress for ${specialistClass.name} is missing.`);
     }
   }
+
+  const progressBaselines = Object.fromEntries(Object.entries(value.progressBaselines).map(([classId, item]) => {
+    if (!record(item)) throw new Error(`Progress baseline for ${classId} is invalid.`);
+    const progress = {
+      classId: string(item.classId, "Baseline class ID"), unitId: string(item.unitId, "Baseline unit ID"), lessonId: string(item.lessonId, "Baseline lesson ID"),
+      ...(item.unitComplete === true ? { unitComplete: true as const } : {}),
+    };
+    const specialistClass = classes.find((candidate) => candidate.id === classId && candidate.id === progress.classId);
+    const level = yearLevels.find((candidate) => candidate.id === specialistClass?.yearLevelId);
+    const unit = units.find((candidate) => candidate.id === progress.unitId && candidate.yearLevelId === level?.id);
+    if (!specialistClass || !unit?.lessons.some((lesson) => lesson.id === progress.lessonId)) throw new Error(`Progress baseline for ${classId} has an invalid reference.`);
+    if (progress.unitComplete && unit.lessons.at(-1)?.id !== progress.lessonId) throw new Error(`Progress baseline for ${classId} marks an unfinished lesson as Unit complete.`);
+    return [classId, progress];
+  }));
+  for (const specialistClass of classes) if (classProgress[specialistClass.id] && !progressBaselines[specialistClass.id]) throw new Error(`Progress baseline for ${specialistClass.name} is missing.`);
 
   const timetableSessions = value.timetableSessions.map((item, index) => {
     if (!record(item)) throw new Error(`Timetable session ${index + 1} is invalid.`);
@@ -131,15 +151,42 @@ export function validatePlannerData(value: unknown): PlannerData {
     const classId = optionalString(item.classId, "Session class ID");
     if (classId && !classes.some((candidate) => candidate.id === classId)) throw new Error("A timetable session references a missing class.");
     if (type === "specialist-teaching" && !classId) throw new Error("Specialist teaching sessions require a class.");
-    const outcome = item.outcome === undefined ? undefined : String(item.outcome);
-    if (outcome && !["planned", "completed", "partial", "cancelled"].includes(outcome)) throw new Error("A session outcome is invalid.");
     return {
       id: string(item.id, "Session ID"), weekday, startTime, endTime, type, classId,
       subjectId: optionalString(item.subjectId, "Session subject ID"), label: optionalString(item.label, "Session label"),
-      outcome: outcome as "planned" | "completed" | "partial" | "cancelled" | undefined,
     };
   });
   uniqueIds(timetableSessions, "Timetable session");
+
+  const teachingSessions = value.teachingSessions.map((item, index) => {
+    if (!record(item)) throw new Error(`Teaching session ${index + 1} is invalid.`);
+    const outcome = string(item.outcome, "Teaching session outcome") as TeachingSessionOutcome;
+    if (!teachingOutcomes.has(outcome)) throw new Error(`Teaching session ${index + 1} has an invalid outcome.`);
+    const date = string(item.date, "Teaching session date");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || Number.isNaN(Date.parse(`${date}T00:00:00`))) throw new Error("A teaching session has an invalid date.");
+    const timetableSessionId = string(item.timetableSessionId, "Teaching timetable reference");
+    const timetable = timetableSessions.find((candidate) => candidate.id === timetableSessionId && candidate.type === "specialist-teaching");
+    const classId = string(item.classId, "Teaching session class ID");
+    const specialistClass = classes.find((candidate) => candidate.id === classId);
+    const yearLevelId = string(item.yearLevelId, "Teaching session year level ID");
+    const subjectId = string(item.subjectId, "Teaching session subject ID");
+    if (timetable && timetable.classId !== classId) throw new Error("A teaching session references an invalid timetable occurrence.");
+    if (!specialistClass || specialistClass.yearLevelId !== yearLevelId) throw new Error("A teaching session references an invalid class or year level.");
+    if (!subjects.some((candidate) => candidate.id === subjectId)) throw new Error("A teaching session references an invalid subject.");
+    const createdAt = string(item.createdAt, "Teaching session created timestamp");
+    const updatedAt = string(item.updatedAt, "Teaching session updated timestamp");
+    if (Number.isNaN(Date.parse(createdAt)) || Number.isNaN(Date.parse(updatedAt))) throw new Error("A teaching session timestamp is invalid.");
+    const affectsProgress = item.affectsProgress === true;
+    if (outcome !== "completed" && affectsProgress) throw new Error("Only completed teaching sessions can affect progress.");
+    return {
+      id: string(item.id, "Teaching session ID"), date, timetableSessionId, subjectId, classId, yearLevelId,
+      plannedUnitId: string(item.plannedUnitId, "Planned unit ID"), plannedLessonId: string(item.plannedLessonId, "Planned lesson ID"),
+      plannedUnitTitle: string(item.plannedUnitTitle, "Planned unit title"), plannedLessonTitle: string(item.plannedLessonTitle, "Planned lesson title"),
+      outcome, note: optionalString(item.note, "Teaching session note"), reason: optionalString(item.reason, "Teaching session reason"),
+      affectsProgress, createdAt, updatedAt,
+    };
+  });
+  uniqueIds(teachingSessions, "Teaching session");
 
   const trialNotes = value.trialNotes.map((item, index) => {
     if (!record(item)) throw new Error(`Trial note ${index + 1} is invalid.`);
@@ -153,7 +200,7 @@ export function validatePlannerData(value: unknown): PlannerData {
 
   return {
     schemaVersion: PLANNER_SCHEMA_VERSION, id: string(value.id, "Planner ID"), subjects, activeSubjectId,
-    yearLevels, classes, units, classProgress, timetableSessions, trialNotes,
+    yearLevels, classes, units, classProgress, progressBaselines, timetableSessions, teachingSessions, trialNotes,
     updatedAt: typeof value.updatedAt === "string" && !Number.isNaN(Date.parse(value.updatedAt)) ? value.updatedAt : new Date().toISOString(),
   };
 }
@@ -161,8 +208,13 @@ export function validatePlannerData(value: unknown): PlannerData {
 export function loadPlanner(storage: StorageLike, sample: PlannerData): PlannerLoadResult {
   const current = storage.getItem(STORAGE_KEY);
   if (current) {
-    try { return { planner: validatePlannerData(JSON.parse(current)), source: "v3" }; }
+    try { return { planner: validatePlannerData(JSON.parse(current)), source: "v4" }; }
     catch { /* Leave invalid local data untouched so it can be recovered manually. */ }
+  }
+  const v3 = storage.getItem(LEGACY_V3_STORAGE_KEY);
+  if (v3) {
+    try { return { planner: migrateV3PlannerData(JSON.parse(v3)), source: "migrated-v3" }; }
+    catch { /* Fall through to the v0.2 migration. */ }
   }
   const previous = storage.getItem(LEGACY_V2_STORAGE_KEY);
   if (previous) {
@@ -182,6 +234,7 @@ export function loadPlanner(storage: StorageLike, sample: PlannerData): PlannerL
       if (!progress || !unit) continue;
       const lesson = unit.lessons[Math.min(Math.max(Number(value), 1), unit.lessons.length) - 1];
       progress.lessonId = lesson.id;
+      migrated.progressBaselines[classId] = { ...progress };
     }
     migrated.updatedAt = new Date().toISOString();
     return { planner: migrated, source: "migrated-v1" };
@@ -206,13 +259,24 @@ export function importPlannerData(text: string): PlannerData {
   let parsed: unknown;
   try { parsed = JSON.parse(text); }
   catch { throw new Error("The selected file is not valid JSON."); }
+  if (record(parsed) && parsed.schemaVersion === 3) return migrateV3PlannerData(parsed);
   if (record(parsed) && parsed.schemaVersion === 2) return migrateV2PlannerData(parsed);
   return validatePlannerData(parsed);
 }
 
 export function migrateV2PlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== 2) throw new Error("This is not a valid Specialist Planner v0.2 backup.");
-  return validatePlannerData({ ...value, schemaVersion: PLANNER_SCHEMA_VERSION });
+  return migrateV3PlannerData({ ...value, schemaVersion: 3 });
+}
+
+export function migrateV3PlannerData(value: unknown): PlannerData {
+  if (!record(value) || value.schemaVersion !== 3 || !record(value.classProgress)) throw new Error("This is not a valid Specialist Planner v0.2.1 backup.");
+  return validatePlannerData({
+    ...value,
+    schemaVersion: PLANNER_SCHEMA_VERSION,
+    progressBaselines: JSON.parse(JSON.stringify(value.classProgress)),
+    teachingSessions: [],
+  });
 }
 
 // v0.1 API retained to prove the migration source remains readable.

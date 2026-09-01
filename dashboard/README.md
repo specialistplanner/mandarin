@@ -1,141 +1,100 @@
-# Specialist Planner v0.2.1 — Live Trial Hotfix
+# Specialist Planner v0.3 — Teaching Session Engine
 
 ## Purpose
 
-v0.2.1 is a targeted live-trial hotfix. It preserves natural whitespace during controlled text editing and allows classes in one year-level cohort to reference different current units.
+v0.3 connects the recurring weekly timetable to what actually happened in class. Time passing never advances progress. A teacher must confirm a scheduled specialist lesson as **Completed**, **Partial**, or **Not taught**.
 
-It still does not treat Calendar records as the source of truth for progress, and it does not implement teaching-session outcomes yet.
+```text
+Weekly Timetable
+       ↓
+Teaching Session
+       ↓
+     Outcome
+    ↙       ↘
+Class Progress  Teaching History
+       ↓
+   Dashboard
+```
 
-## Architecture
+Calendar is intended to become a date-based view over the same Teaching Sessions and planned timetable data. It must not maintain a second independent history.
 
-- `app/dashboard-app.tsx` owns the Dashboard, first-run choice, progress drawer and Quick Note modal.
-- `app/setup-view.tsx` provides the single Setup experience for cohorts, units, lessons, timetable, trial notes and backup.
-- `lib/domain.ts` defines schema v3 and pure integrity-preserving mutations.
-- `lib/sample-data.ts` supplies optional Mandarin demonstration data and a blank-planner factory.
-- `lib/storage.ts` validates, persists, migrates, exports and imports the complete planner.
-- `tests/` covers domain behaviour, migration, backup safety and server rendering.
+## Domain model
 
-The persisted conceptual shape is:
+- `TimetableSession` is the recurring weekly plan: weekday, time, type, subject, and optional class.
+- `TeachingSession` is one dated occurrence of a valid Specialist Teaching timetable entry. It stores stable timetable, subject, class, year-level, Unit, and Lesson references plus small immutable Unit/Lesson title snapshots, outcome, optional detail, and timestamps.
+- `ClassProgress` points to the actual Unit and Lesson to teach next and can explicitly be `unitComplete`.
+- `progressBaselines` hold the authoritative starting pointer used by the reconciliation engine.
+- `TrialNote` remains a separate product-research observation. It is not a lesson outcome note.
 
-`PlannerData → Subjects → YearLevels → Classes → Units → Lessons → ClassProgress → TimetableSessions → TrialNotes`
+Teaching Sessions are generated lazily only for dates the teacher views or confirms. The app does not pre-generate future weeks.
 
-## Editable domain model
+## Outcomes and daily workflow
 
-All entities use stable internal IDs. Display names can be changed without changing references.
+- **Completed** records the lesson and advances only that class. Completing the final Lesson sets `Unit complete`; the app never guesses another Unit.
+- **Partial** records the lesson and optional note but leaves progress unchanged, so the same Lesson is proposed next time.
+- **Not taught** records the missed lesson and optional reason but leaves progress unchanged. The record remains in History and can explain why a class is behind.
+- **Planned** is the unconfirmed state. Clearing an outcome returns a session to Planned.
 
-- **Subject**: v0.2.1 supports one active subject in the UI; the schema stores a subject collection and active subject ID.
-- **YearLevel**: editable display name and short label, plus stable references to the cohort reference unit and expected lesson.
-- **Class**: stable ID, editable name and year-level reference.
-- **Unit**: stable ID, year-level reference, editable title/optional description, and an ordered lesson collection.
-- **Lesson**: stable ID, editable title/optional description and normalized display sequence.
-- **ClassProgress**: independently references a class’s actual current unit and the stable ID of its lesson to teach next.
-- **TimetableSession**: stable ID, recurring weekday/time, type, optional class and label, plus a reserved future outcome field.
-- **TrialNote**: stable ID, text, timestamp, optional context and optional class reference.
+The Teaching Day cards provide touch-friendly one-step completion, compact detail entry for Partial/Not taught, and **All taught as planned** for all still-Planned specialist sessions on that date. Non-teaching timetable entries are never included. A lightweight previous-day prompt appears when yesterday still has unconfirmed specialist sessions.
 
-Units are shared definitions rather than duplicated per class. Each class chooses one of its year level’s units. Lesson order is display order; progress does not store an array index. Renaming a lesson leaves progress unchanged. Reordering a lesson moves that lesson—and any class pointing to it—to its new displayed position.
+## Safe progress reconciliation
 
-Editable mutation functions validate required text with `trim()` but store the original value unchanged. Trimming occurs only when submitting add forms or saving notes—not during ordinary controlled-input typing.
+Progress is not implemented as “every click equals +1.” For each class, the engine starts from its stable progress baseline and replays dated Completed sessions in timetable order. A session advances only when its planned Unit/Lesson matches the replay pointer. Partial, Not taught, and Planned sessions contribute no movement.
 
-## Progress semantics
+Every outcome edit recomputes that class from its baseline. Therefore:
 
-The stored class lesson means **the lesson to teach next**. If a class displays Lesson 4, Lessons 1–3 are considered completed for this lightweight trial model.
+- repeated saving cannot double-advance;
+- Completed → Partial or Not taught reverses the prior movement;
+- Not taught → Completed advances exactly once;
+- clearing an outcome reconciles safely;
+- later matching Completed sessions replay consistently.
 
-Each year level stores a cohort reference unit and expected next lesson. When a class is in that same unit, Dashboard status compares lesson positions:
+The class drawer’s **Correct progress** control is an exceptional manual correction. It establishes a new baseline and retires previous session effects without deleting their history. Normal weekly maintenance should happen through Teaching Day outcomes.
 
-- zero difference: on track;
-- negative difference: behind;
-- positive difference: ahead.
+## Cross-Unit and end-of-Unit behavior
 
-When units differ, lesson-index arithmetic is not meaningful. The status is categorical **Different unit**, and the Dashboard shows the class’s actual unit and the cohort reference unit explicitly.
+Each class keeps its own actual Unit and Lesson. Sessions snapshot that class’s actual plan, even when its cohort reference has moved to another Unit. Dashboard comparisons remain categorical **Different unit** across Units; lesson-index arithmetic is never performed across unrelated Units.
 
-Manual progress adjustment remains intentional during the trial. Completed, Partial and Cancelled session workflows are reserved but not applied.
+Completing a Unit’s final Lesson leaves the class on the same Unit/Lesson with `unitComplete: true`. The teacher must choose the next Unit in Setup or use a deliberate manual correction.
 
-## Local storage and migration
+## History and Dashboard
 
-The complete document is stored under:
+History is derived directly from non-Planned Teaching Sessions and groups records by date. It shows class, planned Unit/Lesson snapshot, scheduled time when available, outcome, and optional note/reason.
 
-`specialist-planner.data.v3`
+Completed outcomes update Dashboard progress immediately. Partial and Not taught preserve the pointer, which naturally exposes cohort divergence. The class drawer shows the most recent recorded outcome and its reason/note without cluttering the overview row.
 
-On first v0.2.1 load:
+## Local persistence and migration
 
-1. valid schema-v3 data is restored;
-2. otherwise, `specialist-planner.data.v2` is migrated by preserving every class’s existing `unitId` and `lessonId`;
-3. otherwise, `specialist-planner.dashboard.progress.v1` is checked and migrated through the sample configuration;
-4. the result is persisted as schema v3;
-5. legacy keys are left untouched as additional recovery sources.
+The complete planner is stored under `specialist-planner.data.v4`. This device-local browser storage is explicitly required for the live trial; no Firebase, authentication, or cloud database is used.
 
-Invalid v2 data is never overwritten automatically. Mid-edit invalid fields are not persisted until the planner validates again.
+Migration order:
 
-This browser storage is explicitly required for the trial. No Firebase, cloud database, account or cross-device sync is used.
+1. restore valid schema-v4 data;
+2. migrate schema-v3 (`specialist-planner.data.v3`) by preserving all setup and progress, copying current progress into `progressBaselines`, and starting with an empty Teaching Session history;
+3. migrate compatible schema-v2 data the same way;
+4. retain the v0.1 numeric progress recovery path;
+5. persist the migrated result as schema v4 while leaving legacy keys untouched for recovery.
 
-## Setup workflow
-
-1. New users choose **Start blank planner** or **Explore sample data**.
-2. Rename the active subject.
-3. Add year levels, classes and class names.
-4. Create each current unit and edit its description.
-5. Add, rename, describe, reorder or remove lessons.
-6. Set the cohort reference unit/lesson, then set every class’s independent actual unit and next lesson.
-7. Add recurring weekly timetable sessions.
-8. Return to the Dashboard and begin daily use.
-
-Changing the cohort reference unit does not move existing classes. Newly created classes start in the cohort reference unit when one exists. Removing a class requires confirmation and removes its progress and timetable sessions; its notes remain but lose the class link. Removing a referenced lesson requires confirmation and safely moves affected progress/expectations to the nearest remaining lesson. A unit cannot be deleted while it is the cohort reference or any class still uses it.
-
-## Timetable session types
-
-- Specialist Teaching
-- Cover / Release
-- Planning
-- PLT / Meeting
-- Assembly / School Activity
-- Break
-- Other
-
-Only Specialist Teaching sessions with a valid class appear in Dashboard teaching-progress cards. Cover, planning, meetings, activities, breaks and other sessions never enter that view and cannot advance progress.
+Invalid legacy data is never silently overwritten. Existing v0.2/v0.2.1 class Unit/Lesson positions become the starting baseline, so real trial data is not reset.
 
 ## Backup and restore
 
-**Export JSON** downloads the entire validated v2 document: configuration, progress, timetable and trial notes.
+JSON export/import includes subjects, cohorts, Units, Lessons, class progress and baselines, timetable, dated Teaching Sessions with outcomes and snapshots, Trial Notes, and setup data. Import validates stable IDs, references, session types, dates, outcomes, timestamps, progress integrity, and cross-Unit class rules. Compatible v0.2/v0.2.1 backups migrate automatically.
 
-**Import JSON** accepts schema-v3 backups and migrates compatible schema-v2 backups. It validates collection shape, stable IDs, class-level unit/lesson references, times and teaching-session requirements before asking permission to replace current data.
+## Known limitations
 
-**Load sample data** and **Reset planner** are separate confirmed destructive actions. Export a backup first.
-
-## Quick Notes
-
-Use **+ Quick note** anywhere, or launch a class-linked note from the progress drawer. Notes persist with the planner, are reviewable and deletable in Setup, and are included in every JSON backup. They are intentionally not a general notes or analytics system.
-
-## Live Trial Guidance
-
-At the start of the week, confirm each cohort expectation and each class’s next lesson. Use the Today cards before teaching, then manually correct class progress as needed. Export a JSON backup at least weekly and before major setup changes.
-
-Record Quick Notes when reality challenges the model—for example:
-
-- a class finishes only part of a lesson;
-- a cancellation makes the expected lesson confusing;
-- the Dashboard lacks context needed before class;
-- a setup or correction takes too many steps;
-- different classes need genuinely different lesson sequences.
-
-Useful notes describe what happened, what the teacher expected, and what decision the product could not represent.
-
-## Known limitations and intentional deferrals
-
-- one active subject in the v0.2.1 UI;
+- one active subject in the v0.3 UI;
 - device-and-browser-local data with no cross-device sync;
-- no automated teaching-session outcome engine;
-- no Calendar integration because Calendar is absent from this checkout;
-- no timetable drag-and-drop;
-- no curriculum, students, attendance, assessment, reporting, accounts, analytics or notifications.
+- lazy occurrences only for viewed/confirmed dates;
+- no ordered Unit sequence, so Unit completion requires teacher choice;
+- no Calendar UI yet; future Calendar must read the shared Teaching Session model;
+- no notifications, attendance, students, curriculum, assessment, reporting, analytics, accounts, or multi-teacher administration.
 
-The Mandarin curriculum content and sample weekly schedule remain hard-coded only as optional demonstration data. The working planner—including every class’s actual unit—is editable after it is loaded.
+## Normal workflow
 
-## Recommended future Teaching Session model
-
-Keep scheduled/history data separate from current progress:
-
-`Timetable occurrence → TeachingSession → Completed / Partial / Cancelled → progress event → ClassProgress`
-
-A Completed outcome may advance exactly one class. Partial should preserve teacher judgment about the next lesson. Cancelled should retain history without advancing. Live-trial notes should be reviewed before locking those semantics.
-
-Calendar integration should wait until the actual Calendar module is present and the shared stable IDs can be reconciled without copying its UI code.
+1. Open the teaching date.
+2. Teach the scheduled lesson.
+3. Mark Completed, Partial, or Not taught—or confirm all normal sessions together.
+4. Review exceptions in Dashboard and details in History.
+5. Use Correct progress only for exceptional data repair.
+6. Export regular JSON backups during the live trial.

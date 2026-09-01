@@ -1,4 +1,4 @@
-export const PLANNER_SCHEMA_VERSION = 3 as const;
+export const PLANNER_SCHEMA_VERSION = 4 as const;
 
 export type SessionType =
   | "specialist-teaching"
@@ -13,7 +13,7 @@ export type TeachingSessionOutcome =
   | "planned"
   | "completed"
   | "partial"
-  | "cancelled";
+  | "not-taught";
 
 export type Subject = { id: string; name: string };
 
@@ -50,6 +50,7 @@ export type ClassProgress = {
   classId: string;
   unitId: string;
   lessonId: string;
+  unitComplete?: boolean;
 };
 
 export type TimetableSession = {
@@ -61,7 +62,25 @@ export type TimetableSession = {
   classId?: string;
   subjectId?: string;
   label?: string;
-  outcome?: TeachingSessionOutcome;
+};
+
+export type TeachingSession = {
+  id: string;
+  date: string;
+  timetableSessionId: string;
+  subjectId: string;
+  classId: string;
+  yearLevelId: string;
+  plannedUnitId: string;
+  plannedLessonId: string;
+  plannedUnitTitle: string;
+  plannedLessonTitle: string;
+  outcome: TeachingSessionOutcome;
+  note?: string;
+  reason?: string;
+  affectsProgress: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type TrialNote = {
@@ -81,7 +100,9 @@ export type PlannerData = {
   classes: SpecialistClass[];
   units: Unit[];
   classProgress: Record<string, ClassProgress>;
+  progressBaselines: Record<string, ClassProgress>;
   timetableSessions: TimetableSession[];
+  teachingSessions: TeachingSession[];
   trialNotes: TrialNote[];
   updatedAt: string;
 };
@@ -191,6 +212,134 @@ export function getTeachingSessionsForWeekday(
     .sort((a, b) => a.startTime.localeCompare(b.startTime));
 }
 
+export function localDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function teachingSessionId(date: string, timetableSessionId: string): string {
+  return `teaching-${date}-${timetableSessionId}`;
+}
+
+function plannedTeachingSession(
+  planner: PlannerData,
+  timetable: TimetableSession,
+  date: string,
+  timestamp: string,
+): TeachingSession | null {
+  const specialistClass = planner.classes.find((item) => item.id === timetable.classId);
+  const progress = specialistClass ? planner.classProgress[specialistClass.id] : undefined;
+  const unit = planner.units.find((item) => item.id === progress?.unitId);
+  const lesson = unit?.lessons.find((item) => item.id === progress?.lessonId);
+  if (!specialistClass || !progress || !unit || !lesson || progress.unitComplete) return null;
+  return {
+    id: teachingSessionId(date, timetable.id),
+    date,
+    timetableSessionId: timetable.id,
+    subjectId: timetable.subjectId ?? planner.activeSubjectId,
+    classId: specialistClass.id,
+    yearLevelId: specialistClass.yearLevelId,
+    plannedUnitId: unit.id,
+    plannedLessonId: lesson.id,
+    plannedUnitTitle: unit.title,
+    plannedLessonTitle: lesson.title,
+    outcome: "planned",
+    affectsProgress: false,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  };
+}
+
+export function getTeachingSessionsForDate(planner: PlannerData, date: Date): TeachingSession[] {
+  const dateKey = localDateKey(date);
+  const existing = new Map(planner.teachingSessions.filter((item) => item.date === dateKey).map((item) => [item.timetableSessionId, item]));
+  const timestamp = new Date().toISOString();
+  return getTeachingSessionsForWeekday(planner.timetableSessions, date.getDay())
+    .map((timetable) => existing.get(timetable.id) ?? plannedTeachingSession(planner, timetable, dateKey, timestamp))
+    .filter((item): item is TeachingSession => Boolean(item));
+}
+
+export function materializeTeachingSessionsForDate(planner: PlannerData, date: Date): PlannerData {
+  const sessions = getTeachingSessionsForDate(planner, date);
+  const existingIds = new Set(planner.teachingSessions.map((item) => item.id));
+  const additions = sessions.filter((item) => !existingIds.has(item.id));
+  return additions.length ? touchPlanner({ ...planner, teachingSessions: [...planner.teachingSessions, ...additions] }) : planner;
+}
+
+function advanceClassProgress(planner: PlannerData, progress: ClassProgress): ClassProgress {
+  const unit = planner.units.find((item) => item.id === progress.unitId);
+  const index = unit?.lessons.findIndex((item) => item.id === progress.lessonId) ?? -1;
+  if (!unit || index < 0) return progress;
+  if (index === unit.lessons.length - 1) return { ...progress, unitComplete: true };
+  const activeProgress = { ...progress };
+  delete activeProgress.unitComplete;
+  return { ...activeProgress, lessonId: unit.lessons[index + 1].id };
+}
+
+export function reconcileClassProgress(planner: PlannerData, classId: string): PlannerData {
+  const baseline = planner.progressBaselines[classId];
+  if (!baseline) return planner;
+  let progress = { ...baseline };
+  const timetableById = new Map(planner.timetableSessions.map((item) => [item.id, item]));
+  const completed = planner.teachingSessions
+    .filter((item) => item.classId === classId && item.outcome === "completed" && item.affectsProgress)
+    .sort((a, b) => `${a.date}T${timetableById.get(a.timetableSessionId)?.startTime ?? "00:00"}`.localeCompare(`${b.date}T${timetableById.get(b.timetableSessionId)?.startTime ?? "00:00"}`) || a.createdAt.localeCompare(b.createdAt));
+  for (const session of completed) {
+    if (!progress.unitComplete && progress.unitId === session.plannedUnitId && progress.lessonId === session.plannedLessonId) {
+      progress = advanceClassProgress(planner, progress);
+    }
+  }
+  return { ...planner, classProgress: { ...planner.classProgress, [classId]: progress } };
+}
+
+function reconcileClasses(planner: PlannerData, classIds: Iterable<string>): PlannerData {
+  let next = planner;
+  for (const classId of new Set(classIds)) next = reconcileClassProgress(next, classId);
+  return touchPlanner(next);
+}
+
+export function recordTeachingSessionOutcome(
+  planner: PlannerData,
+  sessionId: string,
+  outcome: TeachingSessionOutcome,
+  detail = "",
+): PlannerData {
+  const existing = planner.teachingSessions.find((item) => item.id === sessionId);
+  if (!existing) throw new Error("Teaching session not found.");
+  const timestamp = new Date().toISOString();
+  const cleaned = detail.trim();
+  const teachingSessions = planner.teachingSessions.map((item) => item.id === sessionId ? {
+    ...item,
+    outcome,
+    note: outcome === "partial" && cleaned ? cleaned : undefined,
+    reason: outcome === "not-taught" && cleaned ? cleaned : undefined,
+    affectsProgress: outcome === "completed",
+    updatedAt: timestamp,
+  } : item);
+  return reconcileClasses({ ...planner, teachingSessions }, [existing.classId]);
+}
+
+export function markAllTaughtAsPlanned(planner: PlannerData, date: Date): PlannerData {
+  const materialized = materializeTeachingSessionsForDate(planner, date);
+  const dateKey = localDateKey(date);
+  const timestamp = new Date().toISOString();
+  const eligible = materialized.teachingSessions.filter((item) => item.date === dateKey && item.outcome === "planned");
+  if (!eligible.length) return materialized;
+  const eligibleIds = new Set(eligible.map((item) => item.id));
+  const teachingSessions = materialized.teachingSessions.map((item) => eligibleIds.has(item.id) ? {
+    ...item, outcome: "completed" as const, affectsProgress: true, note: undefined, reason: undefined, updatedAt: timestamp,
+  } : item);
+  return reconcileClasses({ ...materialized, teachingSessions }, eligible.map((item) => item.classId));
+}
+
+export function latestRecordedTeachingSession(planner: PlannerData, classId: string): TeachingSession | undefined {
+  return planner.teachingSessions
+    .filter((item) => item.classId === classId && item.outcome !== "planned")
+    .sort((a, b) => b.date.localeCompare(a.date) || b.updatedAt.localeCompare(a.updatedAt))[0];
+}
+
 export function lessonLabel(position: number, lessons: Lesson[]): string {
   const item = lessons[position - 1];
   return item ? `Lesson ${position} · ${item.title}` : `Lesson ${position}`;
@@ -210,10 +359,12 @@ export function createClassRecord(
   const level = planner.yearLevels.find((candidate) => candidate.id === item.yearLevelId)!;
   const unit = planner.units.find((candidate) => candidate.id === level.currentUnitId);
   const classProgress = { ...planner.classProgress };
+  const progressBaselines = { ...planner.progressBaselines };
   if (unit?.lessons[0]) {
     classProgress[item.id] = { classId: item.id, unitId: unit.id, lessonId: unit.lessons[0].id };
+    progressBaselines[item.id] = { ...classProgress[item.id] };
   }
-  return touchPlanner({ ...planner, classes: [...planner.classes, item], classProgress });
+  return touchPlanner({ ...planner, classes: [...planner.classes, item], classProgress, progressBaselines });
 }
 
 export function renameClassRecord(planner: PlannerData, classId: string, name: string): PlannerData {
@@ -228,12 +379,16 @@ export function renameClassRecord(planner: PlannerData, classId: string, name: s
 export function deleteClassRecord(planner: PlannerData, classId: string): PlannerData {
   if (!planner.classes.some((item) => item.id === classId)) throw new Error("Class not found.");
   const classProgress = { ...planner.classProgress };
+  const progressBaselines = { ...planner.progressBaselines };
   delete classProgress[classId];
+  delete progressBaselines[classId];
   return touchPlanner({
     ...planner,
     classes: planner.classes.filter((item) => item.id !== classId),
     classProgress,
+    progressBaselines,
     timetableSessions: planner.timetableSessions.filter((session) => session.classId !== classId),
+    teachingSessions: planner.teachingSessions.filter((session) => session.classId !== classId),
     trialNotes: planner.trialNotes.map((note) => note.classId === classId ? { ...note, classId: undefined } : note),
   });
 }
@@ -268,9 +423,11 @@ export function setCurrentUnit(planner: PlannerData, yearLevelId: string, unitId
   const unit = planner.units.find((candidate) => candidate.id === unitId && candidate.yearLevelId === yearLevelId);
   if (!unit?.lessons[0]) throw new Error("Choose a valid unit with lessons.");
   const classProgress = { ...planner.classProgress };
+  const progressBaselines = { ...planner.progressBaselines };
   for (const item of planner.classes.filter((candidate) => candidate.yearLevelId === yearLevelId)) {
     if (!classProgress[item.id]) {
       classProgress[item.id] = { classId: item.id, unitId, lessonId: unit.lessons[0].id };
+      progressBaselines[item.id] = { ...classProgress[item.id] };
     }
   }
   return touchPlanner({
@@ -279,6 +436,7 @@ export function setCurrentUnit(planner: PlannerData, yearLevelId: string, unitId
       ? { ...level, currentUnitId: unitId, expectedLessonId: unit.lessons[0].id }
       : level),
     classProgress,
+    progressBaselines,
   });
 }
 
@@ -349,15 +507,24 @@ export function deleteLessonRecord(planner: PlannerData, unitId: string, lessonI
   if (removedIndex < 0) throw new Error("Lesson not found.");
   const remaining = unit.lessons.filter((lesson) => lesson.id !== lessonId);
   const replacement = remaining[Math.min(removedIndex, remaining.length - 1)];
+  const repairProgress = (progress: ClassProgress) => {
+    if (progress.unitId !== unitId || progress.lessonId !== lessonId) return progress;
+    const activeProgress = { ...progress };
+    delete activeProgress.unitComplete;
+    return { ...activeProgress, lessonId: replacement.id };
+  };
   const classProgress = Object.fromEntries(Object.entries(planner.classProgress).map(([classId, progress]) => [
-    classId,
-    progress.unitId === unitId && progress.lessonId === lessonId ? { ...progress, lessonId: replacement.id } : progress,
+    classId, repairProgress(progress),
+  ]));
+  const progressBaselines = Object.fromEntries(Object.entries(planner.progressBaselines).map(([classId, progress]) => [
+    classId, repairProgress(progress),
   ]));
   return touchPlanner({
     ...planner,
     units: planner.units.map((candidate) => candidate.id === unitId ? normalizeUnit({ ...candidate, lessons: remaining }) : candidate),
     yearLevels: planner.yearLevels.map((level) => level.expectedLessonId === lessonId ? { ...level, expectedLessonId: replacement.id } : level),
     classProgress,
+    progressBaselines,
   });
 }
 
@@ -369,10 +536,7 @@ export function setClassLesson(planner: PlannerData, classId: string, lessonId: 
   if (!item || !level || !unit?.lessons.some((lesson) => lesson.id === lessonId)) {
     throw new Error("Choose a valid lesson for this class.");
   }
-  return touchPlanner({
-    ...planner,
-    classProgress: { ...planner.classProgress, [classId]: { classId, unitId: unit.id, lessonId } },
-  });
+  return applyManualProgressCorrection(planner, { classId, unitId: unit.id, lessonId });
 }
 
 export function setClassPosition(
@@ -388,9 +552,17 @@ export function setClassPosition(
     candidate.lessons.some((lesson) => lesson.id === lessonId),
   );
   if (!item || !unit) throw new Error("Choose a valid unit and lesson for this class.");
+  return applyManualProgressCorrection(planner, { classId, unitId, lessonId });
+}
+
+function applyManualProgressCorrection(planner: PlannerData, progress: ClassProgress): PlannerData {
   return touchPlanner({
     ...planner,
-    classProgress: { ...planner.classProgress, [classId]: { classId, unitId, lessonId } },
+    classProgress: { ...planner.classProgress, [progress.classId]: progress },
+    progressBaselines: { ...planner.progressBaselines, [progress.classId]: progress },
+    teachingSessions: planner.teachingSessions.map((session) => session.classId === progress.classId
+      ? { ...session, affectsProgress: false }
+      : session),
   });
 }
 

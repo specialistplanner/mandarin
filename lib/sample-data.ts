@@ -1,4 +1,4 @@
-import { PLANNER_SCHEMA_VERSION, type Lesson, type PlannerData, type TimetableSession } from "./domain";
+import { PLANNER_SCHEMA_VERSION, type Lesson, type PlannerData, type TimetableSession } from "./domain.ts";
 
 function lessons(unitId: string, titles: string[]): Lesson[] {
   return titles.map((title, index) => ({ id: `${unitId}-lesson-${index + 1}`, title, sequence: index + 1 }));
@@ -38,7 +38,7 @@ const classes = [
 const nextLesson = (classId: string, unitId: string, position: number) => [classId, { classId, unitId, lessonId: `${unitId}-lesson-${position}` }];
 
 const teaching = (id: string, weekday: number, startTime: string, endTime: string, classId: string): TimetableSession => ({
-  id, weekday, startTime, endTime, classId, subjectId: subject.id, type: "specialist-teaching", outcome: "planned",
+  id, weekday, startTime, endTime, classId, subjectId: subject.id, type: "specialist-teaching",
 });
 
 const timetableSessions: TimetableSession[] = [
@@ -50,6 +50,13 @@ const timetableSessions: TimetableSession[] = [
   { id: "sample-cover", weekday: 1, startTime: "09:00", endTime: "10:00", classId: "prep-b", type: "cover-release", label: "Prep B cover" },
 ];
 
+const classProgress = Object.fromEntries([
+  nextLesson("prep-e", "hello-friends", 3), nextLesson("prep-c", "hello-friends", 3), nextLesson("prep-b", "hello-friends", 3),
+  nextLesson("1c", "my-family", 3), nextLesson("1d", "my-family", 3), nextLesson("2c", "animals", 4), nextLesson("2a", "animals", 4),
+  nextLesson("3a", "daily-life", 3), nextLesson("3b", "daily-life", 3), nextLesson("4c", "weather", 3), nextLesson("4b", "weather", 3), nextLesson("4e", "weather", 2),
+  nextLesson("5e", "nationalities", 4), nextLesson("5c", "nationalities", 4), nextLesson("6b", "travel", 4), nextLesson("6d", "travel", 5),
+]);
+
 export const samplePlanner: PlannerData = {
   schemaVersion: PLANNER_SCHEMA_VERSION,
   id: "local-specialist-planner",
@@ -58,13 +65,10 @@ export const samplePlanner: PlannerData = {
   yearLevels,
   classes,
   units,
-  classProgress: Object.fromEntries([
-    nextLesson("prep-e", "hello-friends", 3), nextLesson("prep-c", "hello-friends", 3), nextLesson("prep-b", "hello-friends", 3),
-    nextLesson("1c", "my-family", 3), nextLesson("1d", "my-family", 3), nextLesson("2c", "animals", 4), nextLesson("2a", "animals", 4),
-    nextLesson("3a", "daily-life", 3), nextLesson("3b", "daily-life", 3), nextLesson("4c", "weather", 3), nextLesson("4b", "weather", 3), nextLesson("4e", "weather", 2),
-    nextLesson("5e", "nationalities", 4), nextLesson("5c", "nationalities", 4), nextLesson("6b", "travel", 4), nextLesson("6d", "travel", 5),
-  ]),
+  classProgress,
+  progressBaselines: JSON.parse(JSON.stringify(classProgress)),
   timetableSessions,
+  teachingSessions: [],
   trialNotes: [],
   updatedAt: "2026-08-23T00:00:00.000Z",
 };
@@ -79,7 +83,9 @@ export function createBlankPlanner(): PlannerData {
     classes: [],
     units: [],
     classProgress: {},
+    progressBaselines: {},
     timetableSessions: [],
+    teachingSessions: [],
     trialNotes: [],
     updatedAt: new Date().toISOString(),
   };

@@ -1,8 +1,8 @@
-# Specialist Planner v0.2.1 — Live Trial Hotfix
+# Specialist Planner v0.3 — Teaching Session Engine
 
-An editable, local-first planner for specialist teachers. v0.2.1 preserves natural spaces while typing and allows classes in the same year level to be in different units.
+A local-first planner for specialist teachers. Confirm each scheduled lesson as **Completed**, **Partial**, or **Not taught**; confirmed outcomes update class progress and create teaching history.
 
-The Dashboard is the daily view; Setup manages teaching data, backups and trial notes. Detailed architecture and live-trial guidance are in [`dashboard/README.md`](dashboard/README.md).
+The Dashboard is the daily workflow, History records what actually happened, and Setup manages teaching data, backups, manual corrections, and trial notes. Detailed architecture and trial guidance are in [`dashboard/README.md`](dashboard/README.md).
 
 ## Run locally
 
@@ -11,10 +11,4 @@ npm install
 npm run dev
 ```
 
-Open the local URL printed by the development server (normally `http://localhost:3000`).
-
-Run automated checks with:
-
-```bash
-npm test
-```
+Run automated checks with `npm test`.

@@ -26,6 +26,7 @@ import {
 import {
   LEGACY_STORAGE_KEY,
   LEGACY_V2_STORAGE_KEY,
+  LEGACY_V3_STORAGE_KEY,
   STORAGE_KEY,
   exportPlannerData,
   importPlannerData,
@@ -49,10 +50,15 @@ function fixture() {
       "5e": { classId: "5e", unitId: "u5", lessonId: "u5-l4" },
       "5c": { classId: "5c", unitId: "u5", lessonId: "u5-l3" },
     },
+    progressBaselines: {
+      "5e": { classId: "5e", unitId: "u5", lessonId: "u5-l4" },
+      "5c": { classId: "5c", unitId: "u5", lessonId: "u5-l3" },
+    },
     timetableSessions: [
-      { id: "teach", weekday: 3, startTime: "08:55", endTime: "09:55", classId: "5e", subjectId: "subject", type: "specialist-teaching", outcome: "planned" },
+      { id: "teach", weekday: 3, startTime: "08:55", endTime: "09:55", classId: "5e", subjectId: "subject", type: "specialist-teaching" },
       { id: "cover", weekday: 3, startTime: "10:00", endTime: "11:00", classId: "5c", type: "cover-release" },
     ],
+    teachingSessions: [],
     trialNotes: [{ id: "note", text: "Half a lesson", createdAt: "2026-08-23T00:00:00.000Z", classId: "5c", context: "Class drawer" }],
     updatedAt: "2026-08-23T00:00:00.000Z",
   };
@@ -70,6 +76,7 @@ function mixedUnitFixture() {
     "1c": { classId: "1c", unitId: "body", lessonId: "body-l3" },
     "1d": { classId: "1d", unitId: "pets", lessonId: "pets-l1" },
   };
+  planner.progressBaselines = JSON.parse(JSON.stringify(planner.classProgress));
   planner.timetableSessions = [];
   planner.trialNotes = [];
   return planner;
@@ -193,19 +200,31 @@ test("export contains the complete planner and import restores it", () => {
 
 test("invalid import is rejected without returning partial data", () => {
   assert.throws(() => importPlannerData("not json"), /not valid JSON/);
-  assert.throws(() => importPlannerData(JSON.stringify({ schemaVersion: 2 })), /collections/);
+  assert.throws(() => importPlannerData(JSON.stringify({ schemaVersion: 2 })), /valid|collections/);
   const invalid = fixture();
   invalid.classes[0].yearLevelId = "missing";
   assert.throws(() => importPlannerData(JSON.stringify(invalid)), /no valid year level/);
 });
 
-test("localStorage v3 persists fully and v0.2 class units migrate safely", () => {
+test("localStorage v4 persists fully and v0.2 class units migrate safely", () => {
   const memory = new Map();
   const storage = { getItem: (key) => memory.get(key) ?? null, setItem: (key, value) => memory.set(key, value), removeItem: (key) => memory.delete(key) };
   persistPlanner(storage, fixture());
-  assert.equal(loadPlanner(storage, fixture()).source, "v3");
+  assert.equal(loadPlanner(storage, fixture()).source, "v4");
   assert.equal(JSON.parse(memory.get(STORAGE_KEY)).trialNotes.length, 1);
 
+  memory.delete(STORAGE_KEY);
+  const v3 = fixture();
+  v3.schemaVersion = 3;
+  delete v3.progressBaselines;
+  delete v3.teachingSessions;
+  memory.set(LEGACY_V3_STORAGE_KEY, JSON.stringify(v3));
+  const v3Migrated = loadPlanner(storage, fixture());
+  assert.equal(v3Migrated.source, "migrated-v3");
+  assert.deepEqual(v3Migrated.planner.progressBaselines, v3Migrated.planner.classProgress);
+  assert.deepEqual(v3Migrated.planner.teachingSessions, []);
+
+  memory.delete(LEGACY_V3_STORAGE_KEY);
   memory.delete(STORAGE_KEY);
   const v2 = fixture();
   v2.schemaVersion = 2;
