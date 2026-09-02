@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { DashboardApp } from "./dashboard-app";
 
 export const metadata: Metadata = {
-  title: "Specialist Planner v0.3.1 — Progress Reconciliation Hotfix",
-  description: "A local-first specialist planner with safe historical reconciliation and dated progress checkpoints.",
+  title: "Specialist Planner v0.4 — Progress-Aware Weekly Planner",
+  description: "A calm weekly teaching planner that combines timetable structure, class progress and real lesson outcomes.",
 };
 
 export default function Home() {

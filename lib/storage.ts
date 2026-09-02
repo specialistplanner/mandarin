@@ -42,7 +42,7 @@ function uniqueIds(items: Array<{ id: string }>, label: string) {
 
 export function validatePlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== PLANNER_SCHEMA_VERSION) {
-    throw new Error("This file is not a Specialist Planner v0.3.1 backup.");
+    throw new Error("This file is not a compatible Specialist Planner v0.3.1/v0.4 backup.");
   }
   if (!Array.isArray(value.subjects) || !Array.isArray(value.yearLevels) || !Array.isArray(value.classes) ||
       !Array.isArray(value.units) || !Array.isArray(value.timetableSessions) || !Array.isArray(value.teachingSessions) || !Array.isArray(value.trialNotes) ||

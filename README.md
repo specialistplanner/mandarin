@@ -1,8 +1,8 @@
-# Specialist Planner v0.3.1 — Progress Reconciliation Hotfix
+# Specialist Planner v0.4 — Progress-Aware Weekly Planner
 
-A local-first planner for specialist teachers. v0.3.1 adds a one-time historical reconciliation tool that preserves the teacher's verified current Unit/Lesson positions while rebuilding earlier Teaching Session history.
+A local-first weekly planner for specialist teachers. The primary Week View combines the configured timetable with each class’s actual Unit/Lesson position, cohort status and recorded Teaching Session outcomes.
 
-The Dashboard is the daily workflow, History records what actually happened, and Setup manages teaching data, backups, manual corrections, and trial notes. Detailed architecture and trial guidance are in [`dashboard/README.md`](dashboard/README.md).
+Week is the daily working surface, Progress provides cohort-level diagnosis, Units exposes the teaching sequence, History records what actually happened, and Settings preserves all configuration, backup and reconciliation tools. See [`dashboard/README.md`](dashboard/README.md) for architecture and projection rules.
 
 ## Run locally
 

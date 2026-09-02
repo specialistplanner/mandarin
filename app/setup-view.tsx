@@ -56,12 +56,13 @@ function downloadBackup(planner: PlannerData) {
   URL.revokeObjectURL(url);
 }
 
-export function SetupView({ planner, onChange, onBack }: {
+export function SetupView({ planner, onChange, onBack, initialSection = "cohorts" }: {
   planner: PlannerData;
   onChange: (planner: PlannerData) => void;
   onBack: () => void;
+  initialSection?: SetupSection;
 }) {
-  const [section, setSection] = useState<SetupSection>("cohorts");
+  const [section, setSection] = useState<SetupSection>(initialSection);
   const [newYearLabel, setNewYearLabel] = useState("");
   const [newClassNames, setNewClassNames] = useState<Record<string, string>>({});
   const [newUnitNames, setNewUnitNames] = useState<Record<string, string>>({});
@@ -220,9 +221,9 @@ export function SetupView({ planner, onChange, onBack }: {
         <div>
           <p className="eyebrow">Live Classroom Trial</p>
           <h1>Set up your teaching week.</h1>
-          <p>Everything here is saved only in this browser. Changes appear on the Dashboard straight away.</p>
+          <p>Everything here is saved only in this browser. Changes appear in Week and Progress straight away.</p>
         </div>
-        <button className="primary-button" type="button" onClick={onBack}>Return to Dashboard</button>
+        <button className="primary-button" type="button" onClick={onBack}>Return to Week</button>
       </section>
 
       <div className="setup-layout">
@@ -230,7 +231,7 @@ export function SetupView({ planner, onChange, onBack }: {
           <div className="setup-subject-card">
             <span>Active subject</span>
             <input aria-label="Active subject name" value={activeSubject.name} onChange={(event) => onChange(touchPlanner({ ...planner, subjects: planner.subjects.map((item) => item.id === activeSubject.id ? { ...item, name: event.target.value } : item) }))} />
-            <small>Single-subject mode for v0.3.1</small>
+            <small>Single-subject mode for v0.4</small>
           </div>
           {([['cohorts', 'Year levels & units'], ['timetable', 'Weekly timetable'], ['notes', `Trial notes (${planner.trialNotes.length})`], ['data', 'Backup & reset']] as [SetupSection, string][]).map(([id, label]) => (
             <button type="button" key={id} className={section === id ? "active" : ""} onClick={() => setSection(id)}>{label}<span>→</span></button>
@@ -348,7 +349,7 @@ export function SetupView({ planner, onChange, onBack }: {
           </>}
 
           {section === "timetable" && <>
-            <div className="setup-section-title"><div><p className="section-kicker">Step 4</p><h2>Weekly timetable</h2><p>Only Specialist Teaching sessions linked to a class appear on the Dashboard’s teaching cards.</p></div></div>
+            <div className="setup-section-title"><div><p className="section-kicker">Step 4</p><h2>Weekly timetable</h2><p>Specialist Teaching sessions become progress-aware Week cards; other entries provide muted timetable context.</p></div></div>
             <div className="session-form">
               <label><span>Day</span><select value={sessionDraft.weekday} onChange={(event) => setSessionDraft({ ...sessionDraft, weekday: Number(event.target.value) })}>{weekdays.map((day, index) => <option value={index} key={day}>{day}</option>)}</select></label>
               <label><span>Start</span><input type="time" value={sessionDraft.startTime} onChange={(event) => setSessionDraft({ ...sessionDraft, startTime: event.target.value })} /></label>
@@ -393,7 +394,7 @@ export function SetupView({ planner, onChange, onBack }: {
             <div className="setup-section-title"><div><p className="section-kicker">Safety</p><h2>Backup & reset</h2><p>Your data lives in this browser. Export a backup regularly during the live trial.</p></div></div>
             <div className="data-actions">
               <article><span className="data-icon">↓</span><div><h3>Export planner backup</h3><p>Downloads subjects, cohorts, units, lessons, progress, timetable and notes as JSON.</p><button className="secondary-button" type="button" onClick={() => downloadBackup(planner)}>Export JSON</button></div></article>
-              <article><span className="data-icon">↑</span><div><h3>Import planner backup</h3><p>Validates v0.3.1 and compatible v0.2/v0.2.1/v0.3 backups before asking to replace current local data.</p><button className="secondary-button" type="button" onClick={() => importRef.current?.click()}>Choose JSON file</button><input className="visually-hidden" ref={importRef} type="file" accept="application/json,.json" onChange={(event) => importBackup(event.target.files?.[0])} /></div></article>
+              <article><span className="data-icon">↑</span><div><h3>Import planner backup</h3><p>Validates v0.4 and compatible v0.2/v0.2.1/v0.3/v0.3.1 backups before asking to replace current local data.</p><button className="secondary-button" type="button" onClick={() => importRef.current?.click()}>Choose JSON file</button><input className="visually-hidden" ref={importRef} type="file" accept="application/json,.json" onChange={(event) => importBackup(event.target.files?.[0])} /></div></article>
             </div>
             <section className="reconciliation-tool" aria-labelledby="reconciliation-title">
               <div className="reconciliation-heading"><div><span>One-time migration tool</span><h3 id="reconciliation-title">Reconcile previous teaching</h3><p>Keep today’s known-correct class positions, then reconstruct an earlier teaching week as history without advancing any class again.</p></div>{planner.reconciliationStatus && <strong>Teaching history reconciled through {planner.reconciliationStatus.throughDate}</strong>}</div>
