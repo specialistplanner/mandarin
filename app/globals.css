@@ -106,6 +106,8 @@ nav { display: flex; align-self: stretch; }
 .week-card.has-attention { border-left: 3px solid var(--amber); }
 .week-card.state-actual { background: #f8faf7; }
 .week-card.state-legacy { opacity: .67; background: #efeee9; }
+.week-card.has-class-colour { background: var(--class-card-bg); color: var(--class-card-foreground); border-top: 4px solid var(--class-card-accent); }
+.week-card.has-class-colour .week-card-detail { background: color-mix(in srgb, var(--class-card-bg) 72%, white); }
 .week-card-summary { width: 100%; min-height: 150px; display: grid; grid-template-columns: 1fr auto; align-content: start; gap: 2px 7px; border: 0; background: transparent; color: var(--ink); padding: 11px; text-align: left; cursor: pointer; }
 .week-card-summary:hover { background: rgba(220,230,216,.24); }
 .week-card-time { color: var(--muted); text-transform: uppercase; letter-spacing: .07em; font-size: 8px; font-weight: 800; }
@@ -269,6 +271,9 @@ h1 { font-family: var(--font-display), serif; font-size: clamp(38px, 5vw, 62px);
 .class-pill.ahead i { background: var(--blue); color: white; }
 .class-pill.different-unit { background: var(--amber-light); border-color: #e2bc7e; }
 .class-pill.different-unit i { background: var(--amber); color: white; }
+.class-pill.has-class-colour { background: var(--class-card-bg); color: var(--class-card-foreground); border-color: var(--class-card-accent); border-left-width: 4px; }
+.class-pill.has-class-colour.behind, .class-pill.has-class-colour.different-unit { box-shadow: inset 0 -3px 0 var(--amber); }
+.class-pill.has-class-colour.ahead { box-shadow: inset 0 -3px 0 var(--blue); }
 .cohort-note { display: flex; align-items: center; gap: 8px; justify-self: end; padding: 8px 10px; border-radius: 10px; font-size: 10px; }
 .cohort-note > span { width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-weight: 900; }
 .cohort-note p { margin: 0; }
@@ -287,6 +292,7 @@ footer button { border: 0; padding: 0; background: transparent; color: var(--for
 .close-button { border: 1px solid var(--line); background: white; color: var(--ink); width: 38px; height: 38px; border-radius: 50%; font-size: 24px; line-height: 1; cursor: pointer; }
 .drawer-title { display: flex; align-items: center; gap: 14px; padding: 26px 0 22px; }
 .drawer-class-badge { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; color: white; background: var(--forest); font-family: var(--font-display), serif; font-size: 20px; font-weight: 800; }
+.drawer-class-badge.has-class-colour { color: var(--class-card-foreground); background: var(--class-card-bg); border: 3px solid var(--class-card-accent); }
 .drawer-title h2 { font-family: var(--font-display), serif; font-size: 30px; margin: 0; }
 .drawer-title p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
 .detail-unit { border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 18px 0; display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; }
@@ -423,8 +429,16 @@ textarea { padding: 11px; resize: vertical; }
 .editor-panel-title strong { font-family: var(--font-display), serif; margin-top: 3px; }
 .unit-switcher select { max-width: 210px; height: 40px; }
 .editable-list { display: grid; gap: 6px; margin-bottom: 10px; }
-.editable-class { display: grid; grid-template-columns: minmax(80px, .7fr) minmax(100px, 1fr) minmax(120px, 1.2fr) 38px; gap: 6px; align-items: center; }
+.editable-class { display: grid; grid-template-columns: minmax(80px, .7fr) minmax(100px, 1fr) minmax(120px, 1.2fr) 38px; gap: 6px; align-items: center; border-radius: 10px; padding: 6px; }
+.editable-class.has-class-colour { background: var(--class-card-bg); color: var(--class-card-foreground); box-shadow: inset 4px 0 0 var(--class-card-accent); }
 .editable-class input, .editable-class select { height: 39px; min-width: 0; }
+.class-colour-picker { grid-column: 1 / -1; display: flex; align-items: center; gap: 7px; min-width: 0; margin: 0; padding: 3px 1px 1px; border: 0; }
+.class-colour-picker legend { float: left; margin-right: 8px; color: var(--muted); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; }
+.class-colour-picker legend small { font-size: inherit; font-weight: 600; text-transform: none; letter-spacing: 0; }
+.colour-choice { width: 25px; height: 25px; flex: 0 0 auto; border: 2px solid #b6b9b4; border-radius: 50%; cursor: pointer; box-shadow: 0 0 0 2px transparent; }
+.colour-choice:hover, .colour-choice:focus-visible { transform: translateY(-1px); box-shadow: 0 0 0 2px white, 0 0 0 4px var(--forest); outline: none; }
+.colour-choice.selected { box-shadow: 0 0 0 2px white, 0 0 0 4px var(--forest); }
+.colour-none { display: grid; place-items: center; background: white; color: var(--muted); font-weight: 800; }
 .needs-unit { color: var(--muted); font-size: 10px; }
 .add-row input, .add-row button { height: 39px; }
 .unit-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
@@ -454,10 +468,12 @@ textarea { padding: 11px; resize: vertical; }
 .day-editor h3 { font-family: var(--font-display), serif; font-size: 17px; margin: 0 0 9px; display: flex; align-items: center; gap: 7px; }
 .day-editor h3 span { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; background: var(--sage); font-family: var(--font-sans), sans-serif; font-size: 9px; }
 .day-empty { margin: 0; color: var(--muted); font-size: 11px; }
-.session-editor-row { display: grid; grid-template-columns: 5px 95px 95px minmax(145px, 1.3fr) minmax(100px, 1fr) minmax(110px, 1fr) 38px; gap: 6px; align-items: center; margin-top: 6px; }
+.session-editor-row { display: grid; grid-template-columns: 5px 95px 95px minmax(145px, 1.3fr) minmax(100px, 1fr) minmax(110px, 1fr) 38px; gap: 6px; align-items: center; margin-top: 6px; border-radius: 9px; padding: 4px; }
+.session-editor-row.has-class-colour { background: var(--class-card-bg); color: var(--class-card-foreground); }
 .session-editor-row input, .session-editor-row select { min-width: 0; width: 100%; height: 38px; font-size: 11px; }
 .session-type-mark { width: 5px; height: 28px; border-radius: 4px; background: #aab5af; }
 .session-type-mark.specialist-teaching { background: var(--forest); }
+.session-editor-row.has-class-colour .session-type-mark.specialist-teaching { background: var(--class-card-accent); }
 .session-type-mark.cover-release { background: var(--amber); }
 .session-type-mark.planning { background: var(--blue); }
 

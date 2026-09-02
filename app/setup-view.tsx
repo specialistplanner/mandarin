@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, type CSSProperties } from "react";
 import {
+  CLASS_COLOUR_PRESETS,
   SESSION_TYPE_LABELS,
   addLessonRecord,
   createClassRecord,
@@ -17,6 +18,7 @@ import {
   renameClassRecord,
   setClassPosition,
   setClassLesson,
+  setClassColour,
   setCurrentUnit,
   setExpectedLesson,
   touchPlanner,
@@ -32,6 +34,16 @@ import { exportPlannerData, importPlannerData } from "@/lib/storage";
 type SetupSection = "cohorts" | "timetable" | "notes" | "data";
 const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const outcomeLabels = { planned: "Planned", completed: "Completed", partial: "Partial", "not-taught": "Not taught" } as const;
+const classColourOptions = Object.entries(CLASS_COLOUR_PRESETS);
+
+function classColourStyle(colourId: keyof typeof CLASS_COLOUR_PRESETS | undefined): CSSProperties | undefined {
+  const colour = colourId ? CLASS_COLOUR_PRESETS[colourId] : undefined;
+  return colour ? {
+    "--class-card-bg": colour.background,
+    "--class-card-accent": colour.accent,
+    "--class-card-foreground": colour.foreground,
+  } as CSSProperties : undefined;
+}
 
 function previousTeachingWeek() {
   const today = new Date();
@@ -231,7 +243,7 @@ export function SetupView({ planner, onChange, onBack, initialSection = "cohorts
           <div className="setup-subject-card">
             <span>Active subject</span>
             <input aria-label="Active subject name" value={activeSubject.name} onChange={(event) => onChange(touchPlanner({ ...planner, subjects: planner.subjects.map((item) => item.id === activeSubject.id ? { ...item, name: event.target.value } : item) }))} />
-            <small>Single-subject mode for v0.4</small>
+            <small>Single-subject mode for v0.4.1</small>
           </div>
           {([['cohorts', 'Year levels & units'], ['timetable', 'Weekly timetable'], ['notes', `Trial notes (${planner.trialNotes.length})`], ['data', 'Backup & reset']] as [SetupSection, string][]).map(([id, label]) => (
             <button type="button" key={id} className={section === id ? "active" : ""} onClick={() => setSection(id)}>{label}<span>→</span></button>
@@ -279,7 +291,8 @@ export function SetupView({ planner, onChange, onBack, initialSection = "cohorts
                         {cohort.map((item) => {
                           const progress = planner.classProgress[item.id];
                           const classUnit = levelUnits.find((unit) => unit.id === progress?.unitId) ?? currentUnit;
-                          return <div className="editable-class" key={item.id}>
+                          const selectedColour = planner.classColours[item.id];
+                          return <div className={`editable-class ${selectedColour ? "has-class-colour" : ""}`} style={classColourStyle(selectedColour)} key={item.id}>
                             <input aria-label={`${item.name} class name`} value={item.name} onChange={(event) => apply(() => renameClassRecord(planner, item.id, event.target.value))} />
                             {classUnit ? <><select aria-label={`${item.name} current unit`} value={classUnit.id} onChange={(event) => { const nextUnit = levelUnits.find((unit) => unit.id === event.target.value); if (nextUnit) apply(() => setClassPosition(planner, item.id, nextUnit.id, nextUnit.lessons[0].id)); }}>
                               {levelUnits.map((unit) => <option value={unit.id} key={unit.id}>{unit.title}</option>)}
@@ -287,6 +300,11 @@ export function SetupView({ planner, onChange, onBack, initialSection = "cohorts
                               {classUnit.lessons.map((lesson, index) => <option value={lesson.id} key={lesson.id}>L{index + 1} · {lesson.title}</option>)}
                             </select></> : <span className="needs-unit">Add a unit first</span>}
                             <button className="icon-button danger" type="button" onClick={() => removeClass(item.id, item.name)} aria-label={`Remove ${item.name}`}>×</button>
+                            <fieldset className="class-colour-picker">
+                              <legend>Card colour <small>optional</small></legend>
+                              <button className={`colour-choice colour-none ${!selectedColour ? "selected" : ""}`} type="button" aria-pressed={!selectedColour} aria-label={`Use no custom card colour for ${item.name}`} title="No custom colour" onClick={() => apply(() => setClassColour(planner, item.id))}><span aria-hidden="true">—</span></button>
+                              {classColourOptions.map(([colourId, colour]) => <button className={`colour-choice ${selectedColour === colourId ? "selected" : ""}`} style={{ background: colour.background, borderColor: colour.accent }} type="button" key={colourId} aria-pressed={selectedColour === colourId} aria-label={`Use ${colour.label} card colour for ${item.name}`} title={colour.label} onClick={() => apply(() => setClassColour(planner, item.id, colourId as keyof typeof CLASS_COLOUR_PRESETS))}><span className="visually-hidden">{colour.label}</span></button>)}
+                            </fieldset>
                           </div>;
                         })}
                       </div>
@@ -364,15 +382,15 @@ export function SetupView({ planner, onChange, onBack, initialSection = "cohorts
                 const sessions = planner.timetableSessions.filter((item) => item.weekday === weekday).sort((a, b) => a.startTime.localeCompare(b.startTime));
                 if (!sessions.length && (weekday === 0 || weekday === 6)) return null;
                 return <section className="day-editor" key={day}><h3>{day}<span>{sessions.length}</span></h3>
-                  {!sessions.length ? <p className="day-empty">No sessions</p> : sessions.map((session) => <div className="session-editor-row" key={session.id}>
-                    <div className={`session-type-mark ${session.type}`} />
+                  {!sessions.length ? <p className="day-empty">No sessions</p> : sessions.map((session) => { const selectedColour = session.classId ? planner.classColours[session.classId] : undefined; return <div className={`session-editor-row ${selectedColour ? "has-class-colour" : ""}`} style={classColourStyle(selectedColour)} key={session.id}>
+                    <div className={`session-type-mark ${session.type}`} aria-hidden="true" />
                     <input aria-label={`${day} start time`} type="time" value={session.startTime} onChange={(event) => updateSession(session.id, { startTime: event.target.value })} />
                     <input aria-label={`${day} end time`} type="time" value={session.endTime} onChange={(event) => updateSession(session.id, { endTime: event.target.value })} />
                     <select aria-label={`${day} session type`} value={session.type} onChange={(event) => updateSession(session.id, { type: event.target.value as SessionType })}>{Object.entries(SESSION_TYPE_LABELS).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select>
                     <select aria-label={`${day} session class`} value={session.classId ?? ""} onChange={(event) => updateSession(session.id, { classId: event.target.value || undefined })}><option value="">No class</option>{planner.classes.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select>
                     <input aria-label={`${day} session label`} value={session.label ?? ""} placeholder="Optional label" onChange={(event) => updateSession(session.id, { label: event.target.value || undefined })} />
                     <button className="icon-button danger" type="button" onClick={() => removeSession(session.id)} aria-label={`Remove ${day} session`}>×</button>
-                  </div>)}
+                  </div>; })}
                 </section>;
               })}
             </div>
@@ -394,7 +412,7 @@ export function SetupView({ planner, onChange, onBack, initialSection = "cohorts
             <div className="setup-section-title"><div><p className="section-kicker">Safety</p><h2>Backup & reset</h2><p>Your data lives in this browser. Export a backup regularly during the live trial.</p></div></div>
             <div className="data-actions">
               <article><span className="data-icon">↓</span><div><h3>Export planner backup</h3><p>Downloads subjects, cohorts, units, lessons, progress, timetable and notes as JSON.</p><button className="secondary-button" type="button" onClick={() => downloadBackup(planner)}>Export JSON</button></div></article>
-              <article><span className="data-icon">↑</span><div><h3>Import planner backup</h3><p>Validates v0.4 and compatible v0.2/v0.2.1/v0.3/v0.3.1 backups before asking to replace current local data.</p><button className="secondary-button" type="button" onClick={() => importRef.current?.click()}>Choose JSON file</button><input className="visually-hidden" ref={importRef} type="file" accept="application/json,.json" onChange={(event) => importBackup(event.target.files?.[0])} /></div></article>
+              <article><span className="data-icon">↑</span><div><h3>Import planner backup</h3><p>Validates v0.4.1 and compatible v0.2–v0.4 backups before asking to replace current local data.</p><button className="secondary-button" type="button" onClick={() => importRef.current?.click()}>Choose JSON file</button><input className="visually-hidden" ref={importRef} type="file" accept="application/json,.json" onChange={(event) => importBackup(event.target.files?.[0])} /></div></article>
             </div>
             <section className="reconciliation-tool" aria-labelledby="reconciliation-title">
               <div className="reconciliation-heading"><div><span>One-time migration tool</span><h3 id="reconciliation-title">Reconcile previous teaching</h3><p>Keep today’s known-correct class positions, then reconstruct an earlier teaching week as history without advancing any class again.</p></div>{planner.reconciliationStatus && <strong>Teaching history reconciled through {planner.reconciliationStatus.throughDate}</strong>}</div>

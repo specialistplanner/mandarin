@@ -1,8 +1,8 @@
-# Specialist Planner v0.4 — Progress-Aware Weekly Planner
+# Specialist Planner v0.4.1 — Class Colour Recognition
 
 ## Product architecture
 
-v0.4 makes Week the primary working surface while preserving Progress as the cohort-diagnosis view.
+v0.4.1 keeps Week as the primary working surface and adds optional class-recognition colours without changing progress semantics.
 
 ```text
 Units / Lessons
@@ -46,19 +46,25 @@ Monday–Friday columns use chronological timetable order. Specialist Teaching c
 
 Normal cards stay visually calm. Behind/ahead/different-Unit states and previous Partial/Not taught outcomes receive restrained amber attention. Non-teaching timetable entries appear as compact muted context blocks and can be hidden with a device-local preference. They have no progress or outcome controls. Daily bulk completion uses the shared engine and only affects eligible Specialist Teaching occurrences.
 
+## Class colour recognition
+
+Each class can optionally use one of five named presets—Eucalyptus, Ocean, Ochre, Clay or Lavender—selected in Setup. The same class-ID mapping colours Week cards, Progress class buttons and Specialist Teaching rows in the timetable editor. There is no unrestricted colour input in v0.4.1.
+
+Colour is deliberately non-semantic. On track, Behind, Ahead, Different unit, Completed, Partial, Not taught and other states continue to use explicit text, icons, outcome chips and attention borders. Every preset pairs a pale background with the established dark ink foreground at WCAG AA contrast or better.
+
 ## Responsive behaviour
 
 Large screens use five weekday columns. Smaller laptops and tablets keep the weekly comparison in a horizontally scrollable grid. Portrait iPad and mobile use wide, touch-friendly day columns with scroll snapping rather than squeezing five columns. Week navigation remains sticky below the main navigation where the layout is stable.
 
 ## Persistence and migration
 
-Planner data remains schema v5 under `specialist-planner.data.v5`; v0.4 needs no duplicated weekly-plan storage and therefore no schema migration. Existing v0.3.1 timetable, Units, Lessons, class progress, Teaching Sessions, reconciliation status, dated checkpoints and Trial Notes load unchanged. The optional non-teaching visibility preference is stored separately as device-local UI state.
+Planner data uses schema v6 under `specialist-planner.data.v6`. `classColours` is a class-ID-to-preset-ID map, so class renaming does not break the association. Existing schema-v5 data migrates locally with an empty colour map while preserving timetable, Units, Lessons, class progress, Teaching Sessions, reconciliation status, dated checkpoints and Trial Notes. Older supported migrations remain intact. The optional non-teaching visibility preference is stored separately as device-local UI state.
 
 JSON export/import remains the complete planner backup. Week behaviour is reconstructed from that existing data after restore; there is no separate Week backup format. No Firebase, account or cloud database is introduced.
 
 ## Known limitations
 
-- one active subject in the v0.4 UI;
+- one active subject in the v0.4.1 UI;
 - device-and-browser-local planner data with no cross-device sync;
 - no school-term calendar, holiday/event model or month view;
 - no ordered Unit sequence, so cross-Unit status is categorical and Unit completion requires teacher choice;

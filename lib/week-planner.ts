@@ -4,6 +4,7 @@ import {
   lessonPosition,
   localDateKey,
   type Lesson,
+  type ClassColourId,
   type PlannerData,
   type ProgressStatus,
   type SpecialistClass,
@@ -32,6 +33,7 @@ export type WeekEntry = {
   previousSession?: TeachingSession;
   projectionUncertain?: boolean;
   canRecordOutcome: boolean;
+  classColourId?: ClassColourId;
 };
 
 export type WeekDay = {
@@ -145,6 +147,7 @@ export function deriveTeachingWeek(planner: PlannerData, anchorDate: Date, today
         previousSession: specialistClass ? latestEarlierSession(planner, specialistClass.id, dateKey, item.startTime, session?.id) : undefined,
         projectionUncertain,
         canRecordOutcome,
+        classColourId: specialistClass ? planner.classColours[specialistClass.id] : undefined,
       };
     });
     days.push({ date, dateKey, weekday: date.getDay(), entries });

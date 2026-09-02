@@ -13,17 +13,17 @@ export async function generateMetadata(): Promise<Metadata> {
   const metadataBase = new URL(`${protocol}://${host}`);
   return {
     metadataBase,
-    title: "Specialist Planner v0.4 — Progress-Aware Weekly Planner",
-    description: "A calm weekly teaching planner that combines timetable structure, class progress and real lesson outcomes.",
+    title: "Specialist Planner v0.4.1 — Class Colour Recognition",
+    description: "A calm weekly teaching planner with optional, accessible class colours and independent progress status.",
     openGraph: {
-      title: "Specialist Planner v0.4 — Progress-Aware Weekly Planner",
-      description: "See who you teach, what comes next and which classes need attention across one working week.",
+      title: "Specialist Planner v0.4.1 — Class Colour Recognition",
+      description: "Recognise classes quickly while progress and teaching outcomes remain explicit.",
       images: [{ url: "/og-v04.png", width: 1536, height: 1024 }],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Specialist Planner v0.4 — Progress-Aware Weekly Planner",
-      description: "See who you teach, what comes next and which classes need attention across one working week.",
+      title: "Specialist Planner v0.4.1 — Class Colour Recognition",
+      description: "Recognise classes quickly while progress and teaching outcomes remain explicit.",
       images: ["/og-v04.png"],
     },
   };

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import {
+  CLASS_COLOUR_PRESETS,
   localDateKey,
   markAllTaughtAsPlanned,
   materializeTeachingSessionsForDate,
@@ -16,6 +17,15 @@ const dayNumberFormatter = new Intl.DateTimeFormat("en-AU", { day: "numeric", mo
 const rangeFormatter = new Intl.DateTimeFormat("en-AU", { day: "numeric", month: "short" });
 const outcomeLabels: Record<TeachingSessionOutcome, string> = { planned: "Planned", completed: "Completed", partial: "Partial", "not-taught": "Not taught" };
 const preferenceKey = "specialist-planner.preferences.v1";
+
+function classColourStyle(colourId: WeekEntry["classColourId"]): CSSProperties | undefined {
+  const colour = colourId ? CLASS_COLOUR_PRESETS[colourId] : undefined;
+  return colour ? {
+    "--class-card-bg": colour.background,
+    "--class-card-accent": colour.accent,
+    "--class-card-foreground": colour.foreground,
+  } as CSSProperties : undefined;
+}
 
 function timeLabel(time: string) {
   const [hourString, minutes] = time.split(":");
@@ -103,7 +113,7 @@ export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onQui
       const isToday = day.dateKey === todayKey;
       return <section className={`week-day ${isToday ? "is-today" : ""}`} key={day.dateKey} aria-labelledby={`day-${day.dateKey}`}>
         <header><div><span>{isToday ? "Today" : dayNumberFormatter.format(day.date)}</span><h2 id={`day-${day.dateKey}`}>{dayFormatter.format(day.date)}</h2></div><small>{day.entries.filter((entry) => entry.kind === "teaching").length} classes</small></header>
-        <div className="week-day-body">{visible.length ? visible.map((entry) => entry.kind === "non-teaching" ? <div className={`week-context-block context-${entry.timetable.type}`} key={entry.key}><span>{timeLabel(entry.timetable.startTime)}</span><strong>{entry.label}</strong></div> : <article className={`week-card state-${entry.state} ${entry.progressStatus && entry.progressStatus.kind !== "on-track" ? "has-attention" : ""} ${entry.session?.outcome === "partial" || entry.session?.outcome === "not-taught" ? "has-attention" : ""}`} key={entry.key}>
+        <div className="week-day-body">{visible.length ? visible.map((entry) => entry.kind === "non-teaching" ? <div className={`week-context-block context-${entry.timetable.type}`} key={entry.key}><span>{timeLabel(entry.timetable.startTime)}</span><strong>{entry.label}</strong></div> : <article className={`week-card state-${entry.state} ${entry.classColourId ? "has-class-colour" : ""} ${entry.progressStatus && entry.progressStatus.kind !== "on-track" ? "has-attention" : ""} ${entry.session?.outcome === "partial" || entry.session?.outcome === "not-taught" ? "has-attention" : ""}`} style={classColourStyle(entry.classColourId)} key={entry.key}>
           <button className="week-card-summary" type="button" aria-expanded={expanded === entry.key} onClick={() => setExpanded(expanded === entry.key ? null : entry.key)}>
             <span className="week-card-time">{timeLabel(entry.timetable.startTime)}–{timeLabel(entry.timetable.endTime)}</span><span className={`week-card-state outcome-${entry.session?.outcome ?? entry.state}`}>{stateLabel(entry)}</span>
             <strong className="week-card-class">{entry.specialistClass?.name ?? entry.label}</strong><small>{entry.yearLevel?.label ?? "Specialist teaching"}</small>

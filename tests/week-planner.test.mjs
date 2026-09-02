@@ -6,6 +6,7 @@ import {
   materializeTeachingSessionsForDate,
   reconcilePreviousTeaching,
   recordTeachingSessionOutcome,
+  setClassColour,
 } from "../lib/domain.ts";
 import { deriveTeachingWeek, shiftTeachingWeek, startOfTeachingWeek } from "../lib/week-planner.ts";
 import { exportPlannerData, importPlannerData } from "../lib/storage.ts";
@@ -44,6 +45,14 @@ test("the correct class appears on the configured weekday and time", () => {
 
 test("a teaching card derives its actual Unit from class progress", () => {
   assert.equal(entryFor(deriveTeachingWeek(freshSamplePlanner(), wednesday, wednesday), "5e").unit.id, "nationalities");
+});
+
+test("a teaching card carries its class-ID colour without changing status", () => {
+  const planner = setClassColour(freshSamplePlanner(), "5e", "ocean");
+  const entry = entryFor(deriveTeachingWeek(planner, wednesday, wednesday), "5e");
+  assert.equal(entry.classColourId, "ocean");
+  assert.equal(entry.progressStatus.label, "On track");
+  assert.equal(entry.session?.outcome ?? "planned", "planned");
 });
 
 test("a teaching card derives the correct Teach Next Lesson", () => {

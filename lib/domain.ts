@@ -1,4 +1,14 @@
-export const PLANNER_SCHEMA_VERSION = 5 as const;
+export const PLANNER_SCHEMA_VERSION = 6 as const;
+
+export const CLASS_COLOUR_PRESETS = {
+  eucalyptus: { label: "Eucalyptus", background: "#e8f1eb", accent: "#4f7967", foreground: "#17372c" },
+  ocean: { label: "Ocean", background: "#e8f0f4", accent: "#547d91", foreground: "#17372c" },
+  ochre: { label: "Ochre", background: "#fff1dd", accent: "#a96b24", foreground: "#17372c" },
+  clay: { label: "Clay", background: "#f6e8e2", accent: "#9a6251", foreground: "#17372c" },
+  lavender: { label: "Lavender", background: "#eeeaf4", accent: "#75658a", foreground: "#17372c" },
+} as const;
+
+export type ClassColourId = keyof typeof CLASS_COLOUR_PRESETS;
 
 export type SessionType =
   | "specialist-teaching"
@@ -114,6 +124,7 @@ export type PlannerData = {
   classProgress: Record<string, ClassProgress>;
   progressBaselines: Record<string, ClassProgress>;
   progressCheckpoints: Record<string, ProgressCheckpoint>;
+  classColours: Record<string, ClassColourId>;
   timetableSessions: TimetableSession[];
   teachingSessions: TeachingSession[];
   reconciliationStatus?: ReconciliationStatus;
@@ -146,6 +157,15 @@ export function clonePlanner(planner: PlannerData): PlannerData {
 
 export function touchPlanner(planner: PlannerData): PlannerData {
   return { ...planner, updatedAt: new Date().toISOString() };
+}
+
+export function setClassColour(planner: PlannerData, classId: string, colourId?: ClassColourId): PlannerData {
+  if (!planner.classes.some((item) => item.id === classId)) throw new Error("Class not found.");
+  if (colourId && !CLASS_COLOUR_PRESETS[colourId]) throw new Error("Choose a valid class colour.");
+  const classColours = { ...planner.classColours };
+  if (colourId) classColours[classId] = colourId;
+  else delete classColours[classId];
+  return touchPlanner({ ...planner, classColours });
 }
 
 export function clampLesson(value: number, lessonCount: number): number {
@@ -536,15 +556,18 @@ export function deleteClassRecord(planner: PlannerData, classId: string): Planne
   const classProgress = { ...planner.classProgress };
   const progressBaselines = { ...planner.progressBaselines };
   const progressCheckpoints = { ...planner.progressCheckpoints };
+  const classColours = { ...planner.classColours };
   delete classProgress[classId];
   delete progressBaselines[classId];
   delete progressCheckpoints[classId];
+  delete classColours[classId];
   return touchPlanner({
     ...planner,
     classes: planner.classes.filter((item) => item.id !== classId),
     classProgress,
     progressBaselines,
     progressCheckpoints,
+    classColours,
     timetableSessions: planner.timetableSessions.filter((session) => session.classId !== classId),
     teachingSessions: planner.teachingSessions.filter((session) => session.classId !== classId),
     trialNotes: planner.trialNotes.map((note) => note.classId === classId ? { ...note, classId: undefined } : note),
