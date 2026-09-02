@@ -27,6 +27,7 @@ import {
   LEGACY_STORAGE_KEY,
   LEGACY_V2_STORAGE_KEY,
   LEGACY_V3_STORAGE_KEY,
+  LEGACY_V4_STORAGE_KEY,
   STORAGE_KEY,
   exportPlannerData,
   importPlannerData,
@@ -54,6 +55,7 @@ function fixture() {
       "5e": { classId: "5e", unitId: "u5", lessonId: "u5-l4" },
       "5c": { classId: "5c", unitId: "u5", lessonId: "u5-l3" },
     },
+    progressCheckpoints: {},
     timetableSessions: [
       { id: "teach", weekday: 3, startTime: "08:55", endTime: "09:55", classId: "5e", subjectId: "subject", type: "specialist-teaching" },
       { id: "cover", weekday: 3, startTime: "10:00", endTime: "11:00", classId: "5c", type: "cover-release" },
@@ -206,14 +208,25 @@ test("invalid import is rejected without returning partial data", () => {
   assert.throws(() => importPlannerData(JSON.stringify(invalid)), /no valid year level/);
 });
 
-test("localStorage v4 persists fully and v0.2 class units migrate safely", () => {
+test("localStorage v5 persists fully and older class units migrate safely", () => {
   const memory = new Map();
   const storage = { getItem: (key) => memory.get(key) ?? null, setItem: (key, value) => memory.set(key, value), removeItem: (key) => memory.delete(key) };
   persistPlanner(storage, fixture());
-  assert.equal(loadPlanner(storage, fixture()).source, "v4");
+  assert.equal(loadPlanner(storage, fixture()).source, "v5");
   assert.equal(JSON.parse(memory.get(STORAGE_KEY)).trialNotes.length, 1);
 
   memory.delete(STORAGE_KEY);
+  const v4 = fixture();
+  v4.schemaVersion = 4;
+  delete v4.progressCheckpoints;
+  memory.set(LEGACY_V4_STORAGE_KEY, JSON.stringify(v4));
+  const v4Migrated = loadPlanner(storage, fixture());
+  assert.equal(v4Migrated.source, "migrated-v4");
+  assert.deepEqual(v4Migrated.planner.classProgress, v4.classProgress);
+  assert.deepEqual(v4Migrated.planner.teachingSessions, v4.teachingSessions);
+  assert.deepEqual(v4Migrated.planner.progressCheckpoints, {});
+
+  memory.delete(LEGACY_V4_STORAGE_KEY);
   const v3 = fixture();
   v3.schemaVersion = 3;
   delete v3.progressBaselines;

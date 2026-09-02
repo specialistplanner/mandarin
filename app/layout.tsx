@@ -13,17 +13,17 @@ export async function generateMetadata(): Promise<Metadata> {
   const metadataBase = new URL(`${protocol}://${host}`);
   return {
     metadataBase,
-    title: "Specialist Planner v0.3 — Teaching Session Engine",
-    description: "A local-first specialist planner where confirmed teaching outcomes drive class progress and history.",
+    title: "Specialist Planner v0.3.1 — Progress Reconciliation Hotfix",
+    description: "A local-first specialist planner with safe historical reconciliation and dated progress checkpoints.",
     openGraph: {
-      title: "Specialist Planner v0.3 — Teaching Session Engine",
-      description: "Confirm what happened in each lesson and keep progress and teaching history accurate.",
+      title: "Specialist Planner v0.3.1 — Progress Reconciliation Hotfix",
+      description: "Reconcile previous teaching without moving today's verified class progress.",
       images: [{ url: "/og-v03.png", width: 1536, height: 1024 }],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Specialist Planner v0.3 — Teaching Session Engine",
-      description: "Confirm what happened in each lesson and keep progress and teaching history accurate.",
+      title: "Specialist Planner v0.3.1 — Progress Reconciliation Hotfix",
+      description: "Reconcile previous teaching without moving today's verified class progress.",
       images: ["/og-v03.png"],
     },
   };

@@ -1,4 +1,4 @@
-export const PLANNER_SCHEMA_VERSION = 4 as const;
+export const PLANNER_SCHEMA_VERSION = 5 as const;
 
 export type SessionType =
   | "specialist-teaching"
@@ -53,6 +53,18 @@ export type ClassProgress = {
   unitComplete?: boolean;
 };
 
+export type ProgressCheckpoint = ClassProgress & {
+  effectiveDate: string;
+  createdAt: string;
+  reason: string;
+};
+
+export type ReconciliationStatus = {
+  startDate: string;
+  throughDate: string;
+  completedAt: string;
+};
+
 export type TimetableSession = {
   id: string;
   weekday: number;
@@ -101,8 +113,10 @@ export type PlannerData = {
   units: Unit[];
   classProgress: Record<string, ClassProgress>;
   progressBaselines: Record<string, ClassProgress>;
+  progressCheckpoints: Record<string, ProgressCheckpoint>;
   timetableSessions: TimetableSession[];
   teachingSessions: TeachingSession[];
+  reconciliationStatus?: ReconciliationStatus;
   trialNotes: TrialNote[];
   updatedAt: string;
 };
@@ -231,9 +245,10 @@ function plannedTeachingSession(
 ): TeachingSession | null {
   const specialistClass = planner.classes.find((item) => item.id === timetable.classId);
   const progress = specialistClass ? planner.classProgress[specialistClass.id] : undefined;
+  const checkpoint = specialistClass ? planner.progressCheckpoints[specialistClass.id] : undefined;
   const unit = planner.units.find((item) => item.id === progress?.unitId);
   const lesson = unit?.lessons.find((item) => item.id === progress?.lessonId);
-  if (!specialistClass || !progress || !unit || !lesson || progress.unitComplete) return null;
+  if (!specialistClass || !progress || !unit || !lesson || progress.unitComplete || (checkpoint && date <= checkpoint.effectiveDate)) return null;
   return {
     id: teachingSessionId(date, timetable.id),
     date,
@@ -257,7 +272,12 @@ export function getTeachingSessionsForDate(planner: PlannerData, date: Date): Te
   const existing = new Map(planner.teachingSessions.filter((item) => item.date === dateKey).map((item) => [item.timetableSessionId, item]));
   const timestamp = new Date().toISOString();
   return getTeachingSessionsForWeekday(planner.timetableSessions, date.getDay())
-    .map((timetable) => existing.get(timetable.id) ?? plannedTeachingSession(planner, timetable, dateKey, timestamp))
+    .map((timetable) => {
+      const saved = existing.get(timetable.id);
+      const checkpoint = timetable.classId ? planner.progressCheckpoints[timetable.classId] : undefined;
+      if (saved?.outcome === "planned" && checkpoint && dateKey <= checkpoint.effectiveDate) return null;
+      return saved ?? plannedTeachingSession(planner, timetable, dateKey, timestamp);
+    })
     .filter((item): item is TeachingSession => Boolean(item));
 }
 
@@ -278,13 +298,18 @@ function advanceClassProgress(planner: PlannerData, progress: ClassProgress): Cl
   return { ...activeProgress, lessonId: unit.lessons[index + 1].id };
 }
 
+function sessionCanAffectProgress(planner: PlannerData, session: TeachingSession): boolean {
+  const checkpoint = planner.progressCheckpoints[session.classId];
+  return session.outcome === "completed" && session.affectsProgress && (!checkpoint || session.date > checkpoint.effectiveDate);
+}
+
 export function reconcileClassProgress(planner: PlannerData, classId: string): PlannerData {
   const baseline = planner.progressBaselines[classId];
   if (!baseline) return planner;
   let progress = { ...baseline };
   const timetableById = new Map(planner.timetableSessions.map((item) => [item.id, item]));
   const completed = planner.teachingSessions
-    .filter((item) => item.classId === classId && item.outcome === "completed" && item.affectsProgress)
+    .filter((item) => item.classId === classId && sessionCanAffectProgress(planner, item))
     .sort((a, b) => `${a.date}T${timetableById.get(a.timetableSessionId)?.startTime ?? "00:00"}`.localeCompare(`${b.date}T${timetableById.get(b.timetableSessionId)?.startTime ?? "00:00"}`) || a.createdAt.localeCompare(b.createdAt));
   for (const session of completed) {
     if (!progress.unitComplete && progress.unitId === session.plannedUnitId && progress.lessonId === session.plannedLessonId) {
@@ -310,15 +335,21 @@ export function recordTeachingSessionOutcome(
   if (!existing) throw new Error("Teaching session not found.");
   const timestamp = new Date().toISOString();
   const cleaned = detail.trim();
+  const checkpoint = planner.progressCheckpoints[existing.classId];
+  const affectsProgress = outcome === "completed" && (!checkpoint || existing.date > checkpoint.effectiveDate);
   const teachingSessions = planner.teachingSessions.map((item) => item.id === sessionId ? {
     ...item,
     outcome,
     note: outcome === "partial" && cleaned ? cleaned : undefined,
     reason: outcome === "not-taught" && cleaned ? cleaned : undefined,
-    affectsProgress: outcome === "completed",
+    affectsProgress,
     updatedAt: timestamp,
   } : item);
-  return reconcileClasses({ ...planner, teachingSessions }, [existing.classId]);
+  let next = { ...planner, teachingSessions };
+  if (planner.reconciliationStatus && existing.date >= planner.reconciliationStatus.startDate && existing.date <= planner.reconciliationStatus.throughDate) {
+    next = rebuildHistoricalPlans(next, existing.classId);
+  }
+  return reconcileClasses(next, [existing.classId]);
 }
 
 export function markAllTaughtAsPlanned(planner: PlannerData, date: Date): PlannerData {
@@ -329,7 +360,9 @@ export function markAllTaughtAsPlanned(planner: PlannerData, date: Date): Planne
   if (!eligible.length) return materialized;
   const eligibleIds = new Set(eligible.map((item) => item.id));
   const teachingSessions = materialized.teachingSessions.map((item) => eligibleIds.has(item.id) ? {
-    ...item, outcome: "completed" as const, affectsProgress: true, note: undefined, reason: undefined, updatedAt: timestamp,
+    ...item, outcome: "completed" as const,
+    affectsProgress: !materialized.progressCheckpoints[item.classId] || item.date > materialized.progressCheckpoints[item.classId].effectiveDate,
+    note: undefined, reason: undefined, updatedAt: timestamp,
   } : item);
   return reconcileClasses({ ...materialized, teachingSessions }, eligible.map((item) => item.classId));
 }
@@ -338,6 +371,128 @@ export function latestRecordedTeachingSession(planner: PlannerData, classId: str
   return planner.teachingSessions
     .filter((item) => item.classId === classId && item.outcome !== "planned")
     .sort((a, b) => b.date.localeCompare(a.date) || b.updatedAt.localeCompare(a.updatedAt))[0];
+}
+
+export type ScheduledTeachingOccurrence = {
+  date: string;
+  timetableSession: TimetableSession;
+};
+
+function dateFromKey(value: string): Date {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day, 12);
+}
+
+function validDateRange(startDate: string, endDate: string) {
+  const validDate = (value: string) => /^\d{4}-\d{2}-\d{2}$/.test(value) && localDateKey(dateFromKey(value)) === value;
+  if (!validDate(startDate) || !validDate(endDate) || startDate > endDate) {
+    throw new Error("Choose a valid reconciliation date range.");
+  }
+}
+
+export function getScheduledTeachingOccurrencesInRange(
+  planner: PlannerData,
+  startDate: string,
+  endDate: string,
+): ScheduledTeachingOccurrence[] {
+  validDateRange(startDate, endDate);
+  const occurrences: ScheduledTeachingOccurrence[] = [];
+  const cursor = dateFromKey(startDate);
+  const last = dateFromKey(endDate);
+  while (cursor <= last) {
+    const date = localDateKey(cursor);
+    for (const timetableSession of getTeachingSessionsForWeekday(planner.timetableSessions, cursor.getDay())) {
+      occurrences.push({ date, timetableSession });
+    }
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return occurrences;
+}
+
+function retreatClassProgress(planner: PlannerData, progress: ClassProgress): ClassProgress {
+  const unit = planner.units.find((item) => item.id === progress.unitId);
+  if (!unit) return progress;
+  if (progress.unitComplete) return { classId: progress.classId, unitId: progress.unitId, lessonId: progress.lessonId };
+  const index = unit.lessons.findIndex((item) => item.id === progress.lessonId);
+  return index > 0 ? { classId: progress.classId, unitId: progress.unitId, lessonId: unit.lessons[index - 1].id } : progress;
+}
+
+function rebuildHistoricalPlans(planner: PlannerData, classId: string): PlannerData {
+  const status = planner.reconciliationStatus;
+  const baseline = planner.progressBaselines[classId];
+  if (!status || !baseline) return planner;
+  let pointer = { ...baseline };
+  const timetableById = new Map(planner.timetableSessions.map((item) => [item.id, item]));
+  const sessions = planner.teachingSessions
+    .filter((item) => item.classId === classId && item.date >= status.startDate && item.date <= status.throughDate)
+    .sort((a, b) => `${b.date}T${timetableById.get(b.timetableSessionId)?.startTime ?? "00:00"}`.localeCompare(`${a.date}T${timetableById.get(a.timetableSessionId)?.startTime ?? "00:00"}`));
+  const updates = new Map<string, TeachingSession>();
+  for (const session of sessions) {
+    const planned = session.outcome === "completed" ? retreatClassProgress(planner, pointer) : pointer;
+    const unit = planner.units.find((item) => item.id === planned.unitId);
+    const lesson = unit?.lessons.find((item) => item.id === planned.lessonId);
+    if (unit && lesson) {
+      updates.set(session.id, {
+        ...session,
+        plannedUnitId: unit.id,
+        plannedLessonId: lesson.id,
+        plannedUnitTitle: unit.title,
+        plannedLessonTitle: lesson.title,
+        affectsProgress: false,
+      });
+    }
+    if (session.outcome === "completed") pointer = planned;
+  }
+  return { ...planner, teachingSessions: planner.teachingSessions.map((item) => updates.get(item.id) ?? item) };
+}
+
+export function reconcilePreviousTeaching(
+  planner: PlannerData,
+  startDate: string,
+  endDate: string,
+  asOfDate = localDateKey(new Date()),
+): PlannerData {
+  validDateRange(startDate, endDate);
+  if (endDate > asOfDate) throw new Error("Reconciliation can only include today or earlier dates.");
+  const occurrences = getScheduledTeachingOccurrencesInRange(planner, startDate, endDate);
+  if (!occurrences.length) throw new Error("No Specialist Teaching sessions are scheduled in that range.");
+
+  let materialized: PlannerData = { ...planner, progressCheckpoints: {} };
+  for (let cursor = dateFromKey(startDate), last = dateFromKey(endDate); cursor <= last; cursor.setDate(cursor.getDate() + 1)) {
+    materialized = materializeTeachingSessionsForDate(materialized, new Date(cursor));
+  }
+
+  const timestamp = new Date().toISOString();
+  const classProgress = clonePlanner(materialized).classProgress;
+  const progressBaselines = clonePlanner(materialized).classProgress;
+  const progressCheckpoints = Object.fromEntries(Object.values(progressBaselines).map((progress) => [progress.classId, {
+    ...progress,
+    effectiveDate: asOfDate,
+    createdAt: timestamp,
+    reason: `Reconciled previous teaching through ${endDate}`,
+  }]));
+  const teachingSessions = materialized.teachingSessions.map((session) => {
+    const inRange = session.date >= startDate && session.date <= endDate;
+    const outcome = inRange && session.outcome === "planned" ? "completed" as const : session.outcome;
+    return session.date <= asOfDate ? {
+      ...session,
+      outcome,
+      affectsProgress: false,
+      note: outcome === "completed" ? undefined : session.note,
+      reason: outcome === "completed" ? undefined : session.reason,
+      updatedAt: inRange ? timestamp : session.updatedAt,
+    } : session;
+  });
+  let next: PlannerData = touchPlanner({
+    ...materialized,
+    classProgress,
+    progressBaselines,
+    progressCheckpoints,
+    teachingSessions,
+    reconciliationStatus: { startDate, throughDate: endDate, completedAt: timestamp },
+  });
+  for (const classId of Object.keys(progressBaselines)) next = rebuildHistoricalPlans(next, classId);
+  return { ...next, classProgress };
 }
 
 export function lessonLabel(position: number, lessons: Lesson[]): string {
@@ -380,13 +535,16 @@ export function deleteClassRecord(planner: PlannerData, classId: string): Planne
   if (!planner.classes.some((item) => item.id === classId)) throw new Error("Class not found.");
   const classProgress = { ...planner.classProgress };
   const progressBaselines = { ...planner.progressBaselines };
+  const progressCheckpoints = { ...planner.progressCheckpoints };
   delete classProgress[classId];
   delete progressBaselines[classId];
+  delete progressCheckpoints[classId];
   return touchPlanner({
     ...planner,
     classes: planner.classes.filter((item) => item.id !== classId),
     classProgress,
     progressBaselines,
+    progressCheckpoints,
     timetableSessions: planner.timetableSessions.filter((session) => session.classId !== classId),
     teachingSessions: planner.teachingSessions.filter((session) => session.classId !== classId),
     trialNotes: planner.trialNotes.map((note) => note.classId === classId ? { ...note, classId: undefined } : note),
@@ -519,12 +677,16 @@ export function deleteLessonRecord(planner: PlannerData, unitId: string, lessonI
   const progressBaselines = Object.fromEntries(Object.entries(planner.progressBaselines).map(([classId, progress]) => [
     classId, repairProgress(progress),
   ]));
+  const progressCheckpoints = Object.fromEntries(Object.entries(planner.progressCheckpoints).map(([classId, progress]) => [
+    classId, repairProgress(progress) as ProgressCheckpoint,
+  ]));
   return touchPlanner({
     ...planner,
     units: planner.units.map((candidate) => candidate.id === unitId ? normalizeUnit({ ...candidate, lessons: remaining }) : candidate),
     yearLevels: planner.yearLevels.map((level) => level.expectedLessonId === lessonId ? { ...level, expectedLessonId: replacement.id } : level),
     classProgress,
     progressBaselines,
+    progressCheckpoints,
   });
 }
 
@@ -556,10 +718,17 @@ export function setClassPosition(
 }
 
 function applyManualProgressCorrection(planner: PlannerData, progress: ClassProgress): PlannerData {
+  const timestamp = new Date().toISOString();
   return touchPlanner({
     ...planner,
     classProgress: { ...planner.classProgress, [progress.classId]: progress },
     progressBaselines: { ...planner.progressBaselines, [progress.classId]: progress },
+    progressCheckpoints: { ...planner.progressCheckpoints, [progress.classId]: {
+      ...progress,
+      effectiveDate: localDateKey(new Date()),
+      createdAt: timestamp,
+      reason: "Manual progress correction",
+    } },
     teachingSessions: planner.teachingSessions.map((session) => session.classId === progress.classId
       ? { ...session, affectsProgress: false }
       : session),

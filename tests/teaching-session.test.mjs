@@ -122,10 +122,11 @@ test("cross-Unit class progress remains valid through a teaching outcome", () =>
 });
 
 test("final-Lesson completion stops at Unit complete and never guesses another Unit", () => {
+  const followingWednesday = new Date(2026, 8, 9);
   let planner = freshSamplePlanner();
   planner = setClassLesson(planner, "5e", "nationalities-lesson-6");
-  planner = materializeTeachingSessionsForDate(planner, wednesday);
-  const completed = recordTeachingSessionOutcome(planner, sessionFor(planner, "5e").id, "completed");
+  planner = materializeTeachingSessionsForDate(planner, followingWednesday);
+  const completed = recordTeachingSessionOutcome(planner, sessionFor(planner, "5e", followingWednesday).id, "completed");
   assert.equal(completed.classProgress["5e"].unitId, "nationalities");
   assert.equal(completed.classProgress["5e"].lessonId, "nationalities-lesson-6");
   assert.equal(completed.classProgress["5e"].unitComplete, true);

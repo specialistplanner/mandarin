@@ -7,13 +7,14 @@ import {
   type TeachingSessionOutcome,
 } from "./domain.ts";
 
-export const STORAGE_KEY = "specialist-planner.data.v4";
+export const STORAGE_KEY = "specialist-planner.data.v5";
+export const LEGACY_V4_STORAGE_KEY = "specialist-planner.data.v4";
 export const LEGACY_V3_STORAGE_KEY = "specialist-planner.data.v3";
 export const LEGACY_V2_STORAGE_KEY = "specialist-planner.data.v2";
 export const LEGACY_STORAGE_KEY = "specialist-planner.dashboard.progress.v1";
 
 export type StorageLike = Pick<Storage, "getItem" | "setItem"> & Partial<Pick<Storage, "removeItem">>;
-export type PlannerLoadResult = { planner: PlannerData | null; source: "v4" | "migrated-v3" | "migrated-v2" | "migrated-v1" | "empty" };
+export type PlannerLoadResult = { planner: PlannerData | null; source: "v5" | "migrated-v4" | "migrated-v3" | "migrated-v2" | "migrated-v1" | "empty" };
 
 const sessionTypes = new Set<SessionType>([
   "specialist-teaching", "cover-release", "planning", "meeting", "school-activity", "break", "other",
@@ -41,11 +42,11 @@ function uniqueIds(items: Array<{ id: string }>, label: string) {
 
 export function validatePlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== PLANNER_SCHEMA_VERSION) {
-    throw new Error("This file is not a Specialist Planner v0.3 backup.");
+    throw new Error("This file is not a Specialist Planner v0.3.1 backup.");
   }
   if (!Array.isArray(value.subjects) || !Array.isArray(value.yearLevels) || !Array.isArray(value.classes) ||
       !Array.isArray(value.units) || !Array.isArray(value.timetableSessions) || !Array.isArray(value.teachingSessions) || !Array.isArray(value.trialNotes) ||
-      !record(value.classProgress) || !record(value.progressBaselines)) {
+      !record(value.classProgress) || !record(value.progressBaselines) || !record(value.progressCheckpoints)) {
     throw new Error("Planner collections are missing or invalid.");
   }
 
@@ -139,6 +140,36 @@ export function validatePlannerData(value: unknown): PlannerData {
   }));
   for (const specialistClass of classes) if (classProgress[specialistClass.id] && !progressBaselines[specialistClass.id]) throw new Error(`Progress baseline for ${specialistClass.name} is missing.`);
 
+  const progressCheckpoints = Object.fromEntries(Object.entries(value.progressCheckpoints).map(([classId, item]) => {
+    if (!record(item)) throw new Error(`Progress checkpoint for ${classId} is invalid.`);
+    const specialistClass = classes.find((candidate) => candidate.id === classId && candidate.id === item.classId);
+    const unitId = string(item.unitId, "Checkpoint unit ID");
+    const lessonId = string(item.lessonId, "Checkpoint lesson ID");
+    const unit = units.find((candidate) => candidate.id === unitId && candidate.yearLevelId === specialistClass?.yearLevelId);
+    const effectiveDate = string(item.effectiveDate, "Checkpoint effective date");
+    const createdAt = string(item.createdAt, "Checkpoint created timestamp");
+    if (!specialistClass || !unit?.lessons.some((lesson) => lesson.id === lessonId)) throw new Error(`Progress checkpoint for ${classId} has an invalid reference.`);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(effectiveDate)) throw new Error(`Progress checkpoint for ${classId} has an invalid date.`);
+    if (Number.isNaN(Date.parse(createdAt))) throw new Error(`Progress checkpoint for ${classId} has an invalid timestamp.`);
+    const checkpoint = {
+      classId, unitId, lessonId,
+      ...(item.unitComplete === true ? { unitComplete: true as const } : {}),
+      effectiveDate, createdAt, reason: string(item.reason, "Checkpoint reason"),
+    };
+    if (checkpoint.unitComplete && unit.lessons.at(-1)?.id !== lessonId) throw new Error(`Progress checkpoint for ${classId} marks an unfinished lesson as Unit complete.`);
+    return [classId, checkpoint];
+  }));
+
+  let reconciliationStatus;
+  if (value.reconciliationStatus !== undefined) {
+    if (!record(value.reconciliationStatus)) throw new Error("Reconciliation status is invalid.");
+    const startDate = string(value.reconciliationStatus.startDate, "Reconciliation start date");
+    const throughDate = string(value.reconciliationStatus.throughDate, "Reconciliation through date");
+    const completedAt = string(value.reconciliationStatus.completedAt, "Reconciliation timestamp");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(startDate) || !/^\d{4}-\d{2}-\d{2}$/.test(throughDate) || startDate > throughDate || Number.isNaN(Date.parse(completedAt))) throw new Error("Reconciliation status is invalid.");
+    reconciliationStatus = { startDate, throughDate, completedAt };
+  }
+
   const timetableSessions = value.timetableSessions.map((item, index) => {
     if (!record(item)) throw new Error(`Timetable session ${index + 1} is invalid.`);
     const type = string(item.type, "Session type") as SessionType;
@@ -200,7 +231,7 @@ export function validatePlannerData(value: unknown): PlannerData {
 
   return {
     schemaVersion: PLANNER_SCHEMA_VERSION, id: string(value.id, "Planner ID"), subjects, activeSubjectId,
-    yearLevels, classes, units, classProgress, progressBaselines, timetableSessions, teachingSessions, trialNotes,
+    yearLevels, classes, units, classProgress, progressBaselines, progressCheckpoints, timetableSessions, teachingSessions, reconciliationStatus, trialNotes,
     updatedAt: typeof value.updatedAt === "string" && !Number.isNaN(Date.parse(value.updatedAt)) ? value.updatedAt : new Date().toISOString(),
   };
 }
@@ -208,8 +239,13 @@ export function validatePlannerData(value: unknown): PlannerData {
 export function loadPlanner(storage: StorageLike, sample: PlannerData): PlannerLoadResult {
   const current = storage.getItem(STORAGE_KEY);
   if (current) {
-    try { return { planner: validatePlannerData(JSON.parse(current)), source: "v4" }; }
+    try { return { planner: validatePlannerData(JSON.parse(current)), source: "v5" }; }
     catch { /* Leave invalid local data untouched so it can be recovered manually. */ }
+  }
+  const v4 = storage.getItem(LEGACY_V4_STORAGE_KEY);
+  if (v4) {
+    try { return { planner: migrateV4PlannerData(JSON.parse(v4)), source: "migrated-v4" }; }
+    catch { /* Fall through to the v0.2.1 migration. */ }
   }
   const v3 = storage.getItem(LEGACY_V3_STORAGE_KEY);
   if (v3) {
@@ -259,6 +295,7 @@ export function importPlannerData(text: string): PlannerData {
   let parsed: unknown;
   try { parsed = JSON.parse(text); }
   catch { throw new Error("The selected file is not valid JSON."); }
+  if (record(parsed) && parsed.schemaVersion === 4) return migrateV4PlannerData(parsed);
   if (record(parsed) && parsed.schemaVersion === 3) return migrateV3PlannerData(parsed);
   if (record(parsed) && parsed.schemaVersion === 2) return migrateV2PlannerData(parsed);
   return validatePlannerData(parsed);
@@ -275,8 +312,16 @@ export function migrateV3PlannerData(value: unknown): PlannerData {
     ...value,
     schemaVersion: PLANNER_SCHEMA_VERSION,
     progressBaselines: JSON.parse(JSON.stringify(value.classProgress)),
+    progressCheckpoints: {},
     teachingSessions: [],
   });
+}
+
+export function migrateV4PlannerData(value: unknown): PlannerData {
+  if (!record(value) || value.schemaVersion !== 4 || !record(value.classProgress) || !record(value.progressBaselines) || !Array.isArray(value.teachingSessions)) {
+    throw new Error("This is not a valid Specialist Planner v0.3 backup.");
+  }
+  return validatePlannerData({ ...value, schemaVersion: PLANNER_SCHEMA_VERSION, progressCheckpoints: {} });
 }
 
 // v0.1 API retained to prove the migration source remains readable.

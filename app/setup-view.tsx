@@ -9,6 +9,10 @@ import {
   deleteClassRecord,
   deleteLessonRecord,
   deleteUnitRecord,
+  getScheduledTeachingOccurrencesInRange,
+  localDateKey,
+  reconcilePreviousTeaching,
+  recordTeachingSessionOutcome,
   reorderLessonRecord,
   renameClassRecord,
   setClassPosition,
@@ -27,6 +31,16 @@ import { exportPlannerData, importPlannerData } from "@/lib/storage";
 
 type SetupSection = "cohorts" | "timetable" | "notes" | "data";
 const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const outcomeLabels = { planned: "Planned", completed: "Completed", partial: "Partial", "not-taught": "Not taught" } as const;
+
+function previousTeachingWeek() {
+  const today = new Date();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7) - 7);
+  const friday = new Date(monday);
+  friday.setDate(monday.getDate() + 4);
+  return { startDate: localDateKey(monday), endDate: localDateKey(friday) };
+}
 
 function makeId(prefix: string) {
   return `${prefix}-${crypto.randomUUID()}`;
@@ -55,8 +69,12 @@ export function SetupView({ planner, onChange, onBack }: {
   const [noteText, setNoteText] = useState("");
   const [message, setMessage] = useState("");
   const [sessionDraft, setSessionDraft] = useState({ weekday: 1, startTime: "09:00", endTime: "10:00", type: "specialist-teaching" as SessionType, classId: "", label: "" });
+  const [reconciliationRange, setReconciliationRange] = useState(previousTeachingWeek);
   const importRef = useRef<HTMLInputElement>(null);
   const activeSubject = planner.subjects.find((item) => item.id === planner.activeSubjectId)!;
+  let reconciliationPreview: ReturnType<typeof getScheduledTeachingOccurrencesInRange> = [];
+  try { reconciliationPreview = getScheduledTeachingOccurrencesInRange(planner, reconciliationRange.startDate, reconciliationRange.endDate); }
+  catch { /* Date inputs can be temporarily incomplete while editing. */ }
 
   function apply(action: () => PlannerData) {
     try { onChange(action()); setMessage(""); }
@@ -168,6 +186,34 @@ export function SetupView({ planner, onChange, onBack }: {
     }
   }
 
+  function runReconciliation() {
+    if (!reconciliationPreview.length) return setMessage("Choose a past date range containing Specialist Teaching sessions.");
+    if (!window.confirm("Export a JSON backup before reconciliation. Continue only if your current class positions are correct and you have saved a backup.")) return;
+    try {
+      onChange(reconcilePreviousTeaching(planner, reconciliationRange.startDate, reconciliationRange.endDate));
+      setMessage(`Teaching history reconciled through ${reconciliationRange.endDate}. Current class progress was preserved.`);
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not reconcile previous teaching.");
+    }
+  }
+
+  function changeHistoricalOutcome(sessionId: string, outcome: "completed" | "partial" | "not-taught") {
+    const existing = planner.teachingSessions.find((item) => item.id === sessionId);
+    if (!existing) return;
+    let detail = "";
+    if (outcome === "partial") {
+      const answer = window.prompt("Optional note for this Partial lesson:", existing.note ?? "");
+      if (answer === null) return;
+      detail = answer;
+    }
+    if (outcome === "not-taught") {
+      const answer = window.prompt("Optional reason this lesson was Not taught:", existing.reason ?? "");
+      if (answer === null) return;
+      detail = answer;
+    }
+    apply(() => recordTeachingSessionOutcome(planner, sessionId, outcome, detail));
+  }
+
   return (
     <main className="setup-main" id="top">
       <section className="setup-hero">
@@ -184,7 +230,7 @@ export function SetupView({ planner, onChange, onBack }: {
           <div className="setup-subject-card">
             <span>Active subject</span>
             <input aria-label="Active subject name" value={activeSubject.name} onChange={(event) => onChange(touchPlanner({ ...planner, subjects: planner.subjects.map((item) => item.id === activeSubject.id ? { ...item, name: event.target.value } : item) }))} />
-            <small>Single-subject mode for v0.3</small>
+            <small>Single-subject mode for v0.3.1</small>
           </div>
           {([['cohorts', 'Year levels & units'], ['timetable', 'Weekly timetable'], ['notes', `Trial notes (${planner.trialNotes.length})`], ['data', 'Backup & reset']] as [SetupSection, string][]).map(([id, label]) => (
             <button type="button" key={id} className={section === id ? "active" : ""} onClick={() => setSection(id)}>{label}<span>→</span></button>
@@ -347,8 +393,28 @@ export function SetupView({ planner, onChange, onBack }: {
             <div className="setup-section-title"><div><p className="section-kicker">Safety</p><h2>Backup & reset</h2><p>Your data lives in this browser. Export a backup regularly during the live trial.</p></div></div>
             <div className="data-actions">
               <article><span className="data-icon">↓</span><div><h3>Export planner backup</h3><p>Downloads subjects, cohorts, units, lessons, progress, timetable and notes as JSON.</p><button className="secondary-button" type="button" onClick={() => downloadBackup(planner)}>Export JSON</button></div></article>
-              <article><span className="data-icon">↑</span><div><h3>Import planner backup</h3><p>Validates v0.3 and compatible v0.2/v0.2.1 backups before asking to replace current local data.</p><button className="secondary-button" type="button" onClick={() => importRef.current?.click()}>Choose JSON file</button><input className="visually-hidden" ref={importRef} type="file" accept="application/json,.json" onChange={(event) => importBackup(event.target.files?.[0])} /></div></article>
+              <article><span className="data-icon">↑</span><div><h3>Import planner backup</h3><p>Validates v0.3.1 and compatible v0.2/v0.2.1/v0.3 backups before asking to replace current local data.</p><button className="secondary-button" type="button" onClick={() => importRef.current?.click()}>Choose JSON file</button><input className="visually-hidden" ref={importRef} type="file" accept="application/json,.json" onChange={(event) => importBackup(event.target.files?.[0])} /></div></article>
             </div>
+            <section className="reconciliation-tool" aria-labelledby="reconciliation-title">
+              <div className="reconciliation-heading"><div><span>One-time migration tool</span><h3 id="reconciliation-title">Reconcile previous teaching</h3><p>Keep today’s known-correct class positions, then reconstruct an earlier teaching week as history without advancing any class again.</p></div>{planner.reconciliationStatus && <strong>Teaching history reconciled through {planner.reconciliationStatus.throughDate}</strong>}</div>
+              <div className="reconciliation-controls">
+                <label><span>Start date</span><input type="date" max={localDateKey(new Date())} value={reconciliationRange.startDate} onChange={(event) => setReconciliationRange({ ...reconciliationRange, startDate: event.target.value })} /></label>
+                <label><span>End date</span><input type="date" max={localDateKey(new Date())} value={reconciliationRange.endDate} onChange={(event) => setReconciliationRange({ ...reconciliationRange, endDate: event.target.value })} /></label>
+                <button className="secondary-button" type="button" onClick={() => downloadBackup(planner)}>Export backup first</button>
+                <button className="primary-button" type="button" disabled={!reconciliationPreview.length} onClick={runReconciliation}>Mark all as taught as planned</button>
+              </div>
+              <p className="reconciliation-note">{reconciliationPreview.length} scheduled Specialist Teaching {reconciliationPreview.length === 1 ? "session" : "sessions"} in this range. Existing Partial or Not taught exceptions are preserved.</p>
+              {!!reconciliationPreview.length && <div className="reconciliation-list">{reconciliationPreview.map(({ date, timetableSession }) => {
+                const item = planner.classes.find((candidate) => candidate.id === timetableSession.classId);
+                const session = planner.teachingSessions.find((candidate) => candidate.date === date && candidate.timetableSessionId === timetableSession.id);
+                return <article key={`${date}-${timetableSession.id}`}>
+                  <div><span>{date} · {timetableSession.startTime}–{timetableSession.endTime}</span><strong>{item?.name ?? "Missing class"}</strong>{session && <small>{session.plannedUnitTitle} · {session.plannedLessonTitle}</small>}</div>
+                  <span className={`reconciliation-outcome outcome-${session?.outcome ?? "planned"}`}>{outcomeLabels[session?.outcome ?? "planned"]}</span>
+                  {session && <div className="reconciliation-actions"><button type="button" onClick={() => changeHistoricalOutcome(session.id, "completed")}>Completed</button><button type="button" onClick={() => changeHistoricalOutcome(session.id, "partial")}>Partial</button><button type="button" onClick={() => changeHistoricalOutcome(session.id, "not-taught")}>Not taught</button></div>}
+                  {(session?.reason || session?.note) && <p>{session.reason ?? session.note}</p>}
+                </article>;
+              })}</div>}
+            </section>
             <div className="danger-zone"><div><h3>Start over</h3><p>These actions replace the complete planner. Export a backup first.</p></div><div>
               <button className="secondary-button" type="button" onClick={() => window.confirm("Replace all current data with the Mandarin sample planner?") && onChange(freshSamplePlanner())}>Load sample data</button>
               <button className="danger-button" type="button" onClick={() => window.confirm("Reset to a blank planner? All current local data will be replaced.") && onChange(createBlankPlanner())}>Reset planner</button>

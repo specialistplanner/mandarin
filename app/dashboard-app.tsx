@@ -85,7 +85,7 @@ export function DashboardApp() {
       const datedPlanner = materializeTeachingSessionsForDate(loaded.planner, selectedDate);
       setPlanner(datedPlanner);
       setLoadState("ready");
-      if (loaded.source === "migrated-v1" || loaded.source === "migrated-v2" || loaded.source === "migrated-v3") {
+      if (loaded.source === "migrated-v1" || loaded.source === "migrated-v2" || loaded.source === "migrated-v3" || loaded.source === "migrated-v4") {
         persistPlanner(window.localStorage, datedPlanner);
         setMigrationNotice(true);
       }
@@ -118,7 +118,7 @@ export function DashboardApp() {
     return <main className="onboarding-screen">
       <div className="onboarding-card">
         <span className="brand-mark">SP</span>
-        <p className="eyebrow">Specialist Planner v0.3</p>
+        <p className="eyebrow">Specialist Planner v0.3.1</p>
         <h1>Make it yours.</h1>
         <p>Start with the Mandarin demonstration or begin with a blank planner. Either way, your data stays in this browser.</p>
         <div className="onboarding-actions">
@@ -210,7 +210,7 @@ export function DashboardApp() {
       <button className="quick-note-button" type="button" onClick={() => setQuickNote({ context: view === "setup" ? "Setup" : "Dashboard" })}>＋ Quick note</button>
     </header>
 
-    {migrationNotice && <div className="migration-banner">Your existing setup and class progress were safely migrated to v0.3.<button type="button" onClick={() => setMigrationNotice(false)}>×</button></div>}
+    {migrationNotice && <div className="migration-banner">Your existing setup, history and class progress were safely migrated to v0.3.1.<button type="button" onClick={() => setMigrationNotice(false)}>×</button></div>}
 
     {view === "setup" ? <SetupView planner={planner} onChange={choosePlanner} onBack={() => setView("dashboard")} /> : view === "history" ? <TeachingHistory planner={planner} onSelectClass={setSelectedClassId} /> : <main id="top">
       <section className="intro" aria-labelledby="page-title">
@@ -286,7 +286,7 @@ export function DashboardApp() {
       </>}
     </main>}
 
-    <footer><span>Specialist Planner <strong>v0.3 Live Trial</strong></span><span>Saved locally on this device · <button type="button" onClick={() => setView("setup")}>Backup in Setup</button></span></footer>
+    <footer><span>Specialist Planner <strong>v0.3.1 Live Trial</strong></span><span>Saved locally on this device · <button type="button" onClick={() => setView("setup")}>Backup in Setup</button></span></footer>
 
     {selectedClass && selectedLevel && <div className="drawer-layer" role="presentation" onMouseDown={(event) => event.currentTarget === event.target && setSelectedClassId(null)}>
       <aside className="detail-drawer" role="dialog" aria-modal="true" aria-labelledby="detail-title">
