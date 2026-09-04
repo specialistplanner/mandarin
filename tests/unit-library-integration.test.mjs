@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { getProgressStatus, setLessonExternalResource, setUnitExternalResource } from "../lib/domain.ts";
+import { getProgressStatus, materializeTeachingSessionsForDate, recordTeachingSessionOutcome, setLessonExternalResource, setUnitExternalResource } from "../lib/domain.ts";
 import { exportPlannerData, importPlannerData, migrateV7PlannerData } from "../lib/storage.ts";
 import { freshSamplePlanner } from "../lib/sample-data.ts";
 import {
@@ -99,7 +99,9 @@ test("9. changing a Unit link clears incompatible Lesson mappings only", () => {
 });
 
 test("10. removing a Unit link preserves progress, baselines, checkpoints, and history", () => {
-  const before = linkedPlanner();
+  let before = materializeTeachingSessionsForDate(linkedPlanner(), new Date(2026, 8, 9, 12));
+  const session = before.teachingSessions.find(item => item.classId === "5e" && item.date === "2026-09-09");
+  before = recordTeachingSessionOutcome(before, session.id, "completed");
   const snapshots = structuredClone({ progress: before.classProgress, baselines: before.progressBaselines, checkpoints: before.progressCheckpoints, sessions: before.teachingSessions });
   const after = setUnitExternalResource(before, "nationalities", undefined);
   assert.deepEqual({ progress: after.classProgress, baselines: after.progressBaselines, checkpoints: after.progressCheckpoints, sessions: after.teachingSessions }, snapshots);
@@ -141,4 +143,13 @@ test("15. classes on a different actual Unit resolve resources from that Unit, n
   const actual = planner.units.find(unit => unit.id === planner.classProgress["5c"].unitId);
   assert.equal(actual.lessons[2].externalResourceRef.parentResourceId, "library-countries");
   assert.equal(planner.yearLevels.find(level => level.id === "year-5").currentUnitId, "nationalities");
+});
+
+test("16. recording Completed advances Planner progress and never mutates the resource reference", () => {
+  let planner = materializeTeachingSessionsForDate(linkedPlanner(), new Date(2026, 8, 9, 12));
+  const session = planner.teachingSessions.find(item => item.classId === "5e" && item.date === "2026-09-09");
+  const reference = structuredClone(planner.units.find(item => item.id === "nationalities").lessons[3].externalResourceRef);
+  planner = recordTeachingSessionOutcome(planner, session.id, "completed");
+  assert.equal(planner.classProgress["5e"].lessonId, "nationalities-lesson-5");
+  assert.deepEqual(planner.units.find(item => item.id === "nationalities").lessons[3].externalResourceRef, reference);
 });
