@@ -19,6 +19,8 @@ import {
   setClassPosition,
   setClassLesson,
   setClassColour,
+  setLessonExternalResource,
+  setUnitExternalResource,
   setCurrentUnit,
   setExpectedLesson,
   touchPlanner,
@@ -30,6 +32,9 @@ import {
 } from "@/lib/domain";
 import { createBlankPlanner, freshSamplePlanner } from "@/lib/sample-data";
 import { exportPlannerData, importPlannerData } from "@/lib/storage";
+import { findLinkedUnit, lessonReference, unitReference, UNIT_LIBRARY_PROVIDER } from "@/lib/unit-library";
+import { ResourceLinkAction } from "./resource-link";
+import type { UnitLibraryState } from "./use-unit-library";
 
 type SetupSection = "cohorts" | "timetable" | "notes" | "data";
 const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -68,10 +73,11 @@ function downloadBackup(planner: PlannerData) {
   URL.revokeObjectURL(url);
 }
 
-export function SetupView({ planner, onChange, onBack, initialSection = "cohorts" }: {
+export function SetupView({ planner, onChange, onBack, unitLibrary, initialSection = "cohorts" }: {
   planner: PlannerData;
   onChange: (planner: PlannerData) => void;
   onBack: () => void;
+  unitLibrary: UnitLibraryState;
   initialSection?: SetupSection;
 }) {
   const [section, setSection] = useState<SetupSection>(initialSection);
@@ -81,6 +87,7 @@ export function SetupView({ planner, onChange, onBack, initialSection = "cohorts
   const [newLessonNames, setNewLessonNames] = useState<Record<string, string>>({});
   const [noteText, setNoteText] = useState("");
   const [message, setMessage] = useState("");
+  const [linkingUnitId, setLinkingUnitId] = useState<string | null>(null);
   const [sessionDraft, setSessionDraft] = useState({ weekday: 1, startTime: "09:00", endTime: "10:00", type: "specialist-teaching" as SessionType, classId: "", label: "" });
   const [reconciliationRange, setReconciliationRange] = useState(previousTeachingWeek);
   const importRef = useRef<HTMLInputElement>(null);
@@ -243,7 +250,7 @@ export function SetupView({ planner, onChange, onBack, initialSection = "cohorts
           <div className="setup-subject-card">
             <span>Active subject</span>
             <input aria-label="Active subject name" value={activeSubject.name} onChange={(event) => onChange(touchPlanner({ ...planner, subjects: planner.subjects.map((item) => item.id === activeSubject.id ? { ...item, name: event.target.value } : item) }))} />
-            <small>Single-subject mode for v0.4.2</small>
+            <small>Single-subject mode for v0.5</small>
           </div>
           {([['cohorts', 'Year levels & units'], ['timetable', 'Weekly timetable'], ['notes', `Trial notes (${planner.trialNotes.length})`], ['data', 'Backup & reset']] as [SetupSection, string][]).map(([id, label]) => (
             <button type="button" key={id} className={section === id ? "active" : ""} onClick={() => setSection(id)}>{label}<span>→</span></button>
@@ -330,6 +337,23 @@ export function SetupView({ planner, onChange, onBack, initialSection = "cohorts
                             {currentUnit.lessons.map((lesson, index) => <option value={lesson.id} key={lesson.id}>Lesson {index + 1} · {lesson.title}</option>)}
                           </select></label>
                         </div>
+                        <div className="unit-library-link-panel">
+                          <div>
+                            <span>Linked resource</span>
+                            {currentUnit.externalResourceRef?.provider === UNIT_LIBRARY_PROVIDER
+                              ? <><strong>{findLinkedUnit(unitLibrary.index, currentUnit.externalResourceRef)?.title ?? currentUnit.externalResourceRef.label ?? currentUnit.externalResourceRef.resourceId}</strong><small>Unit Library owns this content.</small></>
+                              : <><strong>Local only</strong><small>Resource linking is optional.</small></>}
+                          </div>
+                          {currentUnit.externalResourceRef?.provider === UNIT_LIBRARY_PROVIDER && <ResourceLinkAction reference={currentUnit.externalResourceRef} library={unitLibrary} onRelink={() => setLinkingUnitId(currentUnit.id)} />}
+                          <button className="secondary-button compact-button" type="button" onClick={() => setLinkingUnitId(linkingUnitId === currentUnit.id ? null : currentUnit.id)}>{currentUnit.externalResourceRef ? "Change link" : "Choose from Unit Library"}</button>
+                          {currentUnit.externalResourceRef && <button className="text-button danger" type="button" onClick={() => apply(() => setUnitExternalResource(planner, currentUnit.id))}>Remove link</button>}
+                          {linkingUnitId === currentUnit.id && <div className="unit-library-chooser">
+                            {unitLibrary.status === "loading" ? <p>Loading Unit Library…</p> : unitLibrary.status === "unavailable" ? <p>Unit Library is unavailable. Your local Unit remains unchanged.</p> : <label><span>Choose Unit Library Unit</span><select defaultValue="" onChange={(event) => {
+                              const linked = unitLibrary.index?.units.find((unit) => unit.id === event.target.value);
+                              if (linked) { apply(() => setUnitExternalResource(planner, currentUnit.id, unitReference(linked))); setLinkingUnitId(null); }
+                            }}><option value="" disabled>Select a Unit</option>{unitLibrary.index?.units.map((unit) => <option value={unit.id} key={unit.id}>{unit.yearLevel === 0 ? "Prep" : `Year ${unit.yearLevel}`} · {unit.title}</option>)}</select></label>}
+                          </div>}
+                        </div>
                         <div className="lesson-editor-title"><span>Lesson sequence</span><small>Progress follows lesson IDs when order changes.</small></div>
                         <ol className="lesson-editor-list">
                           {currentUnit.lessons.map((lesson, index) => <li key={lesson.id}>
@@ -337,6 +361,14 @@ export function SetupView({ planner, onChange, onBack, initialSection = "cohorts
                             <div className="lesson-inputs">
                               <input aria-label={`Lesson ${index + 1} title`} value={lesson.title} onChange={(event) => apply(() => updateLessonRecord(planner, currentUnit.id, lesson.id, event.target.value, lesson.description))} />
                               <input aria-label={`Lesson ${index + 1} description`} className="lesson-description-input" value={lesson.description ?? ""} placeholder="Optional description" onChange={(event) => apply(() => updateLessonRecord(planner, currentUnit.id, lesson.id, lesson.title, event.target.value))} />
+                              {currentUnit.externalResourceRef?.provider === UNIT_LIBRARY_PROVIDER && <div className="lesson-library-link">
+                                <label><span>Unit Library lesson <i>optional</i></span><select aria-label={`${lesson.title} Unit Library lesson`} value={lesson.externalResourceRef?.resourceId ?? ""} onChange={(event) => {
+                                  const libraryUnit = findLinkedUnit(unitLibrary.index, currentUnit.externalResourceRef);
+                                  const linked = libraryUnit?.lessons.find((candidate) => candidate.id === event.target.value);
+                                  apply(() => setLessonExternalResource(planner, currentUnit.id, lesson.id, linked && libraryUnit ? lessonReference(libraryUnit, linked) : undefined));
+                                }}><option value="">Local only</option>{findLinkedUnit(unitLibrary.index, currentUnit.externalResourceRef)?.lessons.map((candidate) => <option value={candidate.id} key={candidate.id}>{candidate.title}</option>)}</select></label>
+                                {lesson.externalResourceRef && <ResourceLinkAction reference={lesson.externalResourceRef} library={unitLibrary} onRelink={() => setLinkingUnitId(currentUnit.id)} label="Open lesson" />}
+                              </div>}
                             </div>
                             <div className="reorder-buttons">
                               <button type="button" disabled={index === 0} onClick={() => apply(() => reorderLessonRecord(planner, currentUnit.id, lesson.id, -1))} aria-label={`Move ${lesson.title} up`}>↑</button>
@@ -412,7 +444,7 @@ export function SetupView({ planner, onChange, onBack, initialSection = "cohorts
             <div className="setup-section-title"><div><p className="section-kicker">Safety</p><h2>Backup & reset</h2><p>Your data lives in this browser. Export a backup regularly during the live trial.</p></div></div>
             <div className="data-actions">
               <article><span className="data-icon">↓</span><div><h3>Export planner backup</h3><p>Downloads subjects, cohorts, units, lessons, progress, timetable and notes as JSON.</p><button className="secondary-button" type="button" onClick={() => downloadBackup(planner)}>Export JSON</button></div></article>
-              <article><span className="data-icon">↑</span><div><h3>Import planner backup</h3><p>Validates v0.4.2 and compatible v0.2–v0.4.1 backups before asking to replace current local data.</p><button className="secondary-button" type="button" onClick={() => importRef.current?.click()}>Choose JSON file</button><input className="visually-hidden" ref={importRef} type="file" accept="application/json,.json" onChange={(event) => importBackup(event.target.files?.[0])} /></div></article>
+              <article><span className="data-icon">↑</span><div><h3>Import planner backup</h3><p>Validates v0.5 and compatible v0.2–v0.4.2 backups before asking to replace current local data.</p><button className="secondary-button" type="button" onClick={() => importRef.current?.click()}>Choose JSON file</button><input className="visually-hidden" ref={importRef} type="file" accept="application/json,.json" onChange={(event) => importBackup(event.target.files?.[0])} /></div></article>
             </div>
             <section className="reconciliation-tool" aria-labelledby="reconciliation-title">
               <div className="reconciliation-heading"><div><span>One-time migration tool</span><h3 id="reconciliation-title">Reconcile previous teaching</h3><p>Keep today’s known-correct class positions, then reconstruct an earlier teaching week as history without advancing any class again.</p></div>{planner.reconciliationStatus && <strong>Teaching history reconciled through {planner.reconciliationStatus.throughDate}</strong>}</div>

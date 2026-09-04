@@ -13,17 +13,17 @@ export async function generateMetadata(): Promise<Metadata> {
   const metadataBase = new URL(`${protocol}://${host}`);
   return {
     metadataBase,
-    title: "Specialist Planner v0.4.2 — Seven Class Colours",
-    description: "A calm weekly teaching planner with optional, accessible class colours and independent progress status.",
+    title: "Specialist Planner v0.5 — Unit Library Integration Trial",
+    description: "A progress-aware weekly planner with stable, read-only links to Unit Library resources.",
     openGraph: {
-      title: "Specialist Planner v0.4.2 — Seven Class Colours",
-      description: "Recognise classes quickly while progress and teaching outcomes remain explicit.",
+      title: "Specialist Planner v0.5 — Unit Library Integration Trial",
+      description: "Open authoritative Unit Library lessons without coupling curriculum content to teaching progress.",
       images: [{ url: "/og-v04.png", width: 1536, height: 1024 }],
     },
     twitter: {
       card: "summary_large_image",
-      title: "Specialist Planner v0.4.2 — Seven Class Colours",
-      description: "Recognise classes quickly while progress and teaching outcomes remain explicit.",
+      title: "Specialist Planner v0.5 — Unit Library Integration Trial",
+      description: "Open authoritative Unit Library lessons without coupling curriculum content to teaching progress.",
       images: ["/og-v04.png"],
     },
   };

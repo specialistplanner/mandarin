@@ -11,6 +11,8 @@ import {
   type TeachingSessionOutcome,
 } from "@/lib/domain";
 import { deriveTeachingWeek, shiftTeachingWeek, startOfTeachingWeek, type WeekEntry } from "@/lib/week-planner";
+import { ResourceLinkAction } from "./resource-link";
+import type { UnitLibraryState } from "./use-unit-library";
 
 const dayFormatter = new Intl.DateTimeFormat("en-AU", { weekday: "long" });
 const dayNumberFormatter = new Intl.DateTimeFormat("en-AU", { day: "numeric", month: "short" });
@@ -43,12 +45,14 @@ function stateLabel(entry: WeekEntry) {
   return "Planned";
 }
 
-export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onQuickNote }: {
+export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onOpenUnits, onQuickNote, unitLibrary }: {
   planner: PlannerData;
   onChange: (planner: PlannerData) => void;
   onOpenClass: (classId: string) => void;
   onOpenSettings: () => void;
+  onOpenUnits: () => void;
   onQuickNote: (classId: string | undefined, context: string) => void;
+  unitLibrary: UnitLibraryState;
 }) {
   const [weekStart, setWeekStart] = useState(() => startOfTeachingWeek(new Date()));
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -124,6 +128,7 @@ export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onQui
           </button>
           {expanded === entry.key && <div className="week-card-detail">
             {entry.lesson?.description && <p>{entry.lesson.description}</p>}
+            {entry.lesson?.externalResourceRef && <div className="week-resource-action"><ResourceLinkAction reference={entry.lesson.externalResourceRef} library={unitLibrary} onRelink={onOpenUnits} label="Open lesson" /></div>}
             <dl><div><dt>Current class position</dt><dd>{entry.unit?.title ?? "Not assigned"}{entry.lessonNumber ? ` · Lesson ${entry.lessonNumber}` : ""}</dd></div><div><dt>Cohort reference</dt><dd>{entry.progressStatus?.label ?? "Not configured"}</dd></div></dl>
             {entry.previousSession && <div className={`week-previous outcome-${entry.previousSession.outcome}`}><span>Previous session · {entry.previousSession.date}</span><strong>{outcomeLabels[entry.previousSession.outcome]}</strong>{(entry.previousSession.reason || entry.previousSession.note) && <p>{entry.previousSession.reason ?? entry.previousSession.note}</p>}</div>}
             {entry.projectionUncertain && <p className="projection-caution">This proposed Lesson depends on an earlier unconfirmed occurrence. It will update after that outcome is recorded.</p>}

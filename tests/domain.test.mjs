@@ -32,6 +32,7 @@ import {
   LEGACY_V4_STORAGE_KEY,
   LEGACY_V5_STORAGE_KEY,
   LEGACY_V6_STORAGE_KEY,
+  LEGACY_V7_STORAGE_KEY,
   STORAGE_KEY,
   exportPlannerData,
   importPlannerData,
@@ -238,14 +239,22 @@ test("invalid import is rejected without returning partial data", () => {
   assert.throws(() => importPlannerData(JSON.stringify(invalidColour)), /Class colour.*invalid/);
 });
 
-test("localStorage v7 persists fully and older planner schemas migrate safely", () => {
+test("localStorage v8 persists fully and older planner schemas migrate safely", () => {
   const memory = new Map();
   const storage = { getItem: (key) => memory.get(key) ?? null, setItem: (key, value) => memory.set(key, value), removeItem: (key) => memory.delete(key) };
   persistPlanner(storage, fixture());
-  assert.equal(loadPlanner(storage, fixture()).source, "v7");
+  assert.equal(loadPlanner(storage, fixture()).source, "v8");
   assert.equal(JSON.parse(memory.get(STORAGE_KEY)).trialNotes.length, 1);
 
   memory.delete(STORAGE_KEY);
+  const v7 = fixture();
+  v7.schemaVersion = 7;
+  memory.set(LEGACY_V7_STORAGE_KEY, JSON.stringify(v7));
+  const v7Migrated = loadPlanner(storage, fixture());
+  assert.equal(v7Migrated.source, "migrated-v7");
+  assert.deepEqual(v7Migrated.planner.classProgress, v7.classProgress);
+
+  memory.delete(LEGACY_V7_STORAGE_KEY);
   const v6 = fixture();
   v6.schemaVersion = 6;
   v6.classColours = { "5e": "ocean", "5c": "clay" };

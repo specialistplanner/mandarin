@@ -130,6 +130,11 @@ nav { display: flex; align-self: stretch; }
 .week-card-detail dl div { display: flex; flex-direction: column; }
 .week-card-detail dt { color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-size: 7px; font-weight: 800; }
 .week-card-detail dd { margin: 2px 0 0; font-size: 9px; font-weight: 700; }
+.week-resource-action { margin: 8px 0; }
+.resource-open-link { display: inline-flex; align-items: center; gap: 4px; min-height: 34px; border: 1px solid #9db8aa; border-radius: 9px; background: #edf5f0; color: var(--forest); padding: 0 10px; font-size: 9px; font-weight: 800; text-decoration: none; }
+.resource-open-link:hover { background: #e2eee7; }
+.resource-unavailable { display: inline-flex; align-items: center; gap: 7px; color: #8b571b; font-size: 9px; font-weight: 750; }
+.resource-unavailable button { border: 0; background: transparent; color: var(--forest); padding: 0; font: inherit; text-decoration: underline; cursor: pointer; }
 .week-previous { margin-top: 9px; border-radius: 8px; background: #f0eee8; padding: 8px; display: flex; flex-direction: column; }
 .week-previous > span { color: var(--muted); font-size: 7px; text-transform: uppercase; letter-spacing: .05em; }
 .week-previous > strong { margin-top: 2px; font-size: 9px; }
@@ -328,6 +333,7 @@ footer button { border: 0; padding: 0; background: transparent; color: var(--for
 .lesson-select > span { color: var(--muted); font-size: 10px; font-weight: 700; }
 .lesson-select select { width: 100%; height: 42px; border: 1px solid var(--line); border-radius: 10px; background: white; color: var(--ink); padding: 0 10px; }
 .drawer-note-button { width: 100%; margin-top: 14px; min-height: 46px; border: 1px solid #afc5b8; border-radius: 12px; background: #eef5f0; color: var(--forest); font-weight: 750; cursor: pointer; }
+.progress-resource-float { position: fixed; z-index: 55; right: 25px; bottom: 92px; width: min(420px, calc(100vw - 50px)); border: 1px solid #b5cbbc; border-radius: 13px; background: white; box-shadow: 0 10px 28px rgba(10,37,28,.16); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .drawer-empty { border: 1px dashed var(--line); border-radius: 15px; padding: 20px; text-align: center; }
 
 .primary-button, .secondary-button, .danger-button { min-height: 44px; border-radius: 11px; padding: 0 16px; font-weight: 750; cursor: pointer; }
@@ -445,6 +451,16 @@ textarea { padding: 11px; resize: vertical; }
 .unit-fields label:last-child { grid-column: 1 / -1; }
 .unit-fields input, .unit-fields select { height: 40px; min-width: 0; }
 .unit-fields i, .session-form i { text-transform: none; letter-spacing: 0; font-weight: 500; }
+.unit-library-link-panel { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 12px; border: 1px solid #cfdcd3; border-radius: 13px; background: #f4f8f4; padding: 11px; }
+.unit-library-link-panel > div:first-child { display: flex; flex: 1; min-width: 150px; flex-direction: column; }
+.unit-library-link-panel > div:first-child > span, .unit-library-chooser label > span, .lesson-library-link label > span, .progress-resource-float > span { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 8px; font-weight: 800; }
+.unit-library-link-panel > div:first-child strong { margin-top: 2px; font-size: 11px; }
+.unit-library-link-panel > div:first-child small { color: var(--muted); font-size: 9px; }
+.compact-button { min-height: 34px; padding: 0 10px; font-size: 9px; }
+.unit-library-chooser { flex: 1 1 100%; }
+.unit-library-chooser p { margin: 0; color: var(--muted); font-size: 10px; }
+.unit-library-chooser label { display: flex; flex-direction: column; gap: 4px; }
+.unit-library-chooser select { height: 36px; min-width: 190px; }
 .lesson-editor-title { display: flex; justify-content: space-between; gap: 10px; margin: 18px 0 8px; }
 .lesson-editor-title small { color: var(--muted); font-size: 9px; }
 .lesson-editor-list { padding: 0; margin: 0 0 10px; display: grid; gap: 6px; list-style: none; }
@@ -452,6 +468,10 @@ textarea { padding: 11px; resize: vertical; }
 .lesson-number { width: 27px; height: 27px; display: grid; place-items: center; border-radius: 8px; background: var(--sage); color: var(--forest); font-size: 10px; font-weight: 850; }
 .lesson-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .lesson-inputs input { width: 100%; min-width: 0; height: 38px; }
+.lesson-library-link { grid-column: 1 / -1; display: flex; align-items: end; gap: 7px; border-left: 3px solid #789587; padding-left: 8px; }
+.lesson-library-link label { flex: 1; display: flex; min-width: 0; flex-direction: column; gap: 4px; }
+.lesson-library-link select { width: 100%; min-width: 0; height: 34px; font-size: 10px; }
+.lesson-library-link i { text-transform: none; letter-spacing: 0; font-weight: 500; }
 .lesson-description-input { color: var(--muted); font-size: 11px; }
 .reorder-buttons { display: flex; gap: 2px; }
 .reorder-buttons button { width: 30px; height: 34px; border: 1px solid var(--line); background: white; color: var(--forest); cursor: pointer; }

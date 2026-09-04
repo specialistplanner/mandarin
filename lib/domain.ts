@@ -1,4 +1,4 @@
-export const PLANNER_SCHEMA_VERSION = 7 as const;
+export const PLANNER_SCHEMA_VERSION = 8 as const;
 
 export const CLASS_COLOUR_PRESETS = {
   "hot-pink": { label: "Hot pink", background: "#fce4f1", accent: "#d61f75", foreground: "#17372c" },
@@ -11,6 +11,15 @@ export const CLASS_COLOUR_PRESETS = {
 } as const;
 
 export type ClassColourId = keyof typeof CLASS_COLOUR_PRESETS;
+
+export type ExternalResourceRef = {
+  provider: string;
+  resourceType: "unit" | "lesson";
+  resourceId: string;
+  parentResourceId?: string;
+  label?: string;
+  url?: string;
+};
 
 export type SessionType =
   | "specialist-teaching"
@@ -34,6 +43,7 @@ export type Lesson = {
   title: string;
   description?: string;
   sequence: number;
+  externalResourceRef?: ExternalResourceRef;
 };
 
 export type Unit = {
@@ -42,6 +52,7 @@ export type Unit = {
   title: string;
   description?: string;
   lessons: Lesson[];
+  externalResourceRef?: ExternalResourceRef;
 };
 
 export type YearLevel = {
@@ -168,6 +179,39 @@ export function setClassColour(planner: PlannerData, classId: string, colourId?:
   if (colourId) classColours[classId] = colourId;
   else delete classColours[classId];
   return touchPlanner({ ...planner, classColours });
+}
+
+export function setUnitExternalResource(planner: PlannerData, unitId: string, reference?: ExternalResourceRef): PlannerData {
+  if (reference && reference.resourceType !== "unit") throw new Error("Choose a Unit Library unit.");
+  if (!planner.units.some((unit) => unit.id === unitId)) throw new Error("Unit not found.");
+  return touchPlanner({
+    ...planner,
+    units: planner.units.map((unit) => {
+      if (unit.id !== unitId) return unit;
+      const sameResource = reference?.resourceId === unit.externalResourceRef?.resourceId && reference?.provider === unit.externalResourceRef?.provider;
+      return {
+        ...unit,
+        externalResourceRef: reference,
+        lessons: sameResource ? unit.lessons : unit.lessons.map((lesson) => ({ ...lesson, externalResourceRef: undefined })),
+      };
+    }),
+  });
+}
+
+export function setLessonExternalResource(planner: PlannerData, unitId: string, lessonId: string, reference?: ExternalResourceRef): PlannerData {
+  const unit = planner.units.find((candidate) => candidate.id === unitId);
+  if (!unit) throw new Error("Unit not found.");
+  if (!unit.lessons.some((lesson) => lesson.id === lessonId)) throw new Error("Lesson not found.");
+  if (reference && (reference.resourceType !== "lesson" || !reference.parentResourceId || reference.parentResourceId !== unit.externalResourceRef?.resourceId || reference.provider !== unit.externalResourceRef?.provider)) {
+    throw new Error("Choose a Lesson from the linked Unit Library unit.");
+  }
+  return touchPlanner({
+    ...planner,
+    units: planner.units.map((candidate) => candidate.id === unitId ? {
+      ...candidate,
+      lessons: candidate.lessons.map((lesson) => lesson.id === lessonId ? { ...lesson, externalResourceRef: reference } : lesson),
+    } : candidate),
+  });
 }
 
 export function clampLesson(value: number, lessonCount: number): number {

@@ -9,7 +9,8 @@ import {
   type TeachingSessionOutcome,
 } from "./domain.ts";
 
-export const STORAGE_KEY = "specialist-planner.data.v7";
+export const STORAGE_KEY = "specialist-planner.data.v8";
+export const LEGACY_V7_STORAGE_KEY = "specialist-planner.data.v7";
 export const LEGACY_V6_STORAGE_KEY = "specialist-planner.data.v6";
 export const LEGACY_V5_STORAGE_KEY = "specialist-planner.data.v5";
 export const LEGACY_V4_STORAGE_KEY = "specialist-planner.data.v4";
@@ -18,7 +19,7 @@ export const LEGACY_V2_STORAGE_KEY = "specialist-planner.data.v2";
 export const LEGACY_STORAGE_KEY = "specialist-planner.dashboard.progress.v1";
 
 export type StorageLike = Pick<Storage, "getItem" | "setItem"> & Partial<Pick<Storage, "removeItem">>;
-export type PlannerLoadResult = { planner: PlannerData | null; source: "v7" | "migrated-v6" | "migrated-v5" | "migrated-v4" | "migrated-v3" | "migrated-v2" | "migrated-v1" | "empty" };
+export type PlannerLoadResult = { planner: PlannerData | null; source: "v8" | "migrated-v7" | "migrated-v6" | "migrated-v5" | "migrated-v4" | "migrated-v3" | "migrated-v2" | "migrated-v1" | "empty" };
 
 const sessionTypes = new Set<SessionType>([
   "specialist-teaching", "cover-release", "planning", "meeting", "school-activity", "break", "other",
@@ -44,9 +45,26 @@ function uniqueIds(items: Array<{ id: string }>, label: string) {
   if (ids.size !== items.length) throw new Error(`${label} IDs must be unique.`);
 }
 
+function externalResourceRef(value: unknown, resourceType: "unit" | "lesson") {
+  if (value === undefined || value === null) return undefined;
+  if (!record(value) || value.resourceType !== resourceType) throw new Error(`External ${resourceType} reference is invalid.`);
+  const url = optionalString(value.url, "External resource URL");
+  if (url && !/^https:\/\//i.test(url)) throw new Error("External resource URL must use HTTPS.");
+  const parentResourceId = optionalString(value.parentResourceId, "External parent resource ID");
+  if (resourceType === "lesson" && !parentResourceId) throw new Error("External lesson reference needs a parent Unit ID.");
+  return {
+    provider: string(value.provider, "External resource provider"),
+    resourceType,
+    resourceId: string(value.resourceId, "External resource ID"),
+    parentResourceId,
+    label: optionalString(value.label, "External resource label"),
+    url,
+  };
+}
+
 export function validatePlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== PLANNER_SCHEMA_VERSION) {
-    throw new Error("This file is not a Specialist Planner v0.4.2 backup.");
+    throw new Error("This file is not a Specialist Planner v0.5 backup.");
   }
   if (!Array.isArray(value.subjects) || !Array.isArray(value.yearLevels) || !Array.isArray(value.classes) ||
       !Array.isArray(value.units) || !Array.isArray(value.timetableSessions) || !Array.isArray(value.teachingSessions) || !Array.isArray(value.trialNotes) ||
@@ -93,18 +111,25 @@ export function validatePlannerData(value: unknown): PlannerData {
       return {
         id: string(lesson.id, "Lesson ID"), title: string(lesson.title, "Lesson title"),
         description: optionalString(lesson.description, "Lesson description"), sequence: lessonIndex + 1,
+        externalResourceRef: externalResourceRef(lesson.externalResourceRef, "lesson"),
       };
     });
     uniqueIds(lessons, "Lesson");
     return {
       id: string(item.id, "Unit ID"), yearLevelId: string(item.yearLevelId, "Unit year level"),
       title: string(item.title, "Unit title"), description: optionalString(item.description, "Unit description"), lessons,
+      externalResourceRef: externalResourceRef(item.externalResourceRef, "unit"),
     };
   });
   uniqueIds(units, "Unit");
 
   for (const item of classes) if (!yearLevels.some((level) => level.id === item.yearLevelId)) throw new Error(`Class ${item.name} has no valid year level.`);
   for (const unit of units) if (!yearLevels.some((level) => level.id === unit.yearLevelId)) throw new Error(`Unit ${unit.title} has no valid year level.`);
+  for (const unit of units) for (const lesson of unit.lessons) {
+    if (lesson.externalResourceRef && (!unit.externalResourceRef || lesson.externalResourceRef.provider !== unit.externalResourceRef.provider || lesson.externalResourceRef.parentResourceId !== unit.externalResourceRef.resourceId)) {
+      throw new Error(`Lesson ${lesson.title} does not belong to its linked external Unit.`);
+    }
+  }
   for (const level of yearLevels) {
     if (level.currentUnitId === null) {
       if (level.expectedLessonId !== null) throw new Error(`${level.label} has an expected lesson but no unit.`);
@@ -249,8 +274,13 @@ export function validatePlannerData(value: unknown): PlannerData {
 export function loadPlanner(storage: StorageLike, sample: PlannerData): PlannerLoadResult {
   const current = storage.getItem(STORAGE_KEY);
   if (current) {
-    try { return { planner: validatePlannerData(JSON.parse(current)), source: "v7" }; }
+    try { return { planner: validatePlannerData(JSON.parse(current)), source: "v8" }; }
     catch { /* Leave invalid local data untouched so it can be recovered manually. */ }
+  }
+  const v7 = storage.getItem(LEGACY_V7_STORAGE_KEY);
+  if (v7) {
+    try { return { planner: migrateV7PlannerData(JSON.parse(v7)), source: "migrated-v7" }; }
+    catch { /* Fall through to the v0.4.1 migration. */ }
   }
   const v6 = storage.getItem(LEGACY_V6_STORAGE_KEY);
   if (v6) {
@@ -315,6 +345,7 @@ export function importPlannerData(text: string): PlannerData {
   let parsed: unknown;
   try { parsed = JSON.parse(text); }
   catch { throw new Error("The selected file is not valid JSON."); }
+  if (record(parsed) && parsed.schemaVersion === 7) return migrateV7PlannerData(parsed);
   if (record(parsed) && parsed.schemaVersion === 6) return migrateV6PlannerData(parsed);
   if (record(parsed) && parsed.schemaVersion === 5) return migrateV5PlannerData(parsed);
   if (record(parsed) && parsed.schemaVersion === 4) return migrateV4PlannerData(parsed);
@@ -326,6 +357,11 @@ export function importPlannerData(text: string): PlannerData {
 export function migrateV2PlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== 2) throw new Error("This is not a valid Specialist Planner v0.2 backup.");
   return migrateV3PlannerData({ ...value, schemaVersion: 3 });
+}
+
+export function migrateV7PlannerData(value: unknown): PlannerData {
+  if (!record(value) || value.schemaVersion !== 7 || !Array.isArray(value.units)) throw new Error("This is not a valid Specialist Planner v0.4.2 backup.");
+  return validatePlannerData({ ...value, schemaVersion: PLANNER_SCHEMA_VERSION });
 }
 
 export function migrateV6PlannerData(value: unknown): PlannerData {

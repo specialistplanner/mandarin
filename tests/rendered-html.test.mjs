@@ -19,7 +19,7 @@ test("server-renders the Specialist Planner live-trial shell", async () => {
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>Specialist Planner v0\.4\.2 — Seven Class Colours<\/title>/i);
+  assert.match(html, /<title>Specialist Planner v0\.5 — Unit Library Integration Trial<\/title>/i);
   assert.match(html, /Opening your planner/);
   assert.match(html, /Specialist Planner/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);

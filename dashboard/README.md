@@ -1,72 +1,61 @@
-# Specialist Planner v0.4.2 — Seven Class Colours
+# Specialist Planner v0.5 — Unit Library Integration Trial
 
-## Product architecture
+## Architecture and ownership
 
-v0.4.2 keeps Week as the primary working surface and provides seven optional class-recognition colours without changing progress semantics.
+Unit Library and Specialist Planner remain independent peer applications:
 
 ```text
-Units / Lessons
-      ↓
-Class Progress
-      ↓
-Weekly Timetable
-      ↓
-Progress-Aware Week View
-      ↓
-Teaching Session Outcome
-      ↓
- ┌───────────────┬─────────────────┬───────────────┐
- ↓               ↓                 ↓
-Progress     Teaching History   Next Week
+Unit Library (source of truth)         Specialist Planner (source of truth)
+Unit/Lesson IDs + titles               timetable + class progress + outcomes
+            │                                      │
+            └── metadata-only index ──► stable reference IDs
+                                                   │
+                                      new-tab read-only deep link
 ```
 
-Navigation is now **Week | Progress | Units**, with History and Settings retained as supporting destinations. Units reuses the established Year Level → Unit → Lesson editor; Settings retains subject, class, timetable, backup, import, reconciliation and Trial Note controls.
+The Library publishes `unit-library-index.json`, generated from an authorised source export. It contains only stable Unit/Lesson IDs, year level, display titles and canonical HTTPS URLs. Planner fetches this small index for chooser labels and validation; it never imports learning intentions, activities, notes, vocabulary, speaking data or resources.
 
-## One source of truth
+## Reference model
 
-Week does not store a second weekly plan. `deriveTeachingWeek` reads only the existing `TimetableSession`, `ClassProgress`, Unit/Lesson, `TeachingSession` and progress-checkpoint data for the visible Monday–Friday range. Merely opening or navigating a week is read-only and cannot create duplicate sessions or false history.
+`Unit.externalResourceRef` and `Lesson.externalResourceRef` are optional. Both store `provider`, `resourceType`, `resourceId`, an optional label and canonical URL; a Lesson additionally stores `parentResourceId`. A linked Lesson must belong to the Unit referenced by its local parent. Local IDs, titles and lesson sequences remain authoritative for Planner progress.
 
-Outcome actions materialise the selected dated occurrence only when the teacher records it, then call the shared v0.3 Teaching Session engine. The same Completed, Partial or Not taught record immediately drives Week status, Progress, History and later projections.
+Changing or removing a Unit reference clears only incompatible Lesson references. It does not alter `classProgress`, `progressBaselines`, `progressCheckpoints`, `TeachingSession` history, timetable data, colours or Trial Notes. No title-based matching or inferred mapping occurs.
 
-## Projection rules
+## Teacher workflows
 
-- A confirmed historical occurrence displays its immutable planned Unit/Lesson snapshot and actual outcome.
-- An unrecorded occurrence displays the class’s current actual Unit and Teach Next Lesson as a proposal.
-- Completed advances the shared class pointer exactly once.
-- Partial and Not taught retain the same Teach Next Lesson; their note or reason remains visible on the current card and as previous-session context later.
-- If the same class has another unresolved occurrence earlier in the visible week, the later occurrence does not leap forward. It shows the same current Lesson and an explicit dependency warning.
-- Future projections never become Completed and create no `TeachingSession` until an outcome is deliberately recorded.
-- A cross-Unit class shows its own actual Unit. Comparison remains `Different unit` because Units have no authoritative ordering.
-- `unitComplete` produces an explicit Choose next Unit state; the planner never selects another Unit automatically.
-- Occurrences on or before a v0.3.1 checkpoint remain legacy/inactive and cannot re-enter the daily confirmation workflow.
+- In Units Setup, a teacher may leave a Planner Unit `Local only` or choose a Unit Library Unit.
+- After linking a Unit, each local Lesson may independently remain `Local only` or map to one Library Lesson. Partial mappings are supported.
+- Linked Units and Lessons can be opened in a new tab, changed or removed.
+- An expanded Week card offers `Open lesson` when its actual proposed Lesson is mapped.
+- The Progress drawer offers the mapped resource for that class’s actual Teach Next Lesson, including when the class is on a different Unit from its cohort.
+- Library content is read-only from Planner. Teaching Session outcomes continue to be recorded only in Planner.
 
-## Week interaction and exceptions
+## Deep links and resilience
 
-Monday–Friday columns use chronological timetable order. Specialist Teaching cards prioritise class, time, Unit, Lesson, cohort status and actual/proposed state. Expanding a card reveals lesson description, current and cohort context, previous outcome/reason, shared Teaching Session controls, Progress detail and a contextual Quick Note action.
+Canonical links use `https://themandarinroom.github.io/units/view.html?unit=<unitId>&lesson=<lessonId>`. Unit Library scrolls to and highlights the exact Lesson. All links open in a new tab with opener isolation.
 
-Normal cards stay visually calm. Behind/ahead/different-Unit states and previous Partial/Not taught outcomes receive restrained amber attention. Non-teaching timetable entries appear as compact muted context blocks and can be hidden with a device-local preference. They have no progress or outcome controls. Daily bulk completion uses the shared engine and only affects eligible Specialist Teaching occurrences.
+The Library index is optional runtime data. Loading, offline and unavailable states never block Week, Progress, History, Setup, outcomes or backup. A reference missing from a successfully loaded index is labelled `Linked resource unavailable` and can be relinked. Stored canonical URLs allow a previously linked resource to remain openable while the index itself is temporarily offline.
 
-## Class colour recognition
+## Progress semantics
 
-Each class can optionally use one of seven named presets—Hot pink, Orange, Yellow, Green, Aqua, Blue or Purple—selected in Setup. The same class-ID mapping colours Week cards, Progress class buttons and Specialist Teaching rows in the timetable editor. There is no unrestricted colour input in v0.4.2.
+Resource colour and availability are non-semantic. On track, Behind, Ahead, Different unit, Completed, Partial, Not taught, Planned and Unit complete remain explicit text/status indicators. Opening, changing or removing a resource reference cannot advance progress or create a Teaching Session.
 
-Colour is deliberately non-semantic. On track, Behind, Ahead, Different unit, Completed, Partial, Not taught and other states continue to use explicit text, icons, outcome chips and attention borders. Every preset pairs a pale background with the established dark ink foreground at WCAG AA contrast or better.
-
-## Responsive behaviour
-
-Large screens use five weekday columns. Smaller laptops and tablets keep the weekly comparison in a horizontally scrollable grid. Portrait iPad and mobile use wide, touch-friendly day columns with scroll snapping rather than squeezing five columns. Week navigation remains sticky below the main navigation where the layout is stable.
+Week continues to derive from timetable, actual class progress, Unit/Lesson, outcomes and checkpoints. Confirmed history uses immutable planned Unit/Lesson snapshots; future projections do not create history until the teacher records an outcome.
 
 ## Persistence and migration
 
-Planner data uses schema v7 under `specialist-planner.data.v7`. `classColours` is a class-ID-to-preset-ID map, so class renaming does not break the association. Existing schema-v6 colours migrate to the closest new seven-colour preset, while earlier backups retain their established migration path. Timetable, Units, Lessons, class progress, Teaching Sessions, reconciliation status, dated checkpoints and Trial Notes remain unchanged. The optional non-teaching visibility preference is stored separately as device-local UI state.
+Schema v8 uses `specialist-planner.data.v8`. v0.4.2 schema-v7 data migrates by retaining every existing field and adding no guessed external links. Earlier v0.2–v0.4.1 migration paths remain intact. JSON export/import validates and preserves both Unit and Lesson references.
 
-JSON export/import remains the complete planner backup. Week behaviour is reconstructed from that existing data after restore; there is no separate Week backup format. No Firebase, account or cloud database is introduced.
+The class colour map remains keyed by class ID. The Unit Library index is not copied into localStorage or backups; only stable references are stored.
+
+## Verification coverage
+
+Automated integration scenarios cover Unit and Lesson references, partial/local-only mapping, exact and encoded deep links, missing Unit/Lesson handling, link change/removal, progress/status independence, export/import, schema-v7 migration, parent-child validation and cross-Unit class resolution. Unit Library separately tests deep-link parsing and proves its generated index omits teaching content.
 
 ## Known limitations
 
-- one active subject in the v0.4.2 UI;
-- device-and-browser-local planner data with no cross-device sync;
-- no school-term calendar, holiday/event model or month view;
-- no ordered Unit sequence, so cross-Unit status is categorical and Unit completion requires teacher choice;
-- projections intentionally do not assume that an unresolved occurrence will be completed;
-- no curriculum integration, attendance, student data, assessment, reports, notifications, analytics or multi-teacher administration.
+- The current live Unit Library contains `Countries` and `Chinese Names`; it does not yet contain a `Nationalities` Unit with `Where are you from?`. Planner supports that acceptance workflow as soon as the Library author publishes those stable records, but v0.5 does not fabricate them.
+- Library index refresh is publication-time, not real-time Firestore sync.
+- one active subject in the v0.5 UI;
+- device-and-browser-local Planner data with no account or cross-device sync;
+- no school-term calendar, attendance, student data, assessment, reports, notifications, analytics or multi-teacher administration.

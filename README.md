@@ -1,14 +1,17 @@
-# Specialist Planner v0.4.2 — Seven Class Colours
+# Specialist Planner v0.5 — Unit Library Integration Trial
 
-A local-first weekly planner for specialist teachers. The primary Week View combines the configured timetable with each class’s actual Unit/Lesson position, cohort status and recorded Teaching Session outcomes. Teachers may also assign Hot pink, Orange, Yellow, Green, Aqua, Blue or Purple to recognise a class across Week, Progress and timetable setup.
+A local-first, progress-aware weekly planner for specialist teachers. v0.5 adds optional read-only links from Planner Units and Lessons to the independent [The Mandarin Room Unit Library](https://themandarinroom.github.io/units/) without copying curriculum content or coupling resource availability to teaching progress.
 
-Week is the daily working surface, Progress provides cohort-level diagnosis, Units exposes the teaching sequence, History records what actually happened, and Settings preserves all configuration, backup and reconciliation tools. See [`dashboard/README.md`](dashboard/README.md) for architecture and projection rules.
+Week is the daily working surface, Progress provides cohort-level diagnosis, Units manages local sequences and optional Library mapping, History records what happened, and Settings preserves timetable, backup and reconciliation tools. The seven accessible class-recognition colours remain available and non-semantic.
 
-## Run locally
+See [`dashboard/README.md`](dashboard/README.md) for the data contract, workflows, resilience rules and migration details.
+
+## Run and verify
 
 ```bash
 npm install
-npm run dev
+npm test
+npm run lint
 ```
 
-Run automated checks with `npm test`.
+Planner data remains browser-local under `specialist-planner.data.v8`. JSON export/import is the complete backup format, including stable resource references.
