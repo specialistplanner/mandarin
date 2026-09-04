@@ -7,7 +7,7 @@ import { freshSamplePlanner } from "../lib/sample-data.ts";
 
 test("the shared time axis contains the requested Sessions and breaks", () => {
   assert.deepEqual(DEFAULT_SESSION_SLOTS.map(item => [item.label, item.startTime, item.endTime, item.kind]), [
-    ["Session 1", "08:55", "09:55", "session"],
+    ["S1", "08:55", "09:55", "session"],
     ["S2", "09:55", "10:55", "session"],
     ["Recess", "10:55", "11:15", "break"],
     ["S3", "11:15", "12:15", "session"],
@@ -35,9 +35,18 @@ test("Week View uses aligned Session rows and keeps time off individual cards", 
   assert.match(view, /week-slot-label/);
   assert.match(view, /item\.timetable\.slotId === slot\.id/);
   assert.doesNotMatch(view, /week-card-time/);
+  assert.doesNotMatch(view, /entry\.yearLevel\?\.label/);
   assert.match(setup, /Session times/);
   assert.match(setup, /sessionDraft\.slotId/);
   assert.match(styles, /\.week-grid \{[^}]*grid-template-columns: 116px repeat\(5/);
-  assert.match(styles, /\.week-context-block \{[^}]*min-height: 150px/);
-  assert.match(styles, /\.week-card \{[^}]*min-height: 150px/);
+  assert.match(styles, /\.week-context-block \{[^}]*min-height: 96px/);
+  assert.match(styles, /\.week-card \{[^}]*min-height: 96px/);
+  assert.match(styles, /\.week-slot-label \{[^}]*position: sticky; left: 0/);
+});
+
+test("the S1 label upgrades without overwriting a custom Session name", async () => {
+  const app = await readFile(new URL("../app/dashboard-app.tsx", import.meta.url), "utf8");
+  assert.match(app, /firstSession\?\.label === "Session 1"/);
+  assert.match(app, /label: "S1"/);
+  assert.match(app, /SESSION_ONE_LABEL_MIGRATION_KEY/);
 });

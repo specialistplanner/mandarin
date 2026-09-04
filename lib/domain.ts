@@ -175,7 +175,7 @@ export const SESSION_TYPE_LABELS: Record<SessionType, string> = {
 };
 
 export const DEFAULT_SESSION_SLOTS: SessionSlot[] = [
-  { id: "session-1", label: "Session 1", startTime: "08:55", endTime: "09:55", kind: "session" },
+  { id: "session-1", label: "S1", startTime: "08:55", endTime: "09:55", kind: "session" },
   { id: "session-2", label: "S2", startTime: "09:55", endTime: "10:55", kind: "session" },
   { id: "recess", label: "Recess", startTime: "10:55", endTime: "11:15", kind: "break" },
   { id: "session-3", label: "S3", startTime: "11:15", endTime: "12:15", kind: "session" },

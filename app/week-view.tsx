@@ -74,8 +74,8 @@ export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onOpe
 
   useEffect(() => {
     const todayIndex = week.days.findIndex((day) => day.dateKey === todayKey);
-    if (todayIndex < 1 || !gridRef.current || !window.matchMedia("(max-width: 1050px)").matches) return;
-    gridRef.current.scrollTo({ left: 104 + todayIndex * 274, behavior: "smooth" });
+    if (todayIndex < 1 || !gridRef.current || !window.matchMedia("(max-width: 540px)").matches) return;
+    gridRef.current.scrollTo({ left: 96 + todayIndex * 274, behavior: "smooth" });
   }, [todayKey, week.days]);
 
   function changeNonTeachingPreference(value: boolean) {
@@ -105,10 +105,10 @@ export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onOpe
     return <article className={`week-card state-${entry.state} ${entry.classColourId ? "has-class-colour" : ""} ${entry.progressStatus && entry.progressStatus.kind !== "on-track" ? "has-attention" : ""} ${entry.session?.outcome === "partial" || entry.session?.outcome === "not-taught" ? "has-attention" : ""}`} style={classColourStyle(entry.classColourId)} key={entry.key}>
       <button className="week-card-summary" type="button" aria-expanded={expanded === entry.key} onClick={() => setExpanded(expanded === entry.key ? null : entry.key)}>
         <span className="week-card-kind">Teaching</span><span className={`week-card-state outcome-${entry.session?.outcome ?? entry.state}`}>{stateLabel(entry)}</span>
-        <strong className="week-card-class">{entry.specialistClass?.name ?? entry.label}</strong><small>{entry.yearLevel?.label ?? "Specialist teaching"}</small>
+        <strong className="week-card-class">{entry.specialistClass?.name ?? entry.label}</strong>
+        {entry.progressStatus && <span className={`week-progress status-${entry.progressStatus.kind}`}>{entry.progressStatus.kind === "on-track" ? "✓" : "⚠"} {entry.progressStatus.label}</span>}
         <span className="week-card-unit">{entry.session?.outcome !== "planned" && entry.session ? entry.session.plannedUnitTitle : entry.unit?.title ?? (entry.state === "unit-complete" ? "Unit complete" : "Unit not assigned")}</span>
         <b className="week-card-lesson">{entry.lessonNumber ? `L${entry.lessonNumber} · ` : ""}{entry.session?.outcome !== "planned" && entry.session ? entry.session.plannedLessonTitle : entry.lesson?.title ?? (entry.state === "unit-complete" ? "Choose next Unit" : "Lesson not assigned")}</b>
-        {entry.progressStatus && <span className={`week-progress status-${entry.progressStatus.kind}`}>{entry.progressStatus.kind === "on-track" ? "✓" : "⚠"} {entry.progressStatus.label}</span>}
         {(entry.session?.reason || entry.session?.note) && <span className="week-card-note">{entry.session.reason ?? entry.session.note}</span>}
       </button>
       {expanded === entry.key && <div className="week-card-detail">
