@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   CLASS_COLOUR_PRESETS,
+  DEFAULT_SESSION_SLOTS,
   PLANNER_SCHEMA_VERSION,
   clampLesson,
   createClassRecord,
@@ -27,6 +28,7 @@ import {
 } from "../lib/domain.ts";
 import {
   LEGACY_STORAGE_KEY,
+  LEGACY_V8_STORAGE_KEY,
   LEGACY_V2_STORAGE_KEY,
   LEGACY_V3_STORAGE_KEY,
   LEGACY_V4_STORAGE_KEY,
@@ -62,9 +64,13 @@ function fixture() {
     },
     progressCheckpoints: {},
     classColours: {},
+    sessionSlots: [
+      { ...DEFAULT_SESSION_SLOTS[0] },
+      { id: "custom-10", label: "Custom", startTime: "10:00", endTime: "11:00", kind: "session" },
+    ],
     timetableSessions: [
-      { id: "teach", weekday: 3, startTime: "08:55", endTime: "09:55", classId: "5e", subjectId: "subject", type: "specialist-teaching" },
-      { id: "cover", weekday: 3, startTime: "10:00", endTime: "11:00", classId: "5c", type: "cover-release" },
+      { id: "teach", slotId: "session-1", weekday: 3, startTime: "08:55", endTime: "09:55", classId: "5e", subjectId: "subject", type: "specialist-teaching" },
+      { id: "cover", slotId: "custom-10", weekday: 3, startTime: "10:00", endTime: "11:00", classId: "5c", type: "cover-release" },
     ],
     teachingSessions: [],
     trialNotes: [{ id: "note", text: "Half a lesson", createdAt: "2026-08-23T00:00:00.000Z", classId: "5c", context: "Class drawer" }],
@@ -239,16 +245,28 @@ test("invalid import is rejected without returning partial data", () => {
   assert.throws(() => importPlannerData(JSON.stringify(invalidColour)), /Class colour.*invalid/);
 });
 
-test("localStorage v8 persists fully and older planner schemas migrate safely", () => {
+test("localStorage v9 persists fully and older planner schemas migrate safely", () => {
   const memory = new Map();
   const storage = { getItem: (key) => memory.get(key) ?? null, setItem: (key, value) => memory.set(key, value), removeItem: (key) => memory.delete(key) };
   persistPlanner(storage, fixture());
-  assert.equal(loadPlanner(storage, fixture()).source, "v8");
+  assert.equal(loadPlanner(storage, fixture()).source, "v9");
   assert.equal(JSON.parse(memory.get(STORAGE_KEY)).trialNotes.length, 1);
 
   memory.delete(STORAGE_KEY);
+  const v8 = fixture();
+  v8.schemaVersion = 8;
+  delete v8.sessionSlots;
+  v8.timetableSessions = v8.timetableSessions.map(session => Object.fromEntries(Object.entries(session).filter(([key]) => key !== "slotId")));
+  memory.set(LEGACY_V8_STORAGE_KEY, JSON.stringify(v8));
+  const v8Migrated = loadPlanner(storage, fixture());
+  assert.equal(v8Migrated.source, "migrated-v8");
+  assert.equal(v8Migrated.planner.timetableSessions.every(item => item.slotId), true);
+
+  memory.delete(LEGACY_V8_STORAGE_KEY);
   const v7 = fixture();
   v7.schemaVersion = 7;
+  delete v7.sessionSlots;
+  v7.timetableSessions = v7.timetableSessions.map(session => Object.fromEntries(Object.entries(session).filter(([key]) => key !== "slotId")));
   memory.set(LEGACY_V7_STORAGE_KEY, JSON.stringify(v7));
   const v7Migrated = loadPlanner(storage, fixture());
   assert.equal(v7Migrated.source, "migrated-v7");

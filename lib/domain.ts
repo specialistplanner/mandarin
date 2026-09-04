@@ -1,4 +1,4 @@
-export const PLANNER_SCHEMA_VERSION = 8 as const;
+export const PLANNER_SCHEMA_VERSION = 9 as const;
 
 export const CLASS_COLOUR_PRESETS = {
   "hot-pink": { label: "Hot pink", background: "#fce4f1", accent: "#d61f75", foreground: "#17372c" },
@@ -88,8 +88,17 @@ export type ReconciliationStatus = {
   completedAt: string;
 };
 
+export type SessionSlot = {
+  id: string;
+  label: string;
+  startTime: string;
+  endTime: string;
+  kind: "session" | "break";
+};
+
 export type TimetableSession = {
   id: string;
+  slotId: string;
   weekday: number;
   startTime: string;
   endTime: string;
@@ -138,6 +147,7 @@ export type PlannerData = {
   progressBaselines: Record<string, ClassProgress>;
   progressCheckpoints: Record<string, ProgressCheckpoint>;
   classColours: Record<string, ClassColourId>;
+  sessionSlots: SessionSlot[];
   timetableSessions: TimetableSession[];
   teachingSessions: TeachingSession[];
   reconciliationStatus?: ReconciliationStatus;
@@ -163,6 +173,16 @@ export const SESSION_TYPE_LABELS: Record<SessionType, string> = {
   break: "Break",
   other: "Other",
 };
+
+export const DEFAULT_SESSION_SLOTS: SessionSlot[] = [
+  { id: "session-1", label: "Session 1", startTime: "08:55", endTime: "09:55", kind: "session" },
+  { id: "session-2", label: "S2", startTime: "09:55", endTime: "10:55", kind: "session" },
+  { id: "recess", label: "Recess", startTime: "10:55", endTime: "11:15", kind: "break" },
+  { id: "session-3", label: "S3", startTime: "11:15", endTime: "12:15", kind: "session" },
+  { id: "session-4", label: "S4", startTime: "12:15", endTime: "13:15", kind: "session" },
+  { id: "lunch", label: "Lunch", startTime: "13:15", endTime: "14:15", kind: "break" },
+  { id: "session-5", label: "S5", startTime: "14:15", endTime: "15:15", kind: "session" },
+];
 
 export function clonePlanner(planner: PlannerData): PlannerData {
   return JSON.parse(JSON.stringify(planner)) as PlannerData;

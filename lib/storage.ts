@@ -1,15 +1,18 @@
 import {
   CLASS_COLOUR_PRESETS,
+  DEFAULT_SESSION_SLOTS,
   PLANNER_SCHEMA_VERSION,
   clonePlanner,
   type ClassColourId,
   type PlannerData,
   type ProgressMap,
+  type SessionSlot,
   type SessionType,
   type TeachingSessionOutcome,
 } from "./domain.ts";
 
-export const STORAGE_KEY = "specialist-planner.data.v8";
+export const STORAGE_KEY = "specialist-planner.data.v9";
+export const LEGACY_V8_STORAGE_KEY = "specialist-planner.data.v8";
 export const LEGACY_V7_STORAGE_KEY = "specialist-planner.data.v7";
 export const LEGACY_V6_STORAGE_KEY = "specialist-planner.data.v6";
 export const LEGACY_V5_STORAGE_KEY = "specialist-planner.data.v5";
@@ -19,7 +22,7 @@ export const LEGACY_V2_STORAGE_KEY = "specialist-planner.data.v2";
 export const LEGACY_STORAGE_KEY = "specialist-planner.dashboard.progress.v1";
 
 export type StorageLike = Pick<Storage, "getItem" | "setItem"> & Partial<Pick<Storage, "removeItem">>;
-export type PlannerLoadResult = { planner: PlannerData | null; source: "v8" | "migrated-v7" | "migrated-v6" | "migrated-v5" | "migrated-v4" | "migrated-v3" | "migrated-v2" | "migrated-v1" | "empty" };
+export type PlannerLoadResult = { planner: PlannerData | null; source: "v9" | "migrated-v8" | "migrated-v7" | "migrated-v6" | "migrated-v5" | "migrated-v4" | "migrated-v3" | "migrated-v2" | "migrated-v1" | "empty" };
 
 const sessionTypes = new Set<SessionType>([
   "specialist-teaching", "cover-release", "planning", "meeting", "school-activity", "break", "other",
@@ -45,6 +48,27 @@ function uniqueIds(items: Array<{ id: string }>, label: string) {
   if (ids.size !== items.length) throw new Error(`${label} IDs must be unique.`);
 }
 
+function addSessionSlots(value: Record<string, unknown>): Record<string, unknown> {
+  if (Array.isArray(value.sessionSlots)) return value;
+  const sessionSlots: SessionSlot[] = DEFAULT_SESSION_SLOTS.map(slot => ({ ...slot }));
+  const timetableSessions = Array.isArray(value.timetableSessions) ? value.timetableSessions.map((item, index) => {
+    if (!record(item)) return item;
+    const startTime = typeof item.startTime === "string" ? item.startTime : "";
+    const endTime = typeof item.endTime === "string" ? item.endTime : "";
+    let slot = sessionSlots.find(candidate => candidate.startTime === startTime && candidate.endTime === endTime);
+    if (!slot) {
+      const id = `legacy-slot-${startTime.replace(":", "")}-${endTime.replace(":", "")}`;
+      slot = sessionSlots.find(candidate => candidate.id === id);
+      if (!slot) {
+        slot = { id, label: `Custom ${index + 1}`, startTime, endTime, kind: "session" };
+        sessionSlots.push(slot);
+      }
+    }
+    return { ...item, slotId: slot.id };
+  }) : value.timetableSessions;
+  return { ...value, sessionSlots, timetableSessions };
+}
+
 function externalResourceRef(value: unknown, resourceType: "unit" | "lesson") {
   if (value === undefined || value === null) return undefined;
   if (!record(value) || value.resourceType !== resourceType) throw new Error(`External ${resourceType} reference is invalid.`);
@@ -67,7 +91,7 @@ export function validatePlannerData(value: unknown): PlannerData {
     throw new Error("This file is not a Specialist Planner v0.5 backup.");
   }
   if (!Array.isArray(value.subjects) || !Array.isArray(value.yearLevels) || !Array.isArray(value.classes) ||
-      !Array.isArray(value.units) || !Array.isArray(value.timetableSessions) || !Array.isArray(value.teachingSessions) || !Array.isArray(value.trialNotes) ||
+      !Array.isArray(value.units) || !Array.isArray(value.sessionSlots) || !Array.isArray(value.timetableSessions) || !Array.isArray(value.teachingSessions) || !Array.isArray(value.trialNotes) ||
       !record(value.classProgress) || !record(value.progressBaselines) || !record(value.progressCheckpoints) || !record(value.classColours)) {
     throw new Error("Planner collections are missing or invalid.");
   }
@@ -205,20 +229,30 @@ export function validatePlannerData(value: unknown): PlannerData {
     reconciliationStatus = { startDate, throughDate, completedAt };
   }
 
+  const sessionSlots = value.sessionSlots.map((item, index) => {
+    if (!record(item)) throw new Error(`Session slot ${index + 1} is invalid.`);
+    const startTime = string(item.startTime, "Session start time");
+    const endTime = string(item.endTime, "Session end time");
+    if (!/^\d{2}:\d{2}$/.test(startTime) || !/^\d{2}:\d{2}$/.test(endTime) || startTime >= endTime) throw new Error("Session slot times are invalid.");
+    if (item.kind !== "session" && item.kind !== "break") throw new Error("Session slot kind is invalid.");
+    return { id: string(item.id, "Session slot ID"), label: string(item.label, "Session slot label"), startTime, endTime, kind: item.kind } as SessionSlot;
+  });
+  uniqueIds(sessionSlots, "Session slot");
+
   const timetableSessions = value.timetableSessions.map((item, index) => {
     if (!record(item)) throw new Error(`Timetable session ${index + 1} is invalid.`);
     const type = string(item.type, "Session type") as SessionType;
     if (!sessionTypes.has(type)) throw new Error(`Timetable session ${index + 1} has an invalid type.`);
     const weekday = Number(item.weekday);
     if (!Number.isInteger(weekday) || weekday < 0 || weekday > 6) throw new Error("Session weekday is invalid.");
-    const startTime = string(item.startTime, "Start time");
-    const endTime = string(item.endTime, "End time");
-    if (!/^\d{2}:\d{2}$/.test(startTime) || !/^\d{2}:\d{2}$/.test(endTime) || startTime >= endTime) throw new Error("Session times are invalid.");
+    const slotId = string(item.slotId, "Session slot ID");
+    const slot = sessionSlots.find(candidate => candidate.id === slotId);
+    if (!slot) throw new Error("A timetable session references a missing Session slot.");
     const classId = optionalString(item.classId, "Session class ID");
     if (classId && !classes.some((candidate) => candidate.id === classId)) throw new Error("A timetable session references a missing class.");
     if (type === "specialist-teaching" && !classId) throw new Error("Specialist teaching sessions require a class.");
     return {
-      id: string(item.id, "Session ID"), weekday, startTime, endTime, type, classId,
+      id: string(item.id, "Session ID"), slotId, weekday, startTime: slot.startTime, endTime: slot.endTime, type, classId,
       subjectId: optionalString(item.subjectId, "Session subject ID"), label: optionalString(item.label, "Session label"),
     };
   });
@@ -266,7 +300,7 @@ export function validatePlannerData(value: unknown): PlannerData {
 
   return {
     schemaVersion: PLANNER_SCHEMA_VERSION, id: string(value.id, "Planner ID"), subjects, activeSubjectId,
-    yearLevels, classes, units, classProgress, progressBaselines, progressCheckpoints, classColours, timetableSessions, teachingSessions, reconciliationStatus, trialNotes,
+    yearLevels, classes, units, classProgress, progressBaselines, progressCheckpoints, classColours, sessionSlots, timetableSessions, teachingSessions, reconciliationStatus, trialNotes,
     updatedAt: typeof value.updatedAt === "string" && !Number.isNaN(Date.parse(value.updatedAt)) ? value.updatedAt : new Date().toISOString(),
   };
 }
@@ -274,8 +308,13 @@ export function validatePlannerData(value: unknown): PlannerData {
 export function loadPlanner(storage: StorageLike, sample: PlannerData): PlannerLoadResult {
   const current = storage.getItem(STORAGE_KEY);
   if (current) {
-    try { return { planner: validatePlannerData(JSON.parse(current)), source: "v8" }; }
+    try { return { planner: validatePlannerData(JSON.parse(current)), source: "v9" }; }
     catch { /* Leave invalid local data untouched so it can be recovered manually. */ }
+  }
+  const v8 = storage.getItem(LEGACY_V8_STORAGE_KEY);
+  if (v8) {
+    try { return { planner: migrateV8PlannerData(JSON.parse(v8)), source: "migrated-v8" }; }
+    catch { /* Fall through to the v0.4.2 migration. */ }
   }
   const v7 = storage.getItem(LEGACY_V7_STORAGE_KEY);
   if (v7) {
@@ -345,6 +384,7 @@ export function importPlannerData(text: string): PlannerData {
   let parsed: unknown;
   try { parsed = JSON.parse(text); }
   catch { throw new Error("The selected file is not valid JSON."); }
+  if (record(parsed) && parsed.schemaVersion === 8) return migrateV8PlannerData(parsed);
   if (record(parsed) && parsed.schemaVersion === 7) return migrateV7PlannerData(parsed);
   if (record(parsed) && parsed.schemaVersion === 6) return migrateV6PlannerData(parsed);
   if (record(parsed) && parsed.schemaVersion === 5) return migrateV5PlannerData(parsed);
@@ -359,9 +399,14 @@ export function migrateV2PlannerData(value: unknown): PlannerData {
   return migrateV3PlannerData({ ...value, schemaVersion: 3 });
 }
 
+export function migrateV8PlannerData(value: unknown): PlannerData {
+  if (!record(value) || value.schemaVersion !== 8 || !Array.isArray(value.timetableSessions)) throw new Error("This is not a valid Specialist Planner v0.5 backup.");
+  return validatePlannerData({ ...addSessionSlots(value), schemaVersion: PLANNER_SCHEMA_VERSION });
+}
+
 export function migrateV7PlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== 7 || !Array.isArray(value.units)) throw new Error("This is not a valid Specialist Planner v0.4.2 backup.");
-  return validatePlannerData({ ...value, schemaVersion: PLANNER_SCHEMA_VERSION });
+  return validatePlannerData({ ...addSessionSlots(value), schemaVersion: PLANNER_SCHEMA_VERSION });
 }
 
 export function migrateV6PlannerData(value: unknown): PlannerData {
@@ -379,33 +424,33 @@ export function migrateV6PlannerData(value: unknown): PlannerData {
   for (const [classId, colourId] of Object.entries(value.classColours)) {
     if (typeof colourId === "string" && replacements[colourId]) colourMap[classId] = replacements[colourId];
   }
-  return validatePlannerData({ ...value, schemaVersion: PLANNER_SCHEMA_VERSION, classColours: colourMap });
+  return validatePlannerData({ ...addSessionSlots(value), schemaVersion: PLANNER_SCHEMA_VERSION, classColours: colourMap });
 }
 
 export function migrateV5PlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== 5 || !record(value.classProgress) || !record(value.progressBaselines) || !record(value.progressCheckpoints) || !Array.isArray(value.teachingSessions)) {
     throw new Error("This is not a valid Specialist Planner v0.3.1/v0.4 backup.");
   }
-  return validatePlannerData({ ...value, schemaVersion: PLANNER_SCHEMA_VERSION, classColours: {} });
+  return validatePlannerData({ ...addSessionSlots(value), schemaVersion: PLANNER_SCHEMA_VERSION, classColours: {} });
 }
 
 export function migrateV3PlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== 3 || !record(value.classProgress)) throw new Error("This is not a valid Specialist Planner v0.2.1 backup.");
-  return validatePlannerData({
+  return validatePlannerData(addSessionSlots({
     ...value,
     schemaVersion: PLANNER_SCHEMA_VERSION,
     progressBaselines: JSON.parse(JSON.stringify(value.classProgress)),
     progressCheckpoints: {},
     classColours: {},
     teachingSessions: [],
-  });
+  }));
 }
 
 export function migrateV4PlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== 4 || !record(value.classProgress) || !record(value.progressBaselines) || !Array.isArray(value.teachingSessions)) {
     throw new Error("This is not a valid Specialist Planner v0.3 backup.");
   }
-  return validatePlannerData({ ...value, schemaVersion: PLANNER_SCHEMA_VERSION, progressCheckpoints: {}, classColours: {} });
+  return validatePlannerData({ ...addSessionSlots(value), schemaVersion: PLANNER_SCHEMA_VERSION, progressCheckpoints: {}, classColours: {} });
 }
 
 // v0.1 API retained to prove the migration source remains readable.

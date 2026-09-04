@@ -1,4 +1,4 @@
-import { PLANNER_SCHEMA_VERSION, type Lesson, type PlannerData, type TimetableSession } from "./domain.ts";
+import { DEFAULT_SESSION_SLOTS, PLANNER_SCHEMA_VERSION, type Lesson, type PlannerData, type TimetableSession } from "./domain.ts";
 
 function lessons(unitId: string, titles: string[]): Lesson[] {
   return titles.map((title, index) => ({ id: `${unitId}-lesson-${index + 1}`, title, sequence: index + 1 }));
@@ -38,7 +38,7 @@ const classes = [
 const nextLesson = (classId: string, unitId: string, position: number) => [classId, { classId, unitId, lessonId: `${unitId}-lesson-${position}` }];
 
 const teaching = (id: string, weekday: number, startTime: string, endTime: string, classId: string): TimetableSession => ({
-  id, weekday, startTime, endTime, classId, subjectId: subject.id, type: "specialist-teaching",
+  id, slotId: DEFAULT_SESSION_SLOTS.find(slot => slot.startTime === startTime && slot.endTime === endTime)?.id ?? "session-1", weekday, startTime, endTime, classId, subjectId: subject.id, type: "specialist-teaching",
 });
 
 const timetableSessions: TimetableSession[] = [
@@ -47,7 +47,7 @@ const timetableSessions: TimetableSession[] = [
   teaching("wed-5e", 3, "08:55", "09:55", "5e"), teaching("wed-5c", 3, "09:55", "10:55", "5c"), teaching("wed-2c", 3, "11:15", "12:15", "2c"), teaching("wed-2a", 3, "12:15", "13:15", "2a"),
   teaching("thu-1c", 4, "09:55", "10:55", "1c"), teaching("thu-prep-e", 4, "11:15", "12:15", "prep-e"), teaching("thu-prep-c", 4, "12:15", "13:15", "prep-c"), teaching("thu-4e", 4, "14:15", "15:15", "4e"),
   teaching("fri-3a", 5, "08:55", "09:55", "3a"), teaching("fri-3b", 5, "09:55", "10:55", "3b"), teaching("fri-1d", 5, "11:15", "12:15", "1d"), teaching("fri-prep-b", 5, "12:15", "13:15", "prep-b"),
-  { id: "sample-cover", weekday: 1, startTime: "09:00", endTime: "10:00", classId: "prep-b", type: "cover-release", label: "Prep B cover" },
+  { id: "sample-cover", slotId: "session-1", weekday: 1, startTime: "08:55", endTime: "09:55", classId: "prep-b", type: "cover-release", label: "Prep B cover" },
 ];
 
 const classProgress = Object.fromEntries([
@@ -69,6 +69,7 @@ export const samplePlanner: PlannerData = {
   progressBaselines: JSON.parse(JSON.stringify(classProgress)),
   progressCheckpoints: {},
   classColours: {},
+  sessionSlots: JSON.parse(JSON.stringify(DEFAULT_SESSION_SLOTS)),
   timetableSessions,
   teachingSessions: [],
   trialNotes: [],
@@ -88,6 +89,7 @@ export function createBlankPlanner(): PlannerData {
     progressBaselines: {},
     progressCheckpoints: {},
     classColours: {},
+    sessionSlots: JSON.parse(JSON.stringify(DEFAULT_SESSION_SLOTS)),
     timetableSessions: [],
     teachingSessions: [],
     trialNotes: [],
