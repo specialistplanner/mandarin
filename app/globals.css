@@ -70,14 +70,7 @@ nav { display: flex; align-self: stretch; }
 .migration-banner { width: 100%; padding: 10px clamp(22px, 4vw, 68px); background: #f8e7c8; color: #754a18; font-size: 12px; font-weight: 700; display: flex; justify-content: center; gap: 20px; }
 .migration-banner button { border: 0; background: transparent; color: inherit; cursor: pointer; }
 
-.week-main { width: min(1540px, calc(100% - 36px)); }
-.week-hero { display: flex; align-items: end; justify-content: space-between; gap: 22px; padding: 22px 0 14px; }
-.week-hero h1 { font-size: clamp(32px, 3.5vw, 46px); margin-bottom: 6px; }
-.week-hero p:last-child { max-width: 720px; margin: 0; color: var(--muted); font-size: 12px; }
-.week-summary { min-width: 190px; display: flex; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 16px; background: var(--white); padding: 13px 15px; }
-.week-summary > strong { width: 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; background: var(--sage); font-size: 20px; }
-.week-summary > span { display: flex; flex-direction: column; font-size: 11px; font-weight: 750; }
-.week-summary small { margin-top: 2px; color: var(--muted); font-size: 9px; }
+.week-main { width: min(1540px, calc(100% - 36px)); padding-top: 14px; }
 .week-toolbar { position: sticky; top: 74px; z-index: 10; min-height: 52px; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 18px; border: 1px solid var(--line); border-radius: 16px 16px 0 0; background: rgba(251,248,240,.96); padding: 6px 10px; backdrop-filter: blur(10px); }
 .week-toolbar > div:nth-child(2) { display: flex; flex-direction: column; align-items: center; }
 .week-toolbar > div:nth-child(2) span { color: var(--muted); text-transform: uppercase; letter-spacing: .1em; font-size: 8px; font-weight: 800; }
@@ -600,8 +593,6 @@ textarea { padding: 11px; resize: vertical; }
   .nav-link { flex: 1 0 auto; justify-content: center; padding: 0 15px; }
   .nav-divider { display: none; }
   .week-main { width: calc(100% - 22px); }
-  .week-hero { align-items: flex-start; flex-direction: column; padding-top: 30px; }
-  .week-summary { min-width: 0; }
   .week-toolbar { top: 66px; grid-template-columns: 1fr auto; }
   .week-toolbar > div:nth-child(2) { grid-row: 1; grid-column: 1 / -1; }
   .week-controls { grid-row: 2; }
@@ -648,8 +639,6 @@ textarea { padding: 11px; resize: vertical; }
   main { width: calc(100% - 22px); }
   .intro { padding: 31px 4px 24px; gap: 20px; }
   h1 { font-size: 39px; }
-  .week-hero h1 { font-size: 38px; }
-  .week-hero p:last-child { font-size: 12px; }
   .week-toolbar { min-height: 96px; }
   .week-grid { overflow-x: auto; grid-template-columns: 96px repeat(5, minmax(274px, 88vw)); scroll-snap-type: x proximity; }
   .week-day-header { scroll-snap-align: start; }

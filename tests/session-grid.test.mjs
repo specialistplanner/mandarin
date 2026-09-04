@@ -35,6 +35,7 @@ test("Week View uses aligned Session rows and keeps time off individual cards", 
   assert.match(view, /week-slot-label/);
   assert.match(view, /item\.timetable\.slotId === slot\.id/);
   assert.doesNotMatch(view, /week-card-time/);
+  assert.doesNotMatch(view, /week-hero|What are you teaching this week/);
   assert.doesNotMatch(view, /entry\.yearLevel\?\.label/);
   assert.match(setup, /Session times/);
   assert.match(setup, /sessionDraft\.slotId/);

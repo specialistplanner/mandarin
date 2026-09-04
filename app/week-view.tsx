@@ -97,7 +97,6 @@ export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onOpe
   }
 
   const weekLabel = `${rangeFormatter.format(week.start)} – ${rangeFormatter.format(week.end)}`;
-  const teachingCount = week.days.reduce((sum, day) => sum + day.entries.filter((entry) => entry.kind === "teaching").length, 0);
   const slots = [...planner.sessionSlots].sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   function renderEntry(entry: WeekEntry) {
@@ -124,11 +123,6 @@ export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onOpe
   }
 
   return <main className="week-main" id="top">
-    <section className="week-hero" aria-labelledby="week-title">
-      <div><p className="eyebrow">Progress-aware weekly planner</p><h1 id="week-title">What are you teaching this week?</h1><p>Timetable structure, actual class progress and recorded outcomes—together in one working view.</p></div>
-      <div className="week-summary"><strong>{teachingCount}</strong><span>specialist sessions<small>{weekLabel}</small></span></div>
-    </section>
-
     <section className="week-toolbar" aria-label="Week navigation">
       <div className="week-controls"><button type="button" onClick={() => setWeekStart(shiftTeachingWeek(weekStart, -1))} aria-label="Previous week">←</button><button type="button" onClick={() => setWeekStart(startOfTeachingWeek(new Date()))}>This week</button><button type="button" onClick={() => setWeekStart(shiftTeachingWeek(weekStart, 1))} aria-label="Next week">→</button></div>
       <div><span>Teaching week</span><strong>{weekLabel}</strong></div>
