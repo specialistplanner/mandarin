@@ -112,11 +112,12 @@ test("planned Unit and Lesson snapshots survive later title edits", () => {
 });
 
 test("cross-Unit class progress remains valid through a teaching outcome", () => {
+  const followingThursday = new Date(2026, 8, 10);
   let planner = freshSamplePlanner();
   planner.units.push({ id: "body-parts", yearLevelId: "year-1", title: "Body Parts", lessons: [1, 2].map((number) => ({ id: `body-${number}`, title: `Body ${number}`, sequence: number })) });
   planner = setClassPosition(planner, "1c", "body-parts", "body-1");
-  planner = materializeTeachingSessionsForDate(planner, thursday);
-  const completed = recordTeachingSessionOutcome(planner, sessionFor(planner, "1c", thursday).id, "completed");
+  planner = materializeTeachingSessionsForDate(planner, followingThursday);
+  const completed = recordTeachingSessionOutcome(planner, sessionFor(planner, "1c", followingThursday).id, "completed");
   assert.deepEqual(completed.classProgress["1c"], { classId: "1c", unitId: "body-parts", lessonId: "body-2" });
   assert.equal(completed.classProgress["1d"].unitId, "my-family");
 });

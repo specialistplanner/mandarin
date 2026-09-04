@@ -1,8 +1,8 @@
-# Specialist Planner v0.4.1 — Class Colour Recognition
+# Specialist Planner v0.4.2 — Seven Class Colours
 
 ## Product architecture
 
-v0.4.1 keeps Week as the primary working surface and adds optional class-recognition colours without changing progress semantics.
+v0.4.2 keeps Week as the primary working surface and provides seven optional class-recognition colours without changing progress semantics.
 
 ```text
 Units / Lessons
@@ -48,7 +48,7 @@ Normal cards stay visually calm. Behind/ahead/different-Unit states and previous
 
 ## Class colour recognition
 
-Each class can optionally use one of five named presets—Eucalyptus, Ocean, Ochre, Clay or Lavender—selected in Setup. The same class-ID mapping colours Week cards, Progress class buttons and Specialist Teaching rows in the timetable editor. There is no unrestricted colour input in v0.4.1.
+Each class can optionally use one of seven named presets—Hot pink, Orange, Yellow, Green, Aqua, Blue or Purple—selected in Setup. The same class-ID mapping colours Week cards, Progress class buttons and Specialist Teaching rows in the timetable editor. There is no unrestricted colour input in v0.4.2.
 
 Colour is deliberately non-semantic. On track, Behind, Ahead, Different unit, Completed, Partial, Not taught and other states continue to use explicit text, icons, outcome chips and attention borders. Every preset pairs a pale background with the established dark ink foreground at WCAG AA contrast or better.
 
@@ -58,13 +58,13 @@ Large screens use five weekday columns. Smaller laptops and tablets keep the wee
 
 ## Persistence and migration
 
-Planner data uses schema v6 under `specialist-planner.data.v6`. `classColours` is a class-ID-to-preset-ID map, so class renaming does not break the association. Existing schema-v5 data migrates locally with an empty colour map while preserving timetable, Units, Lessons, class progress, Teaching Sessions, reconciliation status, dated checkpoints and Trial Notes. Older supported migrations remain intact. The optional non-teaching visibility preference is stored separately as device-local UI state.
+Planner data uses schema v7 under `specialist-planner.data.v7`. `classColours` is a class-ID-to-preset-ID map, so class renaming does not break the association. Existing schema-v6 colours migrate to the closest new seven-colour preset, while earlier backups retain their established migration path. Timetable, Units, Lessons, class progress, Teaching Sessions, reconciliation status, dated checkpoints and Trial Notes remain unchanged. The optional non-teaching visibility preference is stored separately as device-local UI state.
 
 JSON export/import remains the complete planner backup. Week behaviour is reconstructed from that existing data after restore; there is no separate Week backup format. No Firebase, account or cloud database is introduced.
 
 ## Known limitations
 
-- one active subject in the v0.4.1 UI;
+- one active subject in the v0.4.2 UI;
 - device-and-browser-local planner data with no cross-device sync;
 - no school-term calendar, holiday/event model or month view;
 - no ordered Unit sequence, so cross-Unit status is categorical and Unit completion requires teacher choice;

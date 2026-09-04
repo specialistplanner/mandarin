@@ -9,7 +9,8 @@ import {
   type TeachingSessionOutcome,
 } from "./domain.ts";
 
-export const STORAGE_KEY = "specialist-planner.data.v6";
+export const STORAGE_KEY = "specialist-planner.data.v7";
+export const LEGACY_V6_STORAGE_KEY = "specialist-planner.data.v6";
 export const LEGACY_V5_STORAGE_KEY = "specialist-planner.data.v5";
 export const LEGACY_V4_STORAGE_KEY = "specialist-planner.data.v4";
 export const LEGACY_V3_STORAGE_KEY = "specialist-planner.data.v3";
@@ -17,7 +18,7 @@ export const LEGACY_V2_STORAGE_KEY = "specialist-planner.data.v2";
 export const LEGACY_STORAGE_KEY = "specialist-planner.dashboard.progress.v1";
 
 export type StorageLike = Pick<Storage, "getItem" | "setItem"> & Partial<Pick<Storage, "removeItem">>;
-export type PlannerLoadResult = { planner: PlannerData | null; source: "v6" | "migrated-v5" | "migrated-v4" | "migrated-v3" | "migrated-v2" | "migrated-v1" | "empty" };
+export type PlannerLoadResult = { planner: PlannerData | null; source: "v7" | "migrated-v6" | "migrated-v5" | "migrated-v4" | "migrated-v3" | "migrated-v2" | "migrated-v1" | "empty" };
 
 const sessionTypes = new Set<SessionType>([
   "specialist-teaching", "cover-release", "planning", "meeting", "school-activity", "break", "other",
@@ -45,7 +46,7 @@ function uniqueIds(items: Array<{ id: string }>, label: string) {
 
 export function validatePlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== PLANNER_SCHEMA_VERSION) {
-    throw new Error("This file is not a Specialist Planner v0.4.1 backup.");
+    throw new Error("This file is not a Specialist Planner v0.4.2 backup.");
   }
   if (!Array.isArray(value.subjects) || !Array.isArray(value.yearLevels) || !Array.isArray(value.classes) ||
       !Array.isArray(value.units) || !Array.isArray(value.timetableSessions) || !Array.isArray(value.teachingSessions) || !Array.isArray(value.trialNotes) ||
@@ -248,8 +249,13 @@ export function validatePlannerData(value: unknown): PlannerData {
 export function loadPlanner(storage: StorageLike, sample: PlannerData): PlannerLoadResult {
   const current = storage.getItem(STORAGE_KEY);
   if (current) {
-    try { return { planner: validatePlannerData(JSON.parse(current)), source: "v6" }; }
+    try { return { planner: validatePlannerData(JSON.parse(current)), source: "v7" }; }
     catch { /* Leave invalid local data untouched so it can be recovered manually. */ }
+  }
+  const v6 = storage.getItem(LEGACY_V6_STORAGE_KEY);
+  if (v6) {
+    try { return { planner: migrateV6PlannerData(JSON.parse(v6)), source: "migrated-v6" }; }
+    catch { /* Fall through to the v0.4 migration. */ }
   }
   const v5 = storage.getItem(LEGACY_V5_STORAGE_KEY);
   if (v5) {
@@ -309,6 +315,7 @@ export function importPlannerData(text: string): PlannerData {
   let parsed: unknown;
   try { parsed = JSON.parse(text); }
   catch { throw new Error("The selected file is not valid JSON."); }
+  if (record(parsed) && parsed.schemaVersion === 6) return migrateV6PlannerData(parsed);
   if (record(parsed) && parsed.schemaVersion === 5) return migrateV5PlannerData(parsed);
   if (record(parsed) && parsed.schemaVersion === 4) return migrateV4PlannerData(parsed);
   if (record(parsed) && parsed.schemaVersion === 3) return migrateV3PlannerData(parsed);
@@ -319,6 +326,24 @@ export function importPlannerData(text: string): PlannerData {
 export function migrateV2PlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== 2) throw new Error("This is not a valid Specialist Planner v0.2 backup.");
   return migrateV3PlannerData({ ...value, schemaVersion: 3 });
+}
+
+export function migrateV6PlannerData(value: unknown): PlannerData {
+  if (!record(value) || value.schemaVersion !== 6 || !record(value.classColours)) {
+    throw new Error("This is not a valid Specialist Planner v0.4.1 backup.");
+  }
+  const colourMap: Record<string, ClassColourId> = {};
+  const replacements: Record<string, ClassColourId> = {
+    eucalyptus: "green",
+    ocean: "blue",
+    ochre: "orange",
+    clay: "hot-pink",
+    lavender: "purple",
+  };
+  for (const [classId, colourId] of Object.entries(value.classColours)) {
+    if (typeof colourId === "string" && replacements[colourId]) colourMap[classId] = replacements[colourId];
+  }
+  return validatePlannerData({ ...value, schemaVersion: PLANNER_SCHEMA_VERSION, classColours: colourMap });
 }
 
 export function migrateV5PlannerData(value: unknown): PlannerData {

@@ -137,8 +137,8 @@ test("checkpoints, status, history, and positions survive localStorage and JSON 
   persistPlanner(storage, reconciled);
   const loaded = loadPlanner(storage, freshSamplePlanner());
   const imported = importPlannerData(exportPlannerData(reconciled));
-  assert.equal(loaded.source, "v6");
-  assert.equal(JSON.parse(memory.get(STORAGE_KEY)).schemaVersion, 6);
+  assert.equal(loaded.source, "v7");
+  assert.equal(JSON.parse(memory.get(STORAGE_KEY)).schemaVersion, 7);
   assert.deepEqual(loaded.planner.progressCheckpoints, reconciled.progressCheckpoints);
   assert.deepEqual(imported.reconciliationStatus, reconciled.reconciliationStatus);
   assert.deepEqual(imported.teachingSessions, reconciled.teachingSessions);

@@ -1,11 +1,13 @@
-export const PLANNER_SCHEMA_VERSION = 6 as const;
+export const PLANNER_SCHEMA_VERSION = 7 as const;
 
 export const CLASS_COLOUR_PRESETS = {
-  eucalyptus: { label: "Eucalyptus", background: "#e8f1eb", accent: "#4f7967", foreground: "#17372c" },
-  ocean: { label: "Ocean", background: "#e8f0f4", accent: "#547d91", foreground: "#17372c" },
-  ochre: { label: "Ochre", background: "#fff1dd", accent: "#a96b24", foreground: "#17372c" },
-  clay: { label: "Clay", background: "#f6e8e2", accent: "#9a6251", foreground: "#17372c" },
-  lavender: { label: "Lavender", background: "#eeeaf4", accent: "#75658a", foreground: "#17372c" },
+  "hot-pink": { label: "Hot pink", background: "#fce4f1", accent: "#d61f75", foreground: "#17372c" },
+  orange: { label: "Orange", background: "#ffe8d6", accent: "#c55a11", foreground: "#17372c" },
+  yellow: { label: "Yellow", background: "#fff4bf", accent: "#9a7510", foreground: "#17372c" },
+  green: { label: "Green", background: "#e5f3e8", accent: "#3f7d4c", foreground: "#17372c" },
+  aqua: { label: "Aqua", background: "#ddf5f2", accent: "#2a7f78", foreground: "#17372c" },
+  blue: { label: "Blue", background: "#e4eefa", accent: "#3f6fa8", foreground: "#17372c" },
+  purple: { label: "Purple", background: "#eee6f6", accent: "#79549a", foreground: "#17372c" },
 } as const;
 
 export type ClassColourId = keyof typeof CLASS_COLOUR_PRESETS;

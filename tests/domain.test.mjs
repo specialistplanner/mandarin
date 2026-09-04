@@ -31,6 +31,7 @@ import {
   LEGACY_V3_STORAGE_KEY,
   LEGACY_V4_STORAGE_KEY,
   LEGACY_V5_STORAGE_KEY,
+  LEGACY_V6_STORAGE_KEY,
   STORAGE_KEY,
   exportPlannerData,
   importPlannerData,
@@ -97,12 +98,12 @@ test("classes hold independent lesson progress", () => {
 });
 
 test("optional preset colours are stored by stable class ID and clear independently", () => {
-  const first = setClassColour(fixture(), "5e", "ocean");
-  const second = setClassColour(first, "5c", "ochre");
-  assert.deepEqual(second.classColours, { "5e": "ocean", "5c": "ochre" });
+  const first = setClassColour(fixture(), "5e", "blue");
+  const second = setClassColour(first, "5c", "orange");
+  assert.deepEqual(second.classColours, { "5e": "blue", "5c": "orange" });
   const cleared = setClassColour(second, "5e");
-  assert.deepEqual(cleared.classColours, { "5c": "ochre" });
-  assert.throws(() => setClassColour(fixture(), "missing", "clay"), /Class not found/);
+  assert.deepEqual(cleared.classColours, { "5c": "orange" });
+  assert.throws(() => setClassColour(fixture(), "missing", "hot-pink"), /Class not found/);
 });
 
 test("the restrained preset palette keeps foreground contrast at WCAG AA", () => {
@@ -112,7 +113,7 @@ test("the restrained preset palette keeps foreground contrast at WCAG AA", () =>
   };
   const luminance = (hex) => 0.2126 * channel(hex.slice(1, 3)) + 0.7152 * channel(hex.slice(3, 5)) + 0.0722 * channel(hex.slice(5, 7));
   const contrast = (one, two) => (Math.max(luminance(one), luminance(two)) + 0.05) / (Math.min(luminance(one), luminance(two)) + 0.05);
-  assert.equal(Object.keys(CLASS_COLOUR_PRESETS).length, 5);
+  assert.deepEqual(Object.values(CLASS_COLOUR_PRESETS).map((colour) => colour.label), ["Hot pink", "Orange", "Yellow", "Green", "Aqua", "Blue", "Purple"]);
   for (const colour of Object.values(CLASS_COLOUR_PRESETS)) assert.ok(contrast(colour.background, colour.foreground) >= 4.5, colour.label);
 });
 
@@ -215,14 +216,14 @@ test("timetable filtering excludes cover and every non-teaching session", () => 
 
 test("export contains the complete planner and import restores it", () => {
   const planner = mixedUnitFixture();
-  planner.classColours["1c"] = "lavender";
+  planner.classColours["1c"] = "purple";
   const json = exportPlannerData(planner);
   const parsed = JSON.parse(json);
   assert.equal(parsed.subjects[0].name, "Mandarin");
   assert.equal(parsed.units.length, 2);
   assert.deepEqual(parsed.classProgress["1c"], { classId: "1c", unitId: "body", lessonId: "body-l3" });
   assert.deepEqual(parsed.classProgress["1d"], { classId: "1d", unitId: "pets", lessonId: "pets-l1" });
-  assert.equal(parsed.classColours["1c"], "lavender");
+  assert.equal(parsed.classColours["1c"], "purple");
   assert.deepEqual(JSON.parse(JSON.stringify(importPlannerData(json))), parsed);
 });
 
@@ -237,14 +238,24 @@ test("invalid import is rejected without returning partial data", () => {
   assert.throws(() => importPlannerData(JSON.stringify(invalidColour)), /Class colour.*invalid/);
 });
 
-test("localStorage v6 persists fully and older planner schemas migrate safely", () => {
+test("localStorage v7 persists fully and older planner schemas migrate safely", () => {
   const memory = new Map();
   const storage = { getItem: (key) => memory.get(key) ?? null, setItem: (key, value) => memory.set(key, value), removeItem: (key) => memory.delete(key) };
   persistPlanner(storage, fixture());
-  assert.equal(loadPlanner(storage, fixture()).source, "v6");
+  assert.equal(loadPlanner(storage, fixture()).source, "v7");
   assert.equal(JSON.parse(memory.get(STORAGE_KEY)).trialNotes.length, 1);
 
   memory.delete(STORAGE_KEY);
+  const v6 = fixture();
+  v6.schemaVersion = 6;
+  v6.classColours = { "5e": "ocean", "5c": "clay" };
+  memory.set(LEGACY_V6_STORAGE_KEY, JSON.stringify(v6));
+  const v6Migrated = loadPlanner(storage, fixture());
+  assert.equal(v6Migrated.source, "migrated-v6");
+  assert.deepEqual(v6Migrated.planner.classColours, { "5e": "blue", "5c": "hot-pink" });
+  assert.deepEqual(v6Migrated.planner.classProgress, v6.classProgress);
+
+  memory.delete(LEGACY_V6_STORAGE_KEY);
   const v5 = fixture();
   v5.schemaVersion = 5;
   delete v5.classColours;
@@ -303,7 +314,7 @@ test("deleting referenced records repairs or removes dependants safely", () => {
   assert.equal(lessonDeleted.units[0].lessons.length, 4);
 
   const coloured = fixture();
-  coloured.classColours["5c"] = "clay";
+  coloured.classColours["5c"] = "hot-pink";
   const classDeleted = deleteClassRecord(coloured, "5c");
   assert.equal(classDeleted.classes.some((item) => item.id === "5c"), false);
   assert.equal(classDeleted.classProgress["5c"], undefined);

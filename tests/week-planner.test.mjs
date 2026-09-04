@@ -48,9 +48,9 @@ test("a teaching card derives its actual Unit from class progress", () => {
 });
 
 test("a teaching card carries its class-ID colour without changing status", () => {
-  const planner = setClassColour(freshSamplePlanner(), "5e", "ocean");
+  const planner = setClassColour(freshSamplePlanner(), "5e", "blue");
   const entry = entryFor(deriveTeachingWeek(planner, wednesday, wednesday), "5e");
-  assert.equal(entry.classColourId, "ocean");
+  assert.equal(entry.classColourId, "blue");
   assert.equal(entry.progressStatus.label, "On track");
   assert.equal(entry.session?.outcome ?? "planned", "planned");
 });
