@@ -15,6 +15,7 @@ import {
 } from "@/lib/domain";
 import { createBlankPlanner, freshSamplePlanner, samplePlanner } from "@/lib/sample-data";
 import { loadPlanner, persistPlanner } from "@/lib/storage";
+import { applyLiveTrialWeekReset, LIVE_TRIAL_WEEK_RESET_KEY } from "@/lib/live-trial-week-reset";
 import { SetupView } from "./setup-view";
 import { WeekView } from "./week-view";
 import { ResourceLinkAction } from "./resource-link";
@@ -87,7 +88,7 @@ export function DashboardApp() {
   const [quickNoteText, setQuickNoteText] = useState("");
   const unitLibrary = useUnitLibrary();
 
-  useEffect(() => { const frame = window.requestAnimationFrame(() => { const loaded = loadPlanner(window.localStorage, samplePlanner); if (!loaded.planner) { setLoadState("empty"); return; } setPlanner(loaded.planner); setLoadState("ready"); if (loaded.source !== "v8") { persistPlanner(window.localStorage, loaded.planner); setMigrationNotice(true); } }); return () => window.cancelAnimationFrame(frame); }, []);
+  useEffect(() => { const frame = window.requestAnimationFrame(() => { const loaded = loadPlanner(window.localStorage, samplePlanner); if (!loaded.planner) { setLoadState("empty"); return; } let next = loaded.planner; let resetApplied = false; if (window.localStorage.getItem(LIVE_TRIAL_WEEK_RESET_KEY) !== "applied") { const reset = applyLiveTrialWeekReset(next); if (reset.applied) { next = reset.planner; persistPlanner(window.localStorage, next); window.localStorage.setItem(LIVE_TRIAL_WEEK_RESET_KEY, "applied"); resetApplied = true; } } setPlanner(next); setLoadState("ready"); if (loaded.source !== "v8" || resetApplied) { persistPlanner(window.localStorage, next); setMigrationNotice(true); } }); return () => window.cancelAnimationFrame(frame); }, []);
   useEffect(() => { if (loadState === "ready" && planner) try { persistPlanner(window.localStorage, planner); } catch { /* Keep the last valid local state during edits. */ } }, [planner, loadState]);
   useEffect(() => { if (!selectedClassId && !quickNote) return; const close = (event: KeyboardEvent) => { if (event.key === "Escape") { if (quickNote) setQuickNote(null); else setSelectedClassId(null); } }; window.addEventListener("keydown", close); return () => window.removeEventListener("keydown", close); }, [selectedClassId, quickNote]);
 
