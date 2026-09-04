@@ -81,6 +81,34 @@ export function deriveTeachingWeek(planner: PlannerData, anchorDate: Date, today
   const levelById = new Map(planner.yearLevels.map((item) => [item.id, item]));
   const unitById = new Map(planner.units.map((item) => [item.id, item]));
   const sessionByOccurrence = new Map(planner.teachingSessions.map((item) => [`${item.date}:${item.timetableSessionId}`, item]));
+  const end = new Date(start);
+  end.setDate(start.getDate() + 4);
+  const endKey = localDateKey(end);
+  const completedCohortPositions = new Map<string, number>();
+  const completedCohortPositionsByWeek = new Map<string, number>();
+  for (const session of planner.teachingSessions.filter(item => item.outcome === "completed")) {
+    const specialistClass = classById.get(session.classId);
+    const unit = unitById.get(session.plannedUnitId);
+    if (!specialistClass || !unit) continue;
+    const position = lessonPosition(unit, session.plannedLessonId);
+    const key = `${specialistClass.yearLevelId}:${unit.id}`;
+    const sessionWeekKey = localDateKey(startOfTeachingWeek(new Date(`${session.date}T12:00:00`)));
+    const weeklyKey = `${sessionWeekKey}:${key}`;
+    completedCohortPositionsByWeek.set(weeklyKey, Math.max(completedCohortPositionsByWeek.get(weeklyKey) ?? 0, position));
+    if (session.date >= localDateKey(start) && session.date <= endKey) {
+      completedCohortPositions.set(key, Math.max(completedCohortPositions.get(key) ?? 0, position));
+    }
+  }
+  const historicalCompletedBaseline = (key: string) => {
+    const selectedWeekKey = localDateKey(start);
+    const later = [...completedCohortPositionsByWeek.entries()]
+      .filter(([weeklyKey]) => weeklyKey.endsWith(`:${key}`) && weeklyKey.slice(0, 10) > selectedWeekKey)
+      .sort(([a], [b]) => a.localeCompare(b))[0];
+    if (!later) return undefined;
+    const laterStart = startOfTeachingWeek(new Date(`${later[0].slice(0, 10)}T12:00:00`));
+    const weekDistance = Math.round((laterStart.getTime() - start.getTime()) / (7 * 24 * 60 * 60 * 1000));
+    return Math.max(1, later[1] - weekDistance);
+  };
   const unresolvedClasses = new Set<string>();
   const days: WeekDay[] = [];
 
@@ -127,8 +155,17 @@ export function deriveTeachingWeek(planner: PlannerData, anchorDate: Date, today
       if (specialistClass && !actual && state !== "legacy" && state !== "unit-complete" && state !== "needs-setup") unresolvedClasses.add(specialistClass.id);
 
       const cohortUnit = yearLevel?.currentUnitId ? unitById.get(yearLevel.currentUnitId) : undefined;
-      const progressStatus = currentUnit && cohortUnit && progress
-        ? getCohortProgressStatus(currentUnit.id, lessonPosition(currentUnit, progress.lessonId), cohortUnit.id, lessonPosition(cohortUnit, yearLevel?.expectedLessonId))
+      const statusUnit = useSessionSnapshot ? sessionUnit : currentUnit;
+      const statusLessonId = useSessionSnapshot ? session!.plannedLessonId : progress?.lessonId;
+      const cohortPositionKey = yearLevel && cohortUnit ? `${yearLevel.id}:${cohortUnit.id}` : undefined;
+      const completedCohortPosition = cohortPositionKey
+        ? completedCohortPositions.get(cohortPositionKey) ?? historicalCompletedBaseline(cohortPositionKey)
+        : undefined;
+      const expectedPosition = useSessionSnapshot && completedCohortPosition
+        ? completedCohortPosition
+        : cohortUnit ? lessonPosition(cohortUnit, yearLevel?.expectedLessonId) : undefined;
+      const progressStatus = statusUnit && statusLessonId && cohortUnit && expectedPosition
+        ? getCohortProgressStatus(statusUnit.id, lessonPosition(statusUnit, statusLessonId), cohortUnit.id, expectedPosition)
         : undefined;
       return {
         key: `${dateKey}:${item.id}`,
@@ -152,7 +189,5 @@ export function deriveTeachingWeek(planner: PlannerData, anchorDate: Date, today
     });
     days.push({ date, dateKey, weekday: date.getDay(), entries });
   }
-  const end = new Date(start);
-  end.setDate(start.getDate() + 4);
   return { start, end, days };
 }

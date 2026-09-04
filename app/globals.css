@@ -367,6 +367,17 @@ footer button { border: 0; padding: 0; background: transparent; color: var(--for
 .history-hero p:last-child { color: var(--muted); margin: 0; }
 .history-count { width: 92px; height: 92px; flex: 0 0 auto; display: grid; place-items: center; align-content: center; border-radius: 26px; background: var(--forest); color: white; font-family: var(--font-display), serif; font-size: 29px; box-shadow: var(--shadow); }
 .history-count small { color: #bad0c6; font-family: var(--font-sans), sans-serif; font-size: 9px; text-transform: uppercase; letter-spacing: .08em; }
+.history-filter { margin-bottom: 18px; display: grid; gap: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255,253,248,.76); }
+.history-filter-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.history-filter-heading span { color: var(--muted); font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+.history-filter-heading strong { color: var(--forest); font-size: 10px; }
+.history-class-options { display: flex; flex-wrap: wrap; gap: 7px; }
+.history-class-options label { position: relative; cursor: pointer; }
+.history-class-options input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.history-class-options span { min-height: 32px; display: flex; align-items: center; padding: 6px 11px; border: 1px solid #cbc7ba; border-radius: 999px; background: var(--white); color: var(--forest); font-size: 10px; font-weight: 800; }
+.history-class-options label:hover span { border-color: #8ba99b; }
+.history-class-options label.active span { border-color: var(--forest); background: var(--forest); color: white; }
+.history-class-options input:focus-visible + span { outline: 3px solid rgba(42, 91, 72, .28); outline-offset: 2px; }
 .history-empty { border: 1px dashed #bcb7aa; border-radius: 18px; background: rgba(255,253,248,.72); padding: 36px; text-align: center; }
 .history-empty p { color: var(--muted); margin: 6px 0 0; font-size: 12px; }
 .history-groups { display: grid; gap: 16px; }
@@ -646,6 +657,7 @@ textarea { padding: 11px; resize: vertical; }
   .history-main { width: calc(100% - 22px); }
   .history-hero { align-items: flex-start; padding-top: 34px; }
   .history-count { width: 72px; height: 72px; border-radius: 20px; font-size: 24px; }
+  .history-filter { padding: 12px; }
   .history-session { grid-template-columns: 70px 1fr; gap: 9px; padding: 12px; }
   .history-outcome { grid-column: 1; }
   .history-session > p { grid-column: 2; }
