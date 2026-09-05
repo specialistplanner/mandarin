@@ -25,7 +25,7 @@ export type StorageLike = Pick<Storage, "getItem" | "setItem"> & Partial<Pick<St
 export type PlannerLoadResult = { planner: PlannerData | null; source: "v9" | "migrated-v8" | "migrated-v7" | "migrated-v6" | "migrated-v5" | "migrated-v4" | "migrated-v3" | "migrated-v2" | "migrated-v1" | "empty" };
 
 const sessionTypes = new Set<SessionType>([
-  "specialist-teaching", "cover-release", "planning", "meeting", "school-activity", "break", "other",
+  "specialist-teaching", "generalist-teaching", "cover-release", "planning", "meeting", "school-activity", "break", "other",
 ]);
 const teachingOutcomes = new Set<TeachingSessionOutcome>(["planned", "completed", "partial", "not-taught"]);
 

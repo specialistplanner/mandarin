@@ -106,6 +106,8 @@ nav { display: flex; align-self: stretch; }
 .week-context-block span { text-transform: uppercase; letter-spacing: .07em; font-size: 7px; font-weight: 800; }
 .week-context-block strong { color: var(--ink); font-family: var(--font-display), serif; font-size: 18px; }
 .week-context-block small { font-size: 9px; }
+.week-context-block.context-generalist-teaching { border-left: 4px solid #4f7f6d; background: #edf3f0; }
+.week-context-block.context-generalist-teaching span { color: #477663; }
 .week-context-block.context-cover-release { border-left: 3px solid #d1a15b; }
 .week-context-block.context-planning, .week-context-block.context-meeting { border-left: 3px solid #7b98a4; }
 .week-card { min-height: 96px; flex: 1; position: relative; border: 1px solid #d5dbd5; border-radius: 11px; background: var(--white); overflow: hidden; }
@@ -517,6 +519,7 @@ textarea { padding: 11px; resize: vertical; }
 .session-type-mark { width: 5px; height: 28px; border-radius: 4px; background: #aab5af; }
 .session-type-mark.specialist-teaching { background: var(--forest); }
 .session-editor-row.has-class-colour .session-type-mark.specialist-teaching { background: var(--class-card-accent); }
+.session-type-mark.generalist-teaching { background: #4f7f6d; }
 .session-type-mark.cover-release { background: var(--amber); }
 .session-type-mark.planning { background: var(--blue); }
 

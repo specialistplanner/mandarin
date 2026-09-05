@@ -20,7 +20,7 @@ export type WeekEntry = {
   key: string;
   date: string;
   timetable: TimetableSession;
-  kind: "teaching" | "non-teaching";
+  kind: "teaching" | "generalist-teaching" | "non-teaching";
   label: string;
   state: WeekEntryState;
   specialistClass?: SpecialistClass;
@@ -120,6 +120,18 @@ export function deriveTeachingWeek(planner: PlannerData, anchorDate: Date, today
       .filter((item) => item.weekday === date.getDay())
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
     const entries = timetable.map<WeekEntry>((item) => {
+      if (item.type === "generalist-teaching") {
+        return {
+          key: `${dateKey}:${item.id}`,
+          date: dateKey,
+          timetable: item,
+          kind: "generalist-teaching",
+          label: item.label?.trim() || SESSION_TYPE_LABELS[item.type],
+          state: "planned",
+          specialistClass: item.classId ? classById.get(item.classId) : undefined,
+          canRecordOutcome: false,
+        };
+      }
       if (item.type !== "specialist-teaching") {
         return {
           key: `${dateKey}:${item.id}`,

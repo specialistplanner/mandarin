@@ -23,6 +23,7 @@ export type ExternalResourceRef = {
 
 export type SessionType =
   | "specialist-teaching"
+  | "generalist-teaching"
   | "cover-release"
   | "planning"
   | "meeting"
@@ -166,6 +167,7 @@ export type ProgressMap = Record<string, number>;
 
 export const SESSION_TYPE_LABELS: Record<SessionType, string> = {
   "specialist-teaching": "Specialist Teaching",
+  "generalist-teaching": "Generalist Teaching",
   "cover-release": "Cover / Release",
   planning: "Planning",
   meeting: "PLT / Meeting",

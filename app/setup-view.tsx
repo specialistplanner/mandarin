@@ -439,7 +439,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
           </>}
 
           {section === "timetable" && <>
-            <div className="setup-section-title"><div><p className="section-kicker">Step 4</p><h2>Weekly timetable</h2><p>Specialist Teaching sessions become progress-aware Week cards; other entries provide muted timetable context.</p></div></div>
+            <div className="setup-section-title"><div><p className="section-kicker">Step 4</p><h2>Weekly timetable</h2><p>Specialist Teaching is progress-aware. Generalist Teaching appears as teaching context without changing specialist progress.</p></div></div>
             <section className="slot-editor" aria-labelledby="session-times-title">
               <div className="slot-editor-heading"><div><span>Shared time axis</span><h3 id="session-times-title">Session times</h3><p>Edit a Session once and every timetable card assigned to it will move together.</p></div></div>
               <div className="slot-editor-list">{[...planner.sessionSlots].sort((a, b) => a.startTime.localeCompare(b.startTime)).map(slot => <div className={`slot-editor-row kind-${slot.kind}`} key={slot.id}>

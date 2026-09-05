@@ -52,6 +52,21 @@ test("the S1 label upgrades without overwriting a custom Session name", async ()
   assert.match(app, /SESSION_ONE_LABEL_MIGRATION_KEY/);
 });
 
+test("Class cover can be marked as Generalist Teaching without entering specialist progress", async () => {
+  const [app, view, setup, styles] = await Promise.all([
+    readFile(new URL("../app/dashboard-app.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/week-view.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/setup-view.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/globals.css", import.meta.url), "utf8"),
+  ]);
+  assert.match(app, /GENERALIST_COVER_MIGRATION_KEY/);
+  assert.match(view, /entry\.kind === "generalist-teaching"/);
+  assert.match(view, /Generalist curriculum/);
+  assert.match(view, /showNonTeaching \|\| item\.kind !== "non-teaching"/);
+  assert.match(setup, /Generalist Teaching appears as teaching context without changing specialist progress/);
+  assert.match(styles, /context-generalist-teaching/);
+});
+
 test("linked Unit Library lessons open from Current class position in a new tab", async () => {
   const [view, resource] = await Promise.all([
     readFile(new URL("../app/week-view.tsx", import.meta.url), "utf8"),

@@ -119,6 +119,29 @@ test("non-teaching entries provide context but can never record outcomes", () =>
   assert.equal(cover.canRecordOutcome, false);
 });
 
+test("Generalist Teaching is teaching context but never affects specialist progress or outcomes", () => {
+  const planner = freshSamplePlanner();
+  const specialistOnlyResult = markAllTaughtAsPlanned(freshSamplePlanner(), wednesday);
+  planner.timetableSessions.push({
+    id: "generalist-cover",
+    slotId: "session-5",
+    weekday: 3,
+    startTime: "14:15",
+    endTime: "15:15",
+    type: "generalist-teaching",
+    label: "Class cover",
+  });
+  const week = deriveTeachingWeek(planner, wednesday, wednesday);
+  const cover = week.days.flatMap((day) => day.entries).find((entry) => entry.timetable.id === "generalist-cover");
+  assert.equal(cover.kind, "generalist-teaching");
+  assert.equal(cover.label, "Class cover");
+  assert.equal(cover.canRecordOutcome, false);
+  const completed = markAllTaughtAsPlanned(planner, wednesday);
+  assert.equal(completed.teachingSessions.some((item) => item.timetableSessionId === "generalist-cover"), false);
+  assert.deepEqual(completed.classProgress, specialistOnlyResult.classProgress);
+  assert.deepEqual(completed.teachingSessions, specialistOnlyResult.teachingSessions);
+});
+
 test("future week projection creates no Teaching Session history", () => {
   const planner = freshSamplePlanner();
   const before = structuredClone(planner.teachingSessions);
