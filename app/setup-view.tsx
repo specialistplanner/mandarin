@@ -391,7 +391,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
                             {unitLibrary.status === "loading" ? <p>Loading Unit Library…</p> : unitLibrary.status === "unavailable" ? <p>Unit Library is unavailable. Your local Unit remains unchanged.</p> : <label><span>Choose Unit Library Unit</span><select defaultValue="" onChange={(event) => {
                               const linked = unitLibrary.index?.units.find((unit) => unit.id === event.target.value);
                               if (linked) { apply(() => setUnitExternalResource(planner, currentUnit.id, unitReference(linked))); setLinkingUnitId(null); }
-                            }}><option value="" disabled>Select a Unit</option>{unitLibrary.index?.units.map((unit) => <option value={unit.id} key={unit.id}>{unit.yearLevel === 0 ? "Prep" : `Year ${unit.yearLevel}`} · {unit.title}</option>)}</select></label>}
+                            }}><option value="" disabled>Select a Unit</option>{unitLibrary.index?.units.map((unit) => <option value={unit.id} key={unit.id}>{unit.yearLevel === 0 ? "Prep" : `Year ${unit.yearLevel}`} · {unit.title}</option>)}</select><small>{unitLibrary.source === "live" ? "Live sync · refreshes automatically" : "Using published snapshot · live service unavailable"}</small></label>}
                           </div>}
                         </div>
                         <div className="lesson-editor-title"><span>Lesson sequence</span><small>Progress follows lesson IDs when order changes.</small></div>

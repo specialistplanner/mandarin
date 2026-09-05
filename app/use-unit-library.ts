@@ -1,21 +1,44 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchUnitLibraryIndex, type UnitLibraryIndex } from "@/lib/unit-library";
+import { fetchUnitLibraryIndexWithSource, type UnitLibraryIndex, type UnitLibraryIndexSource } from "@/lib/unit-library";
 
 export type UnitLibraryState = {
   status: "loading" | "ready" | "unavailable";
   index: UnitLibraryIndex | null;
+  source: UnitLibraryIndexSource | null;
+  syncedAt: string | null;
 };
 
 export function useUnitLibrary(): UnitLibraryState {
-  const [state, setState] = useState<UnitLibraryState>({ status: "loading", index: null });
+  const [state, setState] = useState<UnitLibraryState>({ status: "loading", index: null, source: null, syncedAt: null });
   useEffect(() => {
     const controller = new AbortController();
-    fetchUnitLibraryIndex(controller.signal)
-      .then((index) => setState({ status: "ready", index }))
-      .catch((error) => { if (error?.name !== "AbortError") setState({ status: "unavailable", index: null }); });
-    return () => controller.abort();
+    let syncing = false;
+    const sync = async () => {
+      if (syncing || controller.signal.aborted) return;
+      syncing = true;
+      try {
+        const result = await fetchUnitLibraryIndexWithSource(controller.signal);
+        setState({ status: "ready", index: result.index, source: result.source, syncedAt: new Date().toISOString() });
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setState((current) => current.index ? current : { status: "unavailable", index: null, source: null, syncedAt: null });
+      } finally {
+        syncing = false;
+      }
+    };
+    const refreshWhenVisible = () => { if (document.visibilityState === "visible") void sync(); };
+    void sync();
+    const interval = window.setInterval(() => void sync(), 30_000);
+    window.addEventListener("focus", sync);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    return () => {
+      controller.abort();
+      window.clearInterval(interval);
+      window.removeEventListener("focus", sync);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+    };
   }, []);
   return state;
 }

@@ -3,6 +3,7 @@ import type { ExternalResourceRef } from "./domain.ts";
 export const UNIT_LIBRARY_PROVIDER = "the-mandarin-room-unit-library";
 export const UNIT_LIBRARY_BASE_URL = "https://themandarinroom.github.io/units";
 export const UNIT_LIBRARY_INDEX_URL = `${UNIT_LIBRARY_BASE_URL}/unit-library-index.json`;
+export const UNIT_LIBRARY_LIVE_INDEX_URL = "https://australia-southeast1-the-mandarin-room.cloudfunctions.net/unitLibraryIndex";
 
 export type UnitLibraryLesson = { id: string; title: string; url: string };
 export type UnitLibraryUnit = { id: string; yearLevel: number; title: string; url: string; lessons: UnitLibraryLesson[] };
@@ -52,10 +53,25 @@ export function parseUnitLibraryIndex(value: unknown): UnitLibraryIndex {
   return { schemaVersion: 1, provider: UNIT_LIBRARY_PROVIDER, generatedAt: candidate.generatedAt, units };
 }
 
+export type UnitLibraryIndexSource = "live" | "snapshot";
+
+export async function fetchUnitLibraryIndexWithSource(signal?: AbortSignal): Promise<{ index: UnitLibraryIndex; source: UnitLibraryIndexSource }> {
+  let lastError: unknown;
+  for (const [source, url] of [["live", UNIT_LIBRARY_LIVE_INDEX_URL], ["snapshot", UNIT_LIBRARY_INDEX_URL]] as const) {
+    try {
+      const response = await fetch(url, { headers: { Accept: "application/json" }, cache: "no-store", signal });
+      if (!response.ok) throw new Error(`Unit Library returned ${response.status}.`);
+      return { index: parseUnitLibraryIndex(await response.json()), source };
+    } catch (error) {
+      if (signal?.aborted) throw error;
+      lastError = error;
+    }
+  }
+  throw lastError ?? new Error("Unit Library is unavailable.");
+}
+
 export async function fetchUnitLibraryIndex(signal?: AbortSignal): Promise<UnitLibraryIndex> {
-  const response = await fetch(UNIT_LIBRARY_INDEX_URL, { headers: { Accept: "application/json" }, signal });
-  if (!response.ok) throw new Error("Unit Library is unavailable.");
-  return parseUnitLibraryIndex(await response.json());
+  return (await fetchUnitLibraryIndexWithSource(signal)).index;
 }
 
 export function findLinkedUnit(index: UnitLibraryIndex | null, reference: ExternalResourceRef | undefined) {

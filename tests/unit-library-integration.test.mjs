@@ -5,6 +5,8 @@ import { exportPlannerData, importPlannerData, migrateV7PlannerData } from "../l
 import { freshSamplePlanner } from "../lib/sample-data.ts";
 import {
   UNIT_LIBRARY_PROVIDER,
+  UNIT_LIBRARY_LIVE_INDEX_URL,
+  fetchUnitLibraryIndexWithSource,
   findLinkedLesson,
   findLinkedUnit,
   lessonReference,
@@ -48,6 +50,28 @@ function linkedPlanner() {
 test("1. Planner Unit stores a stable provider and Unit ID reference", () => {
   const unit = linkedPlanner().units.find(item => item.id === "nationalities");
   assert.deepEqual(unit.externalResourceRef, unitReference(library.units[0]));
+});
+
+test("live synchronization uses the read-only Unit Library backend", () => {
+  assert.equal(UNIT_LIBRARY_LIVE_INDEX_URL, "https://australia-southeast1-the-mandarin-room.cloudfunctions.net/unitLibraryIndex");
+});
+
+test("live synchronization falls back to the published snapshot without losing access", async () => {
+  const originalFetch = globalThis.fetch;
+  const requested = [];
+  globalThis.fetch = async (url) => {
+    requested.push(String(url));
+    if (requested.length === 1) return new Response("Unavailable", { status: 503 });
+    return Response.json(library);
+  };
+  try {
+    const result = await fetchUnitLibraryIndexWithSource();
+    assert.equal(result.source, "snapshot");
+    assert.deepEqual(result.index, library);
+    assert.equal(requested.length, 2);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("2. Planner Lesson stores a stable Lesson ID beneath its linked Unit", () => {
