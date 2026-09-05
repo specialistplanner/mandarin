@@ -507,6 +507,7 @@ textarea { padding: 11px; resize: vertical; }
 .slot-add-row { margin-top: 9px; padding-top: 10px; border-top: 1px solid var(--line); }
 .slot-add-row .secondary-button { min-height: 38px; padding-inline: 9px; font-size: 9px; }
 .session-form { display: grid; grid-template-columns: 1fr 1.35fr 1.6fr 1.2fr 1.4fr auto; gap: 8px; align-items: end; background: #edf2eb; border: 1px solid #d5dfd6; border-radius: 15px; padding: 14px; margin-bottom: 18px; }
+.session-form.has-custom-class { grid-template-columns: 1fr 1.25fr 1.4fr 1.1fr 1.1fr 1.25fr auto; }
 .session-form input, .session-form select { min-width: 0; width: 100%; height: 42px; }
 .week-editor { display: grid; gap: 9px; }
 .day-editor { border: 1px solid var(--line); border-radius: 14px; padding: 12px; background: white; }
@@ -514,6 +515,8 @@ textarea { padding: 11px; resize: vertical; }
 .day-editor h3 span { width: 20px; height: 20px; border-radius: 6px; display: grid; place-items: center; background: var(--sage); font-family: var(--font-sans), sans-serif; font-size: 9px; }
 .day-empty { margin: 0; color: var(--muted); font-size: 11px; }
 .session-editor-row { display: grid; grid-template-columns: 5px minmax(165px, 1.3fr) minmax(145px, 1.3fr) minmax(100px, 1fr) minmax(110px, 1fr) 38px; gap: 6px; align-items: center; margin-top: 6px; border-radius: 9px; padding: 4px; }
+.session-class-fields { display: grid; gap: 4px; min-width: 0; }
+.session-class-fields input, .session-class-fields select { width: 100%; }
 .session-editor-row.has-class-colour { background: var(--class-card-bg); color: var(--class-card-foreground); }
 .session-editor-row input, .session-editor-row select { min-width: 0; width: 100%; height: 38px; font-size: 11px; }
 .session-type-mark { width: 5px; height: 28px; border-radius: 4px; background: #aab5af; }
@@ -581,6 +584,7 @@ textarea { padding: 11px; resize: vertical; }
   .cohort-editor-grid { grid-template-columns: 1fr; }
   .editor-panel + .editor-panel { border-left: 0; border-top: 1px solid var(--line); }
   .session-form { grid-template-columns: repeat(3, 1fr); }
+  .session-form.has-custom-class { grid-template-columns: repeat(3, 1fr); }
   .session-form .primary-button { grid-column: 3; }
   .slot-editor-row, .slot-add-row { grid-template-columns: minmax(120px, 1fr) 90px 90px 95px 38px; }
   .session-editor-row { grid-template-columns: 5px minmax(150px, 1.3fr) minmax(140px, 1.3fr) minmax(100px, 1fr) 38px; }
@@ -614,12 +618,14 @@ textarea { padding: 11px; resize: vertical; }
   .cohort-editor-head { grid-template-columns: auto 1fr 66px; }
   .cohort-editor-head .text-button { grid-column: 2 / -1; justify-self: start; }
   .session-form { grid-template-columns: 1fr 1fr; }
+  .session-form.has-custom-class { grid-template-columns: 1fr 1fr; }
   .session-form .primary-button { grid-column: 2; }
   .slot-editor { overflow-x: auto; }
   .slot-editor-row, .slot-add-row { min-width: 570px; }
   .session-editor-row { grid-template-columns: 5px 1fr 1fr 38px; border-top: 1px solid #ece8df; padding-top: 7px; }
   .session-editor-row select:first-of-type { grid-column: 2 / 4; }
   .session-editor-row select:nth-of-type(2) { grid-column: 2 / 4; }
+  .session-editor-row .session-class-fields { grid-column: 2 / 4; }
   .session-editor-row > input { display: block; grid-column: 2 / 4; }
   .session-editor-row .icon-button { grid-column: 4; grid-row: 1; }
   .reconciliation-controls { grid-template-columns: 1fr 1fr; }

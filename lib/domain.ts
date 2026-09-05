@@ -105,6 +105,7 @@ export type TimetableSession = {
   endTime: string;
   type: SessionType;
   classId?: string;
+  customClassName?: string;
   subjectId?: string;
   label?: string;
 };

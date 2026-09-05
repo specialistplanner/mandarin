@@ -24,6 +24,7 @@ export type WeekEntry = {
   label: string;
   state: WeekEntryState;
   specialistClass?: SpecialistClass;
+  contextClassName?: string;
   yearLevel?: YearLevel;
   unit?: Unit;
   lesson?: Lesson;
@@ -129,6 +130,7 @@ export function deriveTeachingWeek(planner: PlannerData, anchorDate: Date, today
           label: item.label?.trim() || SESSION_TYPE_LABELS[item.type],
           state: "planned",
           specialistClass: item.classId ? classById.get(item.classId) : undefined,
+          contextClassName: (item.classId ? classById.get(item.classId)?.name : undefined) ?? item.customClassName?.trim(),
           canRecordOutcome: false,
         };
       }

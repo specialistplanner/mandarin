@@ -253,6 +253,7 @@ export function validatePlannerData(value: unknown): PlannerData {
     if (type === "specialist-teaching" && !classId) throw new Error("Specialist teaching sessions require a class.");
     return {
       id: string(item.id, "Session ID"), slotId, weekday, startTime: slot.startTime, endTime: slot.endTime, type, classId,
+      customClassName: optionalString(item.customClassName, "Custom class name"),
       subjectId: optionalString(item.subjectId, "Session subject ID"), label: optionalString(item.label, "Session label"),
     };
   });

@@ -62,7 +62,10 @@ test("Class cover can be marked as Generalist Teaching without entering speciali
   assert.match(app, /GENERALIST_COVER_MIGRATION_KEY/);
   assert.match(view, /entry\.kind === "generalist-teaching"/);
   assert.match(view, /Generalist curriculum/);
+  assert.match(view, /entry\.contextClassName/);
   assert.match(view, /showNonTeaching \|\| item\.kind !== "non-teaching"/);
+  assert.match(setup, /customClassName/);
+  assert.match(setup, /session\.type === "specialist-teaching" && session\.classId/);
   assert.match(setup, /Generalist Teaching appears as teaching context without changing specialist progress/);
   assert.match(styles, /context-generalist-teaching/);
 });

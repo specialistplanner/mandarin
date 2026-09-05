@@ -100,7 +100,7 @@ export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onQui
   const slots = [...planner.sessionSlots].sort((a, b) => a.startTime.localeCompare(b.startTime));
 
   function renderEntry(entry: WeekEntry) {
-    if (entry.kind === "generalist-teaching") return <div className="week-context-block context-generalist-teaching" key={entry.key}><span>Teaching</span><strong>{entry.label}</strong>{entry.specialistClass && <small>{entry.specialistClass.name}</small>}<small>Generalist curriculum</small></div>;
+    if (entry.kind === "generalist-teaching") return <div className="week-context-block context-generalist-teaching" key={entry.key}><span>Teaching</span><strong>{entry.label}</strong>{entry.contextClassName && <small>{entry.contextClassName}</small>}<small>Generalist curriculum</small></div>;
     if (entry.kind === "non-teaching") return <div className={`week-context-block context-${entry.timetable.type}`} key={entry.key}><span>Non-teaching</span><strong>{entry.label}</strong>{entry.specialistClass && <small>{entry.specialistClass.name}</small>}</div>;
     const lessonLabel = `${entry.lessonNumber ? `L${entry.lessonNumber} · ` : ""}${entry.session?.outcome !== "planned" && entry.session ? entry.session.plannedLessonTitle : entry.lesson?.title ?? (entry.state === "unit-complete" ? "Choose next Unit" : "Lesson not assigned")}`;
     const positionLabel = `${entry.unit?.title ?? "Not assigned"}${entry.lessonNumber ? ` · Lesson ${entry.lessonNumber}` : ""}`;

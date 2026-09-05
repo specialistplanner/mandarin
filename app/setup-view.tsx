@@ -89,7 +89,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
   const [noteText, setNoteText] = useState("");
   const [message, setMessage] = useState("");
   const [linkingUnitId, setLinkingUnitId] = useState<string | null>(null);
-  const [sessionDraft, setSessionDraft] = useState({ weekday: 1, slotId: planner.sessionSlots.find(item => item.kind === "session")?.id ?? "", type: "specialist-teaching" as SessionType, classId: "", label: "" });
+  const [sessionDraft, setSessionDraft] = useState({ weekday: 1, slotId: planner.sessionSlots.find(item => item.kind === "session")?.id ?? "", type: "specialist-teaching" as SessionType, classId: "", customClassName: "", label: "" });
   const [slotDraft, setSlotDraft] = useState({ label: "", startTime: "09:00", endTime: "10:00", kind: "session" as SessionSlot["kind"] });
   const [reconciliationRange, setReconciliationRange] = useState(previousTeachingWeek);
   const importRef = useRef<HTMLInputElement>(null);
@@ -168,6 +168,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
       id: makeId("session"), slotId: slot.id, weekday: sessionDraft.weekday, startTime: slot.startTime,
       endTime: slot.endTime, type: sessionDraft.type,
       classId: sessionDraft.classId || undefined, subjectId: planner.activeSubjectId,
+      customClassName: sessionDraft.type === "generalist-teaching" ? sessionDraft.customClassName.trim() || undefined : undefined,
       label: sessionDraft.label.trim() || undefined,
     };
     onChange(touchPlanner({ ...planner, timetableSessions: [...planner.timetableSessions, next] }));
@@ -179,6 +180,9 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
     if (!existing) return;
     const selectedSlot = patch.slotId ? planner.sessionSlots.find(item => item.id === patch.slotId && item.kind === "session") : undefined;
     const next = { ...existing, ...patch, ...(selectedSlot ? { startTime: selectedSlot.startTime, endTime: selectedSlot.endTime } : {}) };
+    if (patch.classId) next.customClassName = undefined;
+    if (patch.customClassName) next.classId = undefined;
+    if (patch.type && patch.type !== "generalist-teaching") next.customClassName = undefined;
     if (planner.timetableSessions.some(item => item.id !== id && item.weekday === next.weekday && item.slotId === next.slotId)) {
       setMessage("That day and Session already has a card.");
       return;
@@ -457,11 +461,12 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
                 <button className="secondary-button" type="button" onClick={addSlot}>Add Session</button>
               </div>
             </section>
-            <div className="session-form">
+            <div className={`session-form ${sessionDraft.type === "generalist-teaching" ? "has-custom-class" : ""}`}>
               <label><span>Day</span><select value={sessionDraft.weekday} onChange={(event) => setSessionDraft({ ...sessionDraft, weekday: Number(event.target.value) })}>{weekdays.map((day, index) => <option value={index} key={day}>{day}</option>)}</select></label>
               <label><span>Session</span><select value={sessionDraft.slotId} onChange={(event) => setSessionDraft({ ...sessionDraft, slotId: event.target.value })}>{[...planner.sessionSlots].filter(item => item.kind === "session").sort((a, b) => a.startTime.localeCompare(b.startTime)).map(slot => <option value={slot.id} key={slot.id}>{slot.label} · {slot.startTime}–{slot.endTime}</option>)}</select></label>
               <label><span>Type</span><select value={sessionDraft.type} onChange={(event) => setSessionDraft({ ...sessionDraft, type: event.target.value as SessionType })}>{Object.entries(SESSION_TYPE_LABELS).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
-              <label><span>Class {sessionDraft.type !== "specialist-teaching" && <i>optional</i>}</span><select value={sessionDraft.classId} onChange={(event) => setSessionDraft({ ...sessionDraft, classId: event.target.value })}><option value="">No class</option>{planner.classes.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label>
+              <label><span>Class {sessionDraft.type !== "specialist-teaching" && <i>optional</i>}</span><select value={sessionDraft.classId} onChange={(event) => setSessionDraft({ ...sessionDraft, classId: event.target.value, customClassName: event.target.value ? "" : sessionDraft.customClassName })}><option value="">No class</option>{planner.classes.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select></label>
+              {sessionDraft.type === "generalist-teaching" && <label><span>Or enter class</span><input value={sessionDraft.customClassName} onChange={(event) => setSessionDraft({ ...sessionDraft, customClassName: event.target.value, classId: event.target.value ? "" : sessionDraft.classId })} placeholder="e.g. 2B" /></label>}
               <label><span>Label <i>optional</i></span><input value={sessionDraft.label} onChange={(event) => setSessionDraft({ ...sessionDraft, label: event.target.value })} placeholder="e.g. House assembly" /></label>
               <button className="primary-button" type="button" onClick={addSession}>Add session</button>
             </div>
@@ -470,11 +475,11 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
                 const sessions = planner.timetableSessions.filter((item) => item.weekday === weekday).sort((a, b) => a.startTime.localeCompare(b.startTime));
                 if (!sessions.length && (weekday === 0 || weekday === 6)) return null;
                 return <section className="day-editor" key={day}><h3>{day}<span>{sessions.length}</span></h3>
-                  {!sessions.length ? <p className="day-empty">No sessions</p> : sessions.map((session) => { const selectedColour = session.classId ? planner.classColours[session.classId] : undefined; return <div className={`session-editor-row ${selectedColour ? "has-class-colour" : ""}`} style={classColourStyle(selectedColour)} key={session.id}>
+                  {!sessions.length ? <p className="day-empty">No sessions</p> : sessions.map((session) => { const selectedColour = session.type === "specialist-teaching" && session.classId ? planner.classColours[session.classId] : undefined; return <div className={`session-editor-row ${selectedColour ? "has-class-colour" : ""}`} style={classColourStyle(selectedColour)} key={session.id}>
                     <div className={`session-type-mark ${session.type}`} aria-hidden="true" />
                     <select aria-label={`${day} Session`} value={session.slotId} onChange={(event) => updateSession(session.id, { slotId: event.target.value })}>{[...planner.sessionSlots].filter(item => item.kind === "session").sort((a, b) => a.startTime.localeCompare(b.startTime)).map(slot => <option value={slot.id} key={slot.id}>{slot.label} · {slot.startTime}–{slot.endTime}</option>)}</select>
                     <select aria-label={`${day} session type`} value={session.type} onChange={(event) => updateSession(session.id, { type: event.target.value as SessionType })}>{Object.entries(SESSION_TYPE_LABELS).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select>
-                    <select aria-label={`${day} session class`} value={session.classId ?? ""} onChange={(event) => updateSession(session.id, { classId: event.target.value || undefined })}><option value="">No class</option>{planner.classes.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select>
+                    <div className="session-class-fields"><select aria-label={`${day} session class`} value={session.classId ?? ""} onChange={(event) => updateSession(session.id, { classId: event.target.value || undefined, customClassName: event.target.value ? undefined : session.customClassName })}><option value="">No class</option>{planner.classes.map((item) => <option value={item.id} key={item.id}>{item.name}</option>)}</select>{session.type === "generalist-teaching" && <input className="custom-class-field" aria-label={`${day} custom class name`} value={session.customClassName ?? ""} placeholder="Or enter class" onChange={(event) => updateSession(session.id, { customClassName: event.target.value || undefined, classId: event.target.value ? undefined : session.classId })} />}</div>
                     <input aria-label={`${day} session label`} value={session.label ?? ""} placeholder="Optional label" onChange={(event) => updateSession(session.id, { label: event.target.value || undefined })} />
                     <button className="icon-button danger" type="button" onClick={() => removeSession(session.id)} aria-label={`Remove ${day} session`}>×</button>
                   </div>; })}

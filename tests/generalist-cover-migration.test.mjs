@@ -18,7 +18,8 @@ test("only an exact Class cover entry migrates to Generalist Teaching", () => {
 
 test("Generalist Teaching survives localStorage backup export and import", () => {
   const planner = freshSamplePlanner();
-  planner.timetableSessions.push({ id: "class-cover", slotId: "session-5", weekday: 3, startTime: "14:15", endTime: "15:15", type: "generalist-teaching", label: "Class cover" });
+  planner.timetableSessions.push({ id: "class-cover", slotId: "session-5", weekday: 3, startTime: "14:15", endTime: "15:15", type: "generalist-teaching", label: "Class cover", customClassName: "2B" });
   const restored = importPlannerData(exportPlannerData(planner));
   assert.equal(restored.timetableSessions.find((item) => item.id === "class-cover").type, "generalist-teaching");
+  assert.equal(restored.timetableSessions.find((item) => item.id === "class-cover").customClassName, "2B");
 });

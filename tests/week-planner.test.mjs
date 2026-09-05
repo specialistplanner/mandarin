@@ -130,11 +130,14 @@ test("Generalist Teaching is teaching context but never affects specialist progr
     endTime: "15:15",
     type: "generalist-teaching",
     label: "Class cover",
+    customClassName: "2B",
   });
   const week = deriveTeachingWeek(planner, wednesday, wednesday);
   const cover = week.days.flatMap((day) => day.entries).find((entry) => entry.timetable.id === "generalist-cover");
   assert.equal(cover.kind, "generalist-teaching");
   assert.equal(cover.label, "Class cover");
+  assert.equal(cover.contextClassName, "2B");
+  assert.equal(cover.classColourId, undefined);
   assert.equal(cover.canRecordOutcome, false);
   const completed = markAllTaughtAsPlanned(planner, wednesday);
   assert.equal(completed.teachingSessions.some((item) => item.timetableSessionId === "generalist-cover"), false);
