@@ -114,12 +114,8 @@ nav { display: flex; align-self: stretch; }
 .week-card.state-legacy { opacity: .67; background: #efeee9; }
 .week-card.has-class-colour { background: var(--class-card-bg); color: var(--class-card-foreground); border-top: 4px solid var(--class-card-accent); }
 .week-card.has-class-colour .week-card-detail { background: color-mix(in srgb, var(--class-card-bg) 72%, white); }
-.week-card-summary { width: 100%; min-height: 96px; position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-content: start; gap: 1px 6px; border: 0; background: transparent; color: var(--ink); padding: 7px 8px; text-align: left; }
+.week-card-summary { width: 100%; min-height: 96px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-content: start; gap: 1px 6px; border: 0; background: transparent; color: var(--ink); padding: 7px 8px; text-align: left; cursor: pointer; }
 .week-card-summary:hover { background: rgba(220,230,216,.24); }
-.week-card-toggle { position: absolute; inset: 0; z-index: 1; border: 0; background: transparent; cursor: pointer; }
-.week-card-toggle:focus-visible { outline: 3px solid var(--blue); outline-offset: -3px; }
-.week-card-summary > :not(.week-card-toggle) { position: relative; z-index: 2; pointer-events: none; }
-.week-card-summary > a { pointer-events: auto; }
 .week-card-kind { color: var(--muted); text-transform: uppercase; letter-spacing: .07em; font-size: 7px; font-weight: 800; }
 .week-card-state { max-width: 120px; border-radius: 999px; background: #edeee9; color: var(--muted); padding: 3px 6px; font-size: 7px; font-weight: 850; text-align: center; }
 .week-card-state.outcome-completed { background: #dcecdf; color: #315e48; }
@@ -128,8 +124,6 @@ nav { display: flex; align-self: stretch; }
 .week-card-class { grid-column: 1; grid-row: 2; margin-top: 3px; font-family: var(--font-display), serif; font-size: 19px; line-height: 1; }
 .week-card-unit { grid-column: 1 / -1; margin-top: 4px; color: var(--muted); font-size: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .week-card-lesson { grid-column: 1 / -1; min-height: 18px; font-size: 9px; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.week-card-lesson-link { display: block; color: var(--forest); font-weight: 800; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; }
-.week-card-lesson-link:hover { color: #1d654d; }
 .week-progress { grid-column: 2; grid-row: 2; align-self: center; justify-self: end; max-width: 96px; margin-top: 2px; font-size: 7px; line-height: 1.15; font-weight: 800; text-align: right; }
 .week-progress.status-on-track { color: #477663; }
 .week-progress.status-behind, .week-progress.status-different-unit { color: #9a641f; }
@@ -141,17 +135,12 @@ nav { display: flex; align-self: stretch; }
 .week-card-detail dl div { display: flex; flex-direction: column; }
 .week-card-detail dt { color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-size: 7px; font-weight: 800; }
 .week-card-detail dd { margin: 2px 0 0; font-size: 9px; font-weight: 700; }
-.week-resource-action { margin: 8px 0; }
+.week-position-link { display: inline-flex; align-items: center; gap: 4px; color: var(--forest); font: inherit; font-weight: 800; text-decoration: underline; text-underline-offset: 2px; }
+.week-position-link:hover { color: #1d654d; }
 .resource-open-link { display: inline-flex; align-items: center; gap: 4px; min-height: 34px; border: 1px solid #9db8aa; border-radius: 9px; background: #edf5f0; color: var(--forest); padding: 0 10px; font-size: 9px; font-weight: 800; text-decoration: none; }
 .resource-open-link:hover { background: #e2eee7; }
 .resource-unavailable { display: inline-flex; align-items: center; gap: 7px; color: #8b571b; font-size: 9px; font-weight: 750; }
 .resource-unavailable button { border: 0; background: transparent; color: var(--forest); padding: 0; font: inherit; text-decoration: underline; cursor: pointer; }
-.week-previous { margin-top: 9px; border-radius: 8px; background: #f0eee8; padding: 8px; display: flex; flex-direction: column; }
-.week-previous > span { color: var(--muted); font-size: 7px; text-transform: uppercase; letter-spacing: .05em; }
-.week-previous > strong { margin-top: 2px; font-size: 9px; }
-.week-previous > p { margin: 3px 0 0; color: #87532e; font-size: 8px; }
-.week-previous.outcome-not-taught { background: #fff1ec; }
-.week-previous.outcome-partial { background: #fff7e8; }
 .projection-caution { margin-top: 8px !important; border-radius: 7px; background: var(--amber-light); color: #7f551f !important; padding: 7px; }
 .week-outcome-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 10px; }
 .week-outcome-actions button { min-height: 36px; border: 1px solid var(--line); border-radius: 7px; background: white; color: var(--forest); padding: 3px; font-size: 7px; font-weight: 800; cursor: pointer; }

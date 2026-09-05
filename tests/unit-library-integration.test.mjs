@@ -12,6 +12,7 @@ import {
   lessonReference,
   parseUnitLibraryIndex,
   referenceDeepLink,
+  resolveLinkedLessonReference,
   unitLibraryDeepLink,
   unitReference,
 } from "../lib/unit-library.ts";
@@ -72,6 +73,13 @@ test("live synchronization falls back to the published snapshot without losing a
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+test("a linked Unit resolves the corresponding Lesson by ordinal position", () => {
+  const unitRef = unitReference(library.units[0]);
+  const resolved = resolveLinkedLessonReference(library, unitRef, undefined, 2);
+  assert.deepEqual(resolved, lessonReference(library.units[0], library.units[0].lessons[1]));
+  assert.equal(resolveLinkedLessonReference(library, unitRef, undefined, 3), undefined);
 });
 
 test("2. Planner Lesson stores a stable Lesson ID beneath its linked Unit", () => {

@@ -84,3 +84,16 @@ export function findLinkedLesson(index: UnitLibraryIndex | null, reference: Exte
   if (!reference || reference.provider !== UNIT_LIBRARY_PROVIDER || reference.resourceType !== "lesson" || !reference.parentResourceId) return undefined;
   return index?.units.find((unit) => unit.id === reference.parentResourceId)?.lessons.find((lesson) => lesson.id === reference.resourceId);
 }
+
+export function resolveLinkedLessonReference(
+  index: UnitLibraryIndex | null,
+  unitRef: ExternalResourceRef | undefined,
+  lessonRef: ExternalResourceRef | undefined,
+  lessonNumber: number | undefined,
+): ExternalResourceRef | undefined {
+  if (lessonRef?.provider === UNIT_LIBRARY_PROVIDER && lessonRef.resourceType === "lesson") return lessonRef;
+  if (!lessonNumber || lessonNumber < 1) return undefined;
+  const linkedUnit = findLinkedUnit(index, unitRef);
+  const linkedLesson = linkedUnit?.lessons[lessonNumber - 1];
+  return linkedUnit && linkedLesson ? lessonReference(linkedUnit, linkedLesson) : undefined;
+}

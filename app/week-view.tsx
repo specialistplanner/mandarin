@@ -11,6 +11,7 @@ import {
   type TeachingSessionOutcome,
 } from "@/lib/domain";
 import { deriveTeachingWeek, shiftTeachingWeek, startOfTeachingWeek, type WeekEntry } from "@/lib/week-planner";
+import { resolveLinkedLessonReference } from "@/lib/unit-library";
 import { ResourceLinkAction } from "./resource-link";
 import type { UnitLibraryState } from "./use-unit-library";
 
@@ -45,12 +46,11 @@ function stateLabel(entry: WeekEntry) {
   return "Planned";
 }
 
-export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onOpenUnits, onQuickNote, unitLibrary }: {
+export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onQuickNote, unitLibrary }: {
   planner: PlannerData;
   onChange: (planner: PlannerData) => void;
   onOpenClass: (classId: string) => void;
   onOpenSettings: () => void;
-  onOpenUnits: () => void;
   onQuickNote: (classId: string | undefined, context: string) => void;
   unitLibrary: UnitLibraryState;
 }) {
@@ -102,23 +102,20 @@ export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onOpe
   function renderEntry(entry: WeekEntry) {
     if (entry.kind === "non-teaching") return <div className={`week-context-block context-${entry.timetable.type}`} key={entry.key}><span>Non-teaching</span><strong>{entry.label}</strong>{entry.specialistClass && <small>{entry.specialistClass.name}</small>}</div>;
     const lessonLabel = `${entry.lessonNumber ? `L${entry.lessonNumber} · ` : ""}${entry.session?.outcome !== "planned" && entry.session ? entry.session.plannedLessonTitle : entry.lesson?.title ?? (entry.state === "unit-complete" ? "Choose next Unit" : "Lesson not assigned")}`;
+    const positionLabel = `${entry.unit?.title ?? "Not assigned"}${entry.lessonNumber ? ` · Lesson ${entry.lessonNumber}` : ""}`;
+    const linkedLesson = resolveLinkedLessonReference(unitLibrary.index, entry.unit?.externalResourceRef, entry.lesson?.externalResourceRef, entry.lessonNumber);
     return <article className={`week-card state-${entry.state} ${entry.classColourId ? "has-class-colour" : ""} ${entry.progressStatus && entry.progressStatus.kind !== "on-track" ? "has-attention" : ""} ${entry.session?.outcome === "partial" || entry.session?.outcome === "not-taught" ? "has-attention" : ""}`} style={classColourStyle(entry.classColourId)} key={entry.key}>
-      <div className="week-card-summary">
-        <button className="week-card-toggle" type="button" aria-label={`${expanded === entry.key ? "Hide" : "Show"} details for ${entry.specialistClass?.name ?? entry.label}`} aria-expanded={expanded === entry.key} onClick={() => setExpanded(expanded === entry.key ? null : entry.key)} />
+      <button className="week-card-summary" type="button" aria-expanded={expanded === entry.key} onClick={() => setExpanded(expanded === entry.key ? null : entry.key)}>
         <span className="week-card-kind">Teaching</span><span className={`week-card-state outcome-${entry.session?.outcome ?? entry.state}`}>{stateLabel(entry)}</span>
         <strong className="week-card-class">{entry.specialistClass?.name ?? entry.label}</strong>
         {entry.progressStatus && <span className={`week-progress status-${entry.progressStatus.kind}`}>{entry.progressStatus.kind === "on-track" ? "✓" : "⚠"} {entry.progressStatus.label}</span>}
         <span className="week-card-unit">{entry.session?.outcome !== "planned" && entry.session ? entry.session.plannedUnitTitle : entry.unit?.title ?? (entry.state === "unit-complete" ? "Unit complete" : "Unit not assigned")}</span>
-        {entry.lesson?.externalResourceRef
-          ? <ResourceLinkAction reference={entry.lesson.externalResourceRef} library={unitLibrary} label={lessonLabel} unavailableLabel={lessonLabel} className="week-card-lesson week-card-lesson-link" />
-          : <b className="week-card-lesson">{lessonLabel}</b>}
+        <b className="week-card-lesson">{lessonLabel}</b>
         {(entry.session?.reason || entry.session?.note) && <span className="week-card-note">{entry.session.reason ?? entry.session.note}</span>}
-      </div>
+      </button>
       {expanded === entry.key && <div className="week-card-detail">
         {entry.lesson?.description && <p>{entry.lesson.description}</p>}
-        {entry.lesson?.externalResourceRef && <div className="week-resource-action"><ResourceLinkAction reference={entry.lesson.externalResourceRef} library={unitLibrary} onRelink={onOpenUnits} label="Open lesson" /></div>}
-        <dl><div><dt>Current class position</dt><dd>{entry.unit?.title ?? "Not assigned"}{entry.lessonNumber ? ` · Lesson ${entry.lessonNumber}` : ""}</dd></div><div><dt>Cohort reference</dt><dd>{entry.progressStatus?.label ?? "Not configured"}</dd></div></dl>
-        {entry.previousSession && <div className={`week-previous outcome-${entry.previousSession.outcome}`}><span>Previous session · {entry.previousSession.date}</span><strong>{outcomeLabels[entry.previousSession.outcome]}</strong>{(entry.previousSession.reason || entry.previousSession.note) && <p>{entry.previousSession.reason ?? entry.previousSession.note}</p>}</div>}
+        <dl><div><dt>Current class position</dt><dd>{linkedLesson ? <ResourceLinkAction reference={linkedLesson} library={unitLibrary} label={positionLabel} unavailableLabel={positionLabel} className="week-position-link" /> : positionLabel}</dd></div></dl>
         {entry.projectionUncertain && <p className="projection-caution">This proposed Lesson depends on an earlier unconfirmed occurrence. It will update after that outcome is recorded.</p>}
         {entry.state === "unit-complete" || entry.state === "needs-setup" ? <button className="secondary-button" type="button" onClick={onOpenSettings}>{entry.state === "unit-complete" ? "Choose next Unit" : "Complete setup"}</button> : entry.canRecordOutcome && <div className="week-outcome-actions" aria-label={`Record outcome for ${entry.label}`}><button type="button" className={entry.session?.outcome === "completed" ? "active completed" : ""} onClick={() => saveOutcome(entry, "completed")}>✓ Completed</button><button type="button" className={entry.session?.outcome === "partial" ? "active partial" : ""} onClick={() => setOutcomeDraft({ entry, outcome: "partial", detail: entry.session?.note ?? "" })}>◐ Partial</button><button type="button" className={entry.session?.outcome === "not-taught" ? "active not-taught" : ""} onClick={() => setOutcomeDraft({ entry, outcome: "not-taught", detail: entry.session?.reason ?? "" })}>× Not taught</button>{entry.session && entry.session.outcome !== "planned" && <button type="button" onClick={() => saveOutcome(entry, "planned")}>Clear</button>}</div>}
         <div className="week-detail-links">{entry.specialistClass && <button type="button" onClick={() => onOpenClass(entry.specialistClass!.id)}>Open Progress detail</button>}<button type="button" onClick={() => onQuickNote(entry.specialistClass?.id, `Week · ${entry.date}`)}>＋ Quick note</button></div>

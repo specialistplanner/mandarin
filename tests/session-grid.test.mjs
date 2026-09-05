@@ -52,13 +52,14 @@ test("the S1 label upgrades without overwriting a custom Session name", async ()
   assert.match(app, /SESSION_ONE_LABEL_MIGRATION_KEY/);
 });
 
-test("linked Unit Library lessons open from the card preview in a new tab", async () => {
+test("linked Unit Library lessons open from Current class position in a new tab", async () => {
   const [view, resource] = await Promise.all([
     readFile(new URL("../app/week-view.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/resource-link.tsx", import.meta.url), "utf8"),
   ]);
-  assert.match(view, /entry\.lesson\?\.externalResourceRef/);
-  assert.match(view, /week-card-lesson-link/);
+  assert.match(view, /resolveLinkedLessonReference/);
+  assert.match(view, /week-position-link/);
+  assert.doesNotMatch(view, /<dt>Cohort reference<\/dt>|Previous session ·/);
   assert.match(resource, /target="_blank"/);
   assert.match(resource, /rel="noopener noreferrer"/);
 });
