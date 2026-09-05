@@ -142,7 +142,10 @@ test("Generalist Teaching is teaching context but never affects specialist progr
   const completed = markAllTaughtAsPlanned(planner, wednesday);
   assert.equal(completed.teachingSessions.some((item) => item.timetableSessionId === "generalist-cover"), false);
   assert.deepEqual(completed.classProgress, specialistOnlyResult.classProgress);
-  assert.deepEqual(completed.teachingSessions, specialistOnlyResult.teachingSessions);
+  const stableSessionSummary = (sessions) => sessions.map((session) => Object.fromEntries(
+    Object.entries(session).filter(([key]) => key !== "createdAt" && key !== "updatedAt"),
+  ));
+  assert.deepEqual(stableSessionSummary(completed.teachingSessions), stableSessionSummary(specialistOnlyResult.teachingSessions));
 });
 
 test("future week projection creates no Teaching Session history", () => {

@@ -1,4 +1,4 @@
-# Specialist Planner v0.5 — Unit Library Integration Trial
+# Specialist Planner v0.5.0 — Data contract and integration boundary
 
 ## Architecture and ownership
 
@@ -19,7 +19,7 @@ The Library publishes `unit-library-index.json`, generated from an authorised so
 
 `Unit.externalResourceRef` and `Lesson.externalResourceRef` are optional. Both store `provider`, `resourceType`, `resourceId`, an optional label and canonical URL; a Lesson additionally stores `parentResourceId`. A linked Lesson must belong to the Unit referenced by its local parent. Local IDs, titles and lesson sequences remain authoritative for Planner progress.
 
-Changing or removing a Unit reference clears only incompatible Lesson references. It does not alter `classProgress`, `progressBaselines`, `progressCheckpoints`, `TeachingSession` history, timetable data, colours or Trial Notes. No title-based matching or inferred mapping occurs.
+Changing or removing a Unit reference clears only incompatible Lesson references. It does not alter `classProgress`, `progressBaselines`, `progressCheckpoints`, `TeachingSession` history, timetable data, colours or Notes. No title-based matching or inferred mapping occurs.
 
 ## Teacher workflows
 
@@ -44,7 +44,7 @@ Week continues to derive from timetable, actual class progress, Unit/Lesson, out
 
 ## Persistence and migration
 
-Schema v8 uses `specialist-planner.data.v8`. v0.4.2 schema-v7 data migrates by retaining every existing field and adding no guessed external links. Earlier v0.2–v0.4.1 migration paths remain intact. JSON export/import validates and preserves both Unit and Lesson references.
+Schema v9 uses `specialist-planner.data.v9`. Earlier v0.2–v0.4.2 migration paths remain intact, retain existing fields and add no guessed external links. An unreadable current v9 record is preserved for explicit recovery and never replaced automatically by an older record. JSON export/import validates and preserves both Unit and Lesson references.
 
 The class colour map remains keyed by class ID. The Unit Library index is not copied into localStorage or backups; only stable references are stored.
 
@@ -54,8 +54,7 @@ Automated integration scenarios cover Unit and Lesson references, partial/local-
 
 ## Known limitations
 
-- The current live Unit Library contains `Countries` and `Chinese Names`; it does not yet contain a `Nationalities` Unit with `Where are you from?`. Planner supports that acceptance workflow as soon as the Library author publishes those stable records, but v0.5 does not fabricate them.
-- Library index refresh is publication-time, not real-time Firestore sync.
-- one active subject in the v0.5 UI;
+- The live read-only Unit Library index refreshes while Planner is open and falls back to the published snapshot when needed.
+- one active subject in the v0.5.0 UI;
 - device-and-browser-local Planner data with no account or cross-device sync;
 - no school-term calendar, attendance, student data, assessment, reports, notifications, analytics or multi-teacher administration.

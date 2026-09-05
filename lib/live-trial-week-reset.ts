@@ -128,7 +128,7 @@ export function applyLiveTrialWeekReset(source: PlannerData): { planner: Planner
       ...progress,
       effectiveDate: LIVE_TRIAL_WEEK_END,
       createdAt: timestamp,
-      reason: "Live trial week correction",
+      reason: "Classroom progress correction",
     };
   }
   const fourEProgress = { classId: fourEClass!.id, unitId: fourEUnit!.id, lessonId: fourELesson3!.id };
@@ -138,7 +138,7 @@ export function applyLiveTrialWeekReset(source: PlannerData): { planner: Planner
     ...fourEProgress,
     effectiveDate: LIVE_TRIAL_WEEK_END,
     createdAt: timestamp,
-    reason: "Live trial week correction",
+    reason: "Classroom progress correction",
   };
 
   for (const referenceName of ["6B", "4C", "5E"]) {

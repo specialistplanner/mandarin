@@ -319,10 +319,10 @@ footer button { border: 0; padding: 0; background: transparent; color: var(--for
 .previous-session > p { margin: 4px 0 0; color: var(--muted); font-size: 11px; }
 .previous-session.outcome-not-taught { border-color: #e5b9ad; background: #fff6f2; }
 .previous-session.outcome-partial { border-color: #e7c78f; background: #fffaf0; }
-.prototype-controls { margin-top: 22px; padding: 19px; border: 1px dashed #c4b9a4; border-radius: 17px; background: #fffaf0; }
-.prototype-tag { color: var(--amber); background: var(--amber-light); border-radius: 6px; padding: 3px 6px; text-transform: uppercase; letter-spacing: .08em; font-size: 8px; font-weight: 850; }
-.prototype-controls h3 { font-family: var(--font-display), serif; font-size: 19px; margin: 10px 0 4px; }
-.prototype-controls p { color: var(--muted); font-size: 11px; line-height: 1.5; margin-bottom: 17px; }
+.manual-correction-controls { margin-top: 22px; padding: 19px; border: 1px dashed #c4b9a4; border-radius: 17px; background: #fffaf0; }
+.manual-correction-tag { color: var(--amber); background: var(--amber-light); border-radius: 6px; padding: 3px 6px; text-transform: uppercase; letter-spacing: .08em; font-size: 8px; font-weight: 850; }
+.manual-correction-controls h3 { font-family: var(--font-display), serif; font-size: 19px; margin: 10px 0 4px; }
+.manual-correction-controls p { color: var(--muted); font-size: 11px; line-height: 1.5; margin-bottom: 17px; }
 .reopen-unit-button { width: 100%; min-height: 40px; margin: 0 0 10px; border: 1px solid #d8b77f; border-radius: 10px; background: var(--amber-light); color: #80501a; font-size: 11px; font-weight: 800; cursor: pointer; }
 .stepper { display: grid; grid-template-columns: 48px 1fr 48px; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: white; }
 .stepper button { border: 0; background: var(--forest); color: white; font-size: 21px; cursor: pointer; }
@@ -358,6 +358,7 @@ footer button { border: 0; padding: 0; background: transparent; color: var(--for
 .onboarding-card > p:not(.eyebrow) { color: var(--muted); font-size: 16px; line-height: 1.55; }
 .onboarding-actions { display: flex; gap: 10px; margin: 26px 0 18px; }
 .onboarding-card > small { color: var(--muted); }
+.onboarding-card .recovery-error { color: #9f321f; font-weight: 700; }
 .dashboard-empty { margin: 30px 0 100px; background: white; border: 1px dashed #aebeb4; border-radius: 20px; padding: 24px; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; }
 .dashboard-empty h2 { font-family: var(--font-display), serif; margin: 0 0 4px; }
 .dashboard-empty p { color: var(--muted); margin: 0; }

@@ -245,6 +245,28 @@ test("invalid import is rejected without returning partial data", () => {
   assert.throws(() => importPlannerData(JSON.stringify(invalidColour)), /Class colour.*invalid/);
 });
 
+test("an unreadable current planner stops migration before older data can overwrite it", () => {
+  const current = "{not-valid-json";
+  const older = fixture();
+  older.schemaVersion = 8;
+  delete older.sessionSlots;
+  older.timetableSessions = older.timetableSessions.map(session => Object.fromEntries(Object.entries(session).filter(([key]) => key !== "slotId")));
+  const memory = new Map([
+    [STORAGE_KEY, current],
+    [LEGACY_V8_STORAGE_KEY, JSON.stringify(older)],
+  ]);
+  let writes = 0;
+  const storage = {
+    getItem: (key) => memory.get(key) ?? null,
+    setItem: (key, value) => { writes += 1; memory.set(key, value); },
+    removeItem: (key) => memory.delete(key),
+  };
+
+  assert.deepEqual(loadPlanner(storage, fixture()), { planner: null, source: "invalid-v9" });
+  assert.equal(memory.get(STORAGE_KEY), current);
+  assert.equal(writes, 0);
+});
+
 test("localStorage v9 persists fully and older planner schemas migrate safely", () => {
   const memory = new Map();
   const storage = { getItem: (key) => memory.get(key) ?? null, setItem: (key, value) => memory.set(key, value), removeItem: (key) => memory.delete(key) };

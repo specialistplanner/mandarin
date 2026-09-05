@@ -282,7 +282,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
     <main className="setup-main" id="top">
       <section className="setup-hero">
         <div>
-          <p className="eyebrow">Live Classroom Trial</p>
+          <p className="eyebrow">Planner settings</p>
           <h1>Set up your teaching week.</h1>
           <p>Everything here is saved only in this browser. Changes appear in Week and Progress straight away.</p>
         </div>
@@ -294,9 +294,9 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
           <div className="setup-subject-card">
             <span>Active subject</span>
             <input aria-label="Active subject name" value={activeSubject.name} onChange={(event) => onChange(touchPlanner({ ...planner, subjects: planner.subjects.map((item) => item.id === activeSubject.id ? { ...item, name: event.target.value } : item) }))} />
-            <small>Single-subject mode for v0.5</small>
+            <small>Single-subject mode for v0.5.0</small>
           </div>
-          {([['cohorts', 'Year levels & units'], ['timetable', 'Weekly timetable'], ['notes', `Trial notes (${planner.trialNotes.length})`], ['data', 'Backup & reset']] as [SetupSection, string][]).map(([id, label]) => (
+          {([['cohorts', 'Year levels & units'], ['timetable', 'Weekly timetable'], ['notes', `Notes (${planner.trialNotes.length})`], ['data', 'Backup & reset']] as [SetupSection, string][]).map(([id, label]) => (
             <button type="button" key={id} className={section === id ? "active" : ""} onClick={() => setSection(id)}>{label}<span>→</span></button>
           ))}
         </aside>
@@ -489,22 +489,22 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
           </>}
 
           {section === "notes" && <>
-            <div className="setup-section-title"><div><p className="section-kicker">Live research</p><h2>Trial notes</h2><p>Capture friction, surprises and missing context while the real teaching week is fresh.</p></div></div>
+            <div className="setup-section-title"><div><p className="section-kicker">Reference</p><h2>Notes</h2><p>Keep teaching and workflow context that may be useful later.</p></div></div>
             <div className="note-composer"><textarea value={noteText} onChange={(event) => setNoteText(event.target.value)} placeholder="What did you notice?" rows={3} /><button className="primary-button" type="button" onClick={addNote}>Save note</button></div>
             <div className="notes-list">
-              {!planner.trialNotes.length && <div className="setup-empty"><strong>No trial notes yet</strong><p>Useful notes describe what happened, what you expected, and what information was missing.</p></div>}
+              {!planner.trialNotes.length && <div className="setup-empty"><strong>No notes yet</strong><p>Useful notes describe what happened, what you expected, and what information was missing.</p></div>}
               {planner.trialNotes.map((note) => {
                 const item = planner.classes.find((candidate) => candidate.id === note.classId);
-                return <article className="note-card" key={note.id}><div><span>{new Intl.DateTimeFormat("en-AU", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }).format(new Date(note.createdAt))}</span><strong>{item?.name ?? note.context ?? "Planner"}</strong></div><p>{note.text}</p><button className="text-button danger" type="button" onClick={() => window.confirm("Delete this trial note?") && onChange(touchPlanner({ ...planner, trialNotes: planner.trialNotes.filter((item) => item.id !== note.id) }))}>Delete</button></article>;
+                return <article className="note-card" key={note.id}><div><span>{new Intl.DateTimeFormat("en-AU", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }).format(new Date(note.createdAt))}</span><strong>{item?.name ?? note.context ?? "Planner"}</strong></div><p>{note.text}</p><button className="text-button danger" type="button" onClick={() => window.confirm("Delete this note?") && onChange(touchPlanner({ ...planner, trialNotes: planner.trialNotes.filter((item) => item.id !== note.id) }))}>Delete</button></article>;
               })}
             </div>
           </>}
 
           {section === "data" && <>
-            <div className="setup-section-title"><div><p className="section-kicker">Safety</p><h2>Backup & reset</h2><p>Your data lives in this browser. Export a backup regularly during the live trial.</p></div></div>
+            <div className="setup-section-title"><div><p className="section-kicker">Safety</p><h2>Backup & reset</h2><p>Your data lives in this browser. Export a backup regularly.</p></div></div>
             <div className="data-actions">
               <article><span className="data-icon">↓</span><div><h3>Export planner backup</h3><p>Downloads subjects, cohorts, units, lessons, progress, timetable and notes as JSON.</p><button className="secondary-button" type="button" onClick={() => downloadBackup(planner)}>Export JSON</button></div></article>
-              <article><span className="data-icon">↑</span><div><h3>Import planner backup</h3><p>Validates v0.5 and compatible v0.2–v0.4.2 backups before asking to replace current local data.</p><button className="secondary-button" type="button" onClick={() => importRef.current?.click()}>Choose JSON file</button><input className="visually-hidden" ref={importRef} type="file" accept="application/json,.json" onChange={(event) => importBackup(event.target.files?.[0])} /></div></article>
+              <article><span className="data-icon">↑</span><div><h3>Import planner backup</h3><p>Validates v0.5.0 and compatible v0.2–v0.4.2 backups before asking to replace current local data.</p><button className="secondary-button" type="button" onClick={() => importRef.current?.click()}>Choose JSON file</button><input className="visually-hidden" ref={importRef} type="file" accept="application/json,.json" onChange={(event) => importBackup(event.target.files?.[0])} /></div></article>
             </div>
             <section className="reconciliation-tool" aria-labelledby="reconciliation-title">
               <div className="reconciliation-heading"><div><span>One-time migration tool</span><h3 id="reconciliation-title">Reconcile previous teaching</h3><p>Keep today’s known-correct class positions, then reconstruct an earlier teaching week as history without advancing any class again.</p></div>{planner.reconciliationStatus && <strong>Teaching history reconciled through {planner.reconciliationStatus.throughDate}</strong>}</div>

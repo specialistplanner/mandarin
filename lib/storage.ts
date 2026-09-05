@@ -22,7 +22,7 @@ export const LEGACY_V2_STORAGE_KEY = "specialist-planner.data.v2";
 export const LEGACY_STORAGE_KEY = "specialist-planner.dashboard.progress.v1";
 
 export type StorageLike = Pick<Storage, "getItem" | "setItem"> & Partial<Pick<Storage, "removeItem">>;
-export type PlannerLoadResult = { planner: PlannerData | null; source: "v9" | "migrated-v8" | "migrated-v7" | "migrated-v6" | "migrated-v5" | "migrated-v4" | "migrated-v3" | "migrated-v2" | "migrated-v1" | "empty" };
+export type PlannerLoadResult = { planner: PlannerData | null; source: "v9" | "invalid-v9" | "migrated-v8" | "migrated-v7" | "migrated-v6" | "migrated-v5" | "migrated-v4" | "migrated-v3" | "migrated-v2" | "migrated-v1" | "empty" };
 
 const sessionTypes = new Set<SessionType>([
   "specialist-teaching", "generalist-teaching", "cover-release", "planning", "meeting", "school-activity", "break", "other",
@@ -310,7 +310,7 @@ export function loadPlanner(storage: StorageLike, sample: PlannerData): PlannerL
   const current = storage.getItem(STORAGE_KEY);
   if (current) {
     try { return { planner: validatePlannerData(JSON.parse(current)), source: "v9" }; }
-    catch { /* Leave invalid local data untouched so it can be recovered manually. */ }
+    catch { return { planner: null, source: "invalid-v9" }; }
   }
   const v8 = storage.getItem(LEGACY_V8_STORAGE_KEY);
   if (v8) {
