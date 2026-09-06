@@ -8,7 +8,10 @@ import {
   setLessonExternalResource,
   setUnitExternalResource,
 } from "../lib/domain.ts";
-import { APP_VERSION, RELEASE_DATE, RELEASE_NAME, RELEASE_TITLE } from "../lib/release.ts";
+import { GENERALIST_COVER_MIGRATION_KEY } from "../lib/generalist-cover-migration.ts";
+import { LIVE_TRIAL_WEEK_RESET_KEY } from "../lib/live-trial-week-reset.ts";
+import { markOneTimeMigrationsApplied, SESSION_ONE_LABEL_MIGRATION_KEY } from "../lib/migration-markers.ts";
+import { APP_VERSION, RELEASE_DATE, RELEASE_NAME, RELEASE_TITLE, SITE_BASE_PATH, SITE_ORIGIN } from "../lib/release.ts";
 import { freshSamplePlanner } from "../lib/sample-data.ts";
 import { exportPlannerData, importPlannerData, STORAGE_KEY } from "../lib/storage.ts";
 import { lessonReference, unitReference } from "../lib/unit-library.ts";
@@ -41,13 +44,39 @@ function weekSummary(planner, anchor) {
 }
 
 test("release metadata has one stable production version source", async () => {
-  assert.equal(APP_VERSION, "v0.5.0");
-  assert.equal(RELEASE_DATE, "2026-09-05");
-  assert.equal(RELEASE_NAME, "First Stable Classroom Release");
-  assert.equal(RELEASE_TITLE, "Specialist Planner v0.5.0 — First Stable Classroom Release");
+  assert.equal(APP_VERSION, "v0.5.1");
+  assert.equal(RELEASE_DATE, "2026-09-06");
+  assert.equal(RELEASE_NAME, "Migration Safety Hotfix");
+  assert.equal(RELEASE_TITLE, "Specialist Planner v0.5.1 — Migration Safety Hotfix");
+  assert.equal(SITE_ORIGIN, "https://specialistplanner.github.io/mandarin/");
+  assert.equal(SITE_BASE_PATH, "/mandarin/");
   assert.equal(STORAGE_KEY, "specialist-planner.data.v9");
   const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
-  assert.equal(packageJson.version, "0.5.0");
+  assert.equal(packageJson.version, "0.5.1");
+});
+
+test("GitHub Pages production entry and workflow preserve the project base path", async () => {
+  const [entry, config, workflow, readme] = await Promise.all([
+    readFile(new URL("../github-pages/index.html", import.meta.url), "utf8"),
+    readFile(new URL("../vite.github-pages.config.ts", import.meta.url), "utf8"),
+    readFile(new URL("../.github/workflows/pages.yml", import.meta.url), "utf8"),
+    readFile(new URL("../README.md", import.meta.url), "utf8"),
+  ]);
+  assert.match(config, /base:\s*["']\/mandarin\/["']/);
+  assert.match(entry, /https:\/\/specialistplanner\.github\.io\/mandarin\/og-v04\.png/);
+  assert.match(workflow, /npm run build:pages/);
+  assert.match(workflow, /path:\s*dist-pages/);
+  assert.match(readme, /https:\/\/specialistplanner\.github\.io\/mandarin\//);
+  assert.doesNotMatch(entry, /chatgpt\.site/i);
+});
+
+test("authoritative imports mark every one-time migration as already handled", () => {
+  const memory = new Map();
+  const storage = { setItem: (key, value) => memory.set(key, value) };
+  markOneTimeMigrationsApplied(storage);
+  assert.equal(memory.get(LIVE_TRIAL_WEEK_RESET_KEY), "applied");
+  assert.equal(memory.get(SESSION_ONE_LABEL_MIGRATION_KEY), "applied");
+  assert.equal(memory.get(GENERALIST_COVER_MIGRATION_KEY), "applied");
 });
 
 test("stable interface copy contains no visible trial identity", async () => {

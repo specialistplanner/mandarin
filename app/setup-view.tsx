@@ -32,6 +32,7 @@ import {
   type TimetableSession,
 } from "@/lib/domain";
 import { createBlankPlanner, freshSamplePlanner } from "@/lib/sample-data";
+import { markOneTimeMigrationsApplied } from "@/lib/migration-markers";
 import { exportPlannerData, importPlannerData } from "@/lib/storage";
 import { findLinkedUnit, lessonReference, unitReference, UNIT_LIBRARY_PROVIDER } from "@/lib/unit-library";
 import { ResourceLinkAction } from "./resource-link";
@@ -241,6 +242,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
     try {
       const imported = importPlannerData(await file.text());
       if (!window.confirm("Import this backup? It will replace all current local planner data.")) return;
+      markOneTimeMigrationsApplied(window.localStorage);
       onChange(imported);
       setMessage("Backup imported successfully.");
     } catch (error) {
@@ -294,7 +296,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
           <div className="setup-subject-card">
             <span>Active subject</span>
             <input aria-label="Active subject name" value={activeSubject.name} onChange={(event) => onChange(touchPlanner({ ...planner, subjects: planner.subjects.map((item) => item.id === activeSubject.id ? { ...item, name: event.target.value } : item) }))} />
-            <small>Single-subject mode for v0.5.0</small>
+            <small>Single-subject mode for v0.5.1</small>
           </div>
           {([['cohorts', 'Year levels & units'], ['timetable', 'Weekly timetable'], ['notes', `Notes (${planner.trialNotes.length})`], ['data', 'Backup & reset']] as [SetupSection, string][]).map(([id, label]) => (
             <button type="button" key={id} className={section === id ? "active" : ""} onClick={() => setSection(id)}>{label}<span>→</span></button>
@@ -504,7 +506,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
             <div className="setup-section-title"><div><p className="section-kicker">Safety</p><h2>Backup & reset</h2><p>Your data lives in this browser. Export a backup regularly.</p></div></div>
             <div className="data-actions">
               <article><span className="data-icon">↓</span><div><h3>Export planner backup</h3><p>Downloads subjects, cohorts, units, lessons, progress, timetable and notes as JSON.</p><button className="secondary-button" type="button" onClick={() => downloadBackup(planner)}>Export JSON</button></div></article>
-              <article><span className="data-icon">↑</span><div><h3>Import planner backup</h3><p>Validates v0.5.0 and compatible v0.2–v0.4.2 backups before asking to replace current local data.</p><button className="secondary-button" type="button" onClick={() => importRef.current?.click()}>Choose JSON file</button><input className="visually-hidden" ref={importRef} type="file" accept="application/json,.json" onChange={(event) => importBackup(event.target.files?.[0])} /></div></article>
+              <article><span className="data-icon">↑</span><div><h3>Import planner backup</h3><p>Validates v0.5.x and compatible v0.2–v0.4.2 backups before asking to replace current local data.</p><button className="secondary-button" type="button" onClick={() => importRef.current?.click()}>Choose JSON file</button><input className="visually-hidden" ref={importRef} type="file" accept="application/json,.json" onChange={(event) => importBackup(event.target.files?.[0])} /></div></article>
             </div>
             <section className="reconciliation-tool" aria-labelledby="reconciliation-title">
               <div className="reconciliation-heading"><div><span>One-time migration tool</span><h3 id="reconciliation-title">Reconcile previous teaching</h3><p>Keep today’s known-correct class positions, then reconstruct an earlier teaching week as history without advancing any class again.</p></div>{planner.reconciliationStatus && <strong>Teaching history reconciled through {planner.reconciliationStatus.throughDate}</strong>}</div>
@@ -527,8 +529,8 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
               })}</div>}
             </section>
             <div className="danger-zone"><div><h3>Start over</h3><p>These actions replace the complete planner. Export a backup first.</p></div><div>
-              <button className="secondary-button" type="button" onClick={() => window.confirm("Replace all current data with the Mandarin sample planner?") && onChange(freshSamplePlanner())}>Load sample data</button>
-              <button className="danger-button" type="button" onClick={() => window.confirm("Reset to a blank planner? All current local data will be replaced.") && onChange(createBlankPlanner())}>Reset planner</button>
+              <button className="secondary-button" type="button" onClick={() => { if (!window.confirm("Replace all current data with the Mandarin sample planner?")) return; markOneTimeMigrationsApplied(window.localStorage); onChange(freshSamplePlanner()); }}>Load sample data</button>
+              <button className="danger-button" type="button" onClick={() => { if (!window.confirm("Reset to a blank planner? All current local data will be replaced.")) return; markOneTimeMigrationsApplied(window.localStorage); onChange(createBlankPlanner()); }}>Reset planner</button>
             </div></div>
           </>}
         </section>

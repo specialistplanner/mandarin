@@ -1,4 +1,4 @@
-# Specialist Planner v0.5.0 — Data contract and integration boundary
+# Specialist Planner v0.5.1 — Data contract and integration boundary
 
 ## Architecture and ownership
 
@@ -55,6 +55,6 @@ Automated integration scenarios cover Unit and Lesson references, partial/local-
 ## Known limitations
 
 - The live read-only Unit Library index refreshes while Planner is open and falls back to the published snapshot when needed.
-- one active subject in the v0.5.0 UI;
+- one active subject in the v0.5.x UI;
 - device-and-browser-local Planner data with no account or cross-device sync;
 - no school-term calendar, attendance, student data, assessment, reports, notifications, analytics or multi-teacher administration.

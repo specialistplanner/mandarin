@@ -17,6 +17,7 @@ import { createBlankPlanner, freshSamplePlanner, samplePlanner } from "@/lib/sam
 import { importPlannerData, loadPlanner, persistPlanner, STORAGE_KEY } from "@/lib/storage";
 import { applyLiveTrialWeekReset, LIVE_TRIAL_WEEK_RESET_KEY } from "@/lib/live-trial-week-reset";
 import { GENERALIST_COVER_MIGRATION_KEY, migrateClassCoverToGeneralistTeaching } from "@/lib/generalist-cover-migration";
+import { markOneTimeMigrationsApplied, SESSION_ONE_LABEL_MIGRATION_KEY } from "@/lib/migration-markers";
 import { APP_VERSION, RELEASE_DATE_LABEL, RELEASE_NAME } from "@/lib/release";
 import { SetupView } from "./setup-view";
 import { WeekView } from "./week-view";
@@ -26,7 +27,6 @@ import { useUnitLibrary } from "./use-unit-library";
 type AppView = "week" | "progress" | "units" | "history" | "settings";
 const historyDateFormatter = new Intl.DateTimeFormat("en-AU", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
 const OUTCOME_LABELS: Record<TeachingSessionOutcome, string> = { planned: "Planned", completed: "Completed", partial: "Partial", "not-taught": "Not taught" };
-const SESSION_ONE_LABEL_MIGRATION_KEY = "specialist-planner.session-label.s1.v1";
 
 function classColourStyle(colourId: keyof typeof CLASS_COLOUR_PRESETS | undefined): CSSProperties | undefined {
   const colour = colourId ? CLASS_COLOUR_PRESETS[colourId] : undefined;
@@ -118,6 +118,7 @@ export function DashboardApp() {
     try {
       const restored = importPlannerData(await file.text());
       if (!window.confirm("Restore this backup and replace the unreadable planner data stored in this browser?")) return;
+      markOneTimeMigrationsApplied(window.localStorage);
       persistPlanner(window.localStorage, restored);
       setPlanner(restored);
       setLoadState("ready");
@@ -140,7 +141,7 @@ export function DashboardApp() {
 
   if (loadState === "loading") return <div className="loading-screen"><span className="brand-mark">SP</span><p>Opening your planner…</p></div>;
   if (loadState === "recovery") return <main className="onboarding-screen"><div className="onboarding-card"><span className="brand-mark">SP</span><p className="eyebrow">Safe recovery</p><h1>Your planner needs a backup.</h1><p>The saved planner in this browser could not be read. It has not been changed, and older stored data will not replace it automatically.</p><div className="onboarding-actions"><button className="primary-button" type="button" onClick={() => recoveryImportRef.current?.click()}>Restore JSON backup</button><button className="secondary-button" type="button" onClick={downloadUnreadableData}>Download unreadable data</button><input className="visually-hidden" ref={recoveryImportRef} type="file" accept="application/json,.json" onChange={restoreRecoveryBackup} /></div>{recoveryError && <p className="recovery-error" role="alert">{recoveryError}</p>}<small>Nothing is deleted until you explicitly restore a valid backup.</small></div></main>;
-  if (loadState === "empty" || !planner) return <main className="onboarding-screen"><div className="onboarding-card"><span className="brand-mark">SP</span><p className="eyebrow">Specialist Planner {APP_VERSION}</p><h1>Make it yours.</h1><p>Start with the Mandarin demonstration or begin with a blank planner. Your data stays in this browser.</p><div className="onboarding-actions"><button className="primary-button" type="button" onClick={() => { setPlanner(createBlankPlanner()); setLoadState("ready"); setView("settings"); }}>Start blank planner</button><button className="secondary-button" type="button" onClick={() => { setPlanner(freshSamplePlanner()); setLoadState("ready"); }}>Explore sample data</button></div><small>You can import a backup later from Settings.</small></div></main>;
+  if (loadState === "empty" || !planner) return <main className="onboarding-screen"><div className="onboarding-card"><span className="brand-mark">SP</span><p className="eyebrow">Specialist Planner {APP_VERSION}</p><h1>Make it yours.</h1><p>Start with the Mandarin demonstration or begin with a blank planner. Your data stays in this browser.</p><div className="onboarding-actions"><button className="primary-button" type="button" onClick={() => { markOneTimeMigrationsApplied(window.localStorage); setPlanner(createBlankPlanner()); setLoadState("ready"); setView("settings"); }}>Start blank planner</button><button className="secondary-button" type="button" onClick={() => { markOneTimeMigrationsApplied(window.localStorage); setPlanner(freshSamplePlanner()); setLoadState("ready"); }}>Explore sample data</button></div><small>You can import a backup later from Settings.</small></div></main>;
 
   const activeSubject = planner.subjects.find((item) => item.id === planner.activeSubjectId)!;
   const classById = Object.fromEntries(planner.classes.map((item) => [item.id, item]));

@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.5.1 — 2026-09-06
+
+### Fixed
+
+- Treat a successfully imported backup as the authoritative Planner snapshot on a new browser origin.
+- Record one-time migration markers after import or deliberate initialisation so a later refresh cannot reapply classroom-specific corrections to restored data.
+
+### Deployment
+
+- Add a static Vite build with the `/mandarin/` base path and a GitHub Actions Pages deployment workflow.
+- Set the independent production identity to `https://specialistplanner.github.io/mandarin/`.
+
+This is a data-migration safety hotfix. It does not change the classroom workflow or add product features.
+
 ## v0.5.0 — 2026-09-05
 
 ### Added
