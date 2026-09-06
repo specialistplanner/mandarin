@@ -75,12 +75,14 @@ function downloadBackup(planner: PlannerData) {
   URL.revokeObjectURL(url);
 }
 
-export function SetupView({ planner, onChange, onBack, unitLibrary, initialSection = "cohorts" }: {
+export function SetupView({ planner, onChange, onBack, unitLibrary, initialSection = "cohorts", persistenceMode = "local", onImportBackup }: {
   planner: PlannerData;
   onChange: (planner: PlannerData) => void;
   onBack: () => void;
   unitLibrary: UnitLibraryState;
   initialSection?: SetupSection;
+  persistenceMode?: "local" | "cloud";
+  onImportBackup?: (planner: PlannerData) => Promise<void>;
 }) {
   const [section, setSection] = useState<SetupSection>(initialSection);
   const [newYearLabel, setNewYearLabel] = useState("");
@@ -241,10 +243,15 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
     if (!file) return;
     try {
       const imported = importPlannerData(await file.text());
-      if (!window.confirm("Import this backup? It will replace all current local planner data.")) return;
-      markOneTimeMigrationsApplied(window.localStorage);
-      onChange(imported);
-      setMessage("Backup imported successfully.");
+      if (persistenceMode === "cloud" && onImportBackup) {
+        await onImportBackup(imported);
+        setMessage("Cloud backup restored and verified successfully.");
+      } else {
+        if (!window.confirm("Import this backup? It will replace all current local planner data.")) return;
+        markOneTimeMigrationsApplied(window.localStorage);
+        onChange(imported);
+        setMessage("Backup imported successfully.");
+      }
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "The backup could not be imported.");
     } finally {
@@ -503,10 +510,10 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
           </>}
 
           {section === "data" && <>
-            <div className="setup-section-title"><div><p className="section-kicker">Safety</p><h2>Backup & reset</h2><p>Your data lives in this browser. Export a backup regularly.</p></div></div>
+            <div className="setup-section-title"><div><p className="section-kicker">Safety</p><h2>Backup & reset</h2><p>{persistenceMode === "cloud" ? "Your signed-in Program syncs to the cloud. Keep periodic JSON safety backups." : "Your data lives in this browser. Export a backup regularly."}</p></div></div>
             <div className="data-actions">
               <article><span className="data-icon">↓</span><div><h3>Export planner backup</h3><p>Downloads subjects, cohorts, units, lessons, progress, timetable and notes as JSON.</p><button className="secondary-button" type="button" onClick={() => downloadBackup(planner)}>Export JSON</button></div></article>
-              <article><span className="data-icon">↑</span><div><h3>Import planner backup</h3><p>Validates v0.5.x and compatible v0.2–v0.4.2 backups before asking to replace current local data.</p><button className="secondary-button" type="button" onClick={() => importRef.current?.click()}>Choose JSON file</button><input className="visually-hidden" ref={importRef} type="file" accept="application/json,.json" onChange={(event) => importBackup(event.target.files?.[0])} /></div></article>
+              <article><span className="data-icon">↑</span><div><h3>Import planner backup</h3><p>{persistenceMode === "cloud" ? "Validates the backup, creates a cloud safety snapshot, then verifies the restored Program." : "Validates v0.5.x and compatible v0.2–v0.4.2 backups before asking to replace current local data."}</p><button className="secondary-button" type="button" onClick={() => importRef.current?.click()}>Choose JSON file</button><input className="visually-hidden" ref={importRef} type="file" accept="application/json,.json" onChange={(event) => importBackup(event.target.files?.[0])} /></div></article>
             </div>
             <section className="reconciliation-tool" aria-labelledby="reconciliation-title">
               <div className="reconciliation-heading"><div><span>One-time migration tool</span><h3 id="reconciliation-title">Reconcile previous teaching</h3><p>Keep today’s known-correct class positions, then reconstruct an earlier teaching week as history without advancing any class again.</p></div>{planner.reconciliationStatus && <strong>Teaching history reconciled through {planner.reconciliationStatus.throughDate}</strong>}</div>
@@ -528,10 +535,10 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
                 </article>;
               })}</div>}
             </section>
-            <div className="danger-zone"><div><h3>Start over</h3><p>These actions replace the complete planner. Export a backup first.</p></div><div>
+            {persistenceMode === "local" && <div className="danger-zone"><div><h3>Start over</h3><p>These actions replace the complete planner. Export a backup first.</p></div><div>
               <button className="secondary-button" type="button" onClick={() => { if (!window.confirm("Replace all current data with the Mandarin sample planner?")) return; markOneTimeMigrationsApplied(window.localStorage); onChange(freshSamplePlanner()); }}>Load sample data</button>
               <button className="danger-button" type="button" onClick={() => { if (!window.confirm("Reset to a blank planner? All current local data will be replaced.")) return; markOneTimeMigrationsApplied(window.localStorage); onChange(createBlankPlanner()); }}>Reset planner</button>
-            </div></div>
+            </div></div>}
           </>}
         </section>
       </div>

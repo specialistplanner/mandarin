@@ -1,0 +1,117 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isMember(data) {
+      return signedIn()
+        && data.memberUids is list
+        && request.auth.uid in data.memberUids
+        && data.members is map
+        && data.members[request.auth.uid] == 'owner';
+    }
+
+    function isOwner(data) {
+      return signedIn()
+        && data.ownerUid == request.auth.uid
+        && data.members is map
+        && data.members[request.auth.uid] == 'owner';
+    }
+
+    function validProgramCreate(programId) {
+      return request.resource.data.keys().hasAll([
+          'id', 'ownerUid', 'memberUids', 'members', 'name', 'subjectType',
+          'schemaVersion', 'plannerSchemaVersion', 'revision', 'lastMutationId',
+          'createdAt', 'updatedAt', 'data'
+        ])
+        && request.resource.data.keys().hasOnly([
+          'id', 'ownerUid', 'memberUids', 'members', 'name', 'subjectType',
+          'customSubjectName', 'schemaVersion', 'plannerSchemaVersion', 'revision',
+          'lastMutationId', 'createdAt', 'updatedAt', 'data'
+        ])
+        && request.resource.data.id == programId
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.memberUids == [request.auth.uid]
+        && request.resource.data.members.size() == 1
+        && request.resource.data.members[request.auth.uid] == 'owner'
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.subjectType in ['art', 'music', 'pe', 'performing_arts', 'stem', 'languages', 'library', 'other']
+        && request.resource.data.schemaVersion == 1
+        && request.resource.data.plannerSchemaVersion == 9
+        && request.resource.data.revision == 1
+        && request.resource.data.lastMutationId is string
+        && (!request.resource.data.keys().hasAny(['customSubjectName']) || request.resource.data.customSubjectName is string)
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.data is map;
+    }
+
+    function validProgramUpdate() {
+      return request.resource.data.keys() == resource.data.keys()
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.memberUids == resource.data.memberUids
+        && request.resource.data.members == resource.data.members
+        && request.resource.data.subjectType == resource.data.subjectType
+        && request.resource.data.get('customSubjectName', null) == resource.data.get('customSubjectName', null)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.schemaVersion == resource.data.schemaVersion
+        && request.resource.data.plannerSchemaVersion == resource.data.plannerSchemaVersion
+        && request.resource.data.revision == resource.data.revision + 1
+        && request.resource.data.lastMutationId is string
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.data is map;
+    }
+
+    match /users/{uid} {
+      allow create: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['uid', 'displayName', 'email', 'authProviders', 'createdAt', 'updatedAt'])
+        && request.resource.data.uid == uid
+        && request.resource.data.authProviders is list
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      allow get, delete: if signedIn() && request.auth.uid == uid;
+      allow update: if signedIn()
+        && request.auth.uid == uid
+        && request.resource.data.keys() == resource.data.keys()
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time;
+      allow list: if false;
+    }
+
+    match /programs/{programId} {
+      allow get: if isMember(resource.data);
+      allow list: if signedIn() && request.auth.uid in resource.data.memberUids;
+      allow create: if signedIn() && validProgramCreate(programId);
+      allow update: if isOwner(resource.data) && validProgramUpdate();
+      allow delete: if isOwner(resource.data);
+
+      match /snapshots/{snapshotId} {
+        function parentProgram() {
+          return get(/databases/$(database)/documents/programs/$(programId)).data;
+        }
+
+        allow get, list: if isMember(parentProgram());
+        allow create: if isOwner(parentProgram())
+          && request.resource.data.keys().hasOnly(['programId', 'revision', 'createdBy', 'createdAt', 'reason', 'data'])
+          && request.resource.data.programId == programId
+          && request.resource.data.createdBy == request.auth.uid
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.revision is int
+          && request.resource.data.reason == 'backup-restore'
+          && request.resource.data.data is map;
+        allow update, delete: if false;
+      }
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,5 +1,5 @@
-import { DashboardApp } from "./dashboard-app";
+import { CloudPlannerApp } from "./cloud-planner-app";
 
 export default function Home() {
-  return <DashboardApp />;
+  return <CloudPlannerApp />;
 }
