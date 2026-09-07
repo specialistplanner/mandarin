@@ -10,9 +10,10 @@ export type UnitLibraryState = {
   syncedAt: string | null;
 };
 
-export function useUnitLibrary(): UnitLibraryState {
-  const [state, setState] = useState<UnitLibraryState>({ status: "loading", index: null, source: null, syncedAt: null });
+export function useUnitLibrary(enabled = true): UnitLibraryState {
+  const [state, setState] = useState<UnitLibraryState>(enabled ? { status: "loading", index: null, source: null, syncedAt: null } : { status: "unavailable", index: null, source: null, syncedAt: null });
   useEffect(() => {
+    if (!enabled) return;
     const controller = new AbortController();
     let syncing = false;
     const sync = async () => {
@@ -39,6 +40,6 @@ export function useUnitLibrary(): UnitLibraryState {
       window.removeEventListener("focus", sync);
       document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
-  }, []);
-  return state;
+  }, [enabled]);
+  return enabled ? state : { status: "unavailable", index: null, source: null, syncedAt: null };
 }

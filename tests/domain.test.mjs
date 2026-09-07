@@ -23,8 +23,10 @@ import {
   setClassPosition,
   setCurrentUnit,
   setProgress,
+  setUnitYearLevels,
   updateUnitDetails,
   updateLessonRecord,
+  unitAppliesToYearLevel,
 } from "../lib/domain.ts";
 import {
   LEGACY_STORAGE_KEY,
@@ -356,10 +358,11 @@ test("localStorage v9 persists fully and older planner schemas migrate safely", 
   assert.equal(migrated.planner.classProgress["5c"].lessonId, "u5-l3");
 });
 
-test("deleting referenced records repairs or removes dependants safely", () => {
-  const lessonDeleted = deleteLessonRecord(fixture(), "u5", "u5-l4");
-  assert.equal(lessonDeleted.classProgress["5e"].lessonId, "u5-l5");
-  assert.equal(lessonDeleted.yearLevels[0].expectedLessonId, "u5-l5");
+test("deleting referenced Unit Library records is blocked while unused records can be removed", () => {
+  assert.throws(() => deleteLessonRecord(fixture(), "u5", "u5-l4"), /Progress or History/);
+  const lessonDeleted = deleteLessonRecord(fixture(), "u5", "u5-l2");
+  assert.equal(lessonDeleted.classProgress["5e"].lessonId, "u5-l4");
+  assert.equal(lessonDeleted.yearLevels[0].expectedLessonId, "u5-l4");
   assert.equal(lessonDeleted.units[0].lessons.length, 4);
 
   const coloured = fixture();
@@ -372,6 +375,17 @@ test("deleting referenced records repairs or removes dependants safely", () => {
   assert.equal(classDeleted.classColours["5c"], undefined);
 
   assert.throws(() => deleteUnitRecord(fixture(), "u5"), /Set another current unit/);
+});
+
+test("a Program-owned Unit can keep one stable ID across multiple year levels", () => {
+  const planner = fixture();
+  planner.yearLevels.push({ id: "y6", label: "Year 6", shortLabel: "6", currentUnitId: null, expectedLessonId: null });
+  const shared = setUnitYearLevels(planner, "u5", ["y5", "y6"]);
+  assert.equal(shared.units[0].id, "u5");
+  assert.equal(unitAppliesToYearLevel(shared.units[0], "y5"), true);
+  assert.equal(unitAppliesToYearLevel(shared.units[0], "y6"), true);
+  const selected = setCurrentUnit(shared, "y6", "u5");
+  assert.equal(selected.yearLevels.find((level) => level.id === "y6").currentUnitId, "u5");
 });
 
 test("legacy progress API remains readable and boundary-safe", () => {

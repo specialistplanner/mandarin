@@ -120,14 +120,19 @@ ruleTest("two teacher accounts create and list independent Programs", async () =
   const plannerA = freshSamplePlanner();
   const plannerB = {
     ...freshSamplePlanner(),
-    subjects: freshSamplePlanner().subjects.map((subject) => ({ ...subject, name: "Visual Arts" })),
+    subjects: freshSamplePlanner().subjects.map((subject) => ({ ...subject, name: "Physical Education" })),
+    units: freshSamplePlanner().units.map((unit, index) => index === 0 ? { ...unit, title: "Movement Fundamentals" } : unit),
     updatedAt: new Date().toISOString(),
   };
   await createProgram(teacherA, { programId: "program-a", uid: "teacher-a", name: "Mandarin", subjectType: "languages", customSubjectName: "Mandarin", planner: plannerA, mutationId: "create-a" });
-  await createProgram(teacherB, { programId: "program-b", uid: "teacher-b", name: "Visual Arts", subjectType: "art", planner: plannerB, mutationId: "create-b" });
+  await createProgram(teacherB, { programId: "program-b", uid: "teacher-b", name: "Physical Education", subjectType: "pe", planner: plannerB, mutationId: "create-b" });
 
-  assert.deepEqual((await listProgramsForUser(teacherA, "teacher-a")).map((item) => item.id), ["program-a"]);
-  assert.deepEqual((await listProgramsForUser(teacherB, "teacher-b")).map((item) => item.id), ["program-b"]);
+  const programsA = await listProgramsForUser(teacherA, "teacher-a");
+  const programsB = await listProgramsForUser(teacherB, "teacher-b");
+  assert.deepEqual(programsA.map((item) => item.id), ["program-a"]);
+  assert.deepEqual(programsB.map((item) => item.id), ["program-b"]);
+  assert.equal(programsA[0].data.units.some((unit) => unit.title === "Movement Fundamentals"), false);
+  assert.equal(programsB[0].data.units.some((unit) => unit.title === "Movement Fundamentals"), true);
   await assert.rejects(() => loadProgram(teacherA, "teacher-a", "program-b"));
   await assert.rejects(() => loadProgram(teacherB, "teacher-b", "program-a"));
 });

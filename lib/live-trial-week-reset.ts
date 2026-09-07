@@ -1,4 +1,4 @@
-import { clonePlanner, type ClassProgress, type PlannerData, type TeachingSession, type Unit } from "./domain.ts";
+import { clonePlanner, unitAppliesToYearLevel, type ClassProgress, type PlannerData, type TeachingSession, type Unit } from "./domain.ts";
 
 export const LIVE_TRIAL_WEEK_RESET_KEY = "specialist-planner.reset.2026-08-31.v2";
 export const LIVE_TRIAL_WEEK_START = "2026-08-31";
@@ -31,7 +31,7 @@ function comparable(value: string) {
 
 function unitForTarget(planner: PlannerData, yearLevelId: string, title: string): Unit | undefined {
   const wanted = comparable(title);
-  return planner.units.find(unit => unit.yearLevelId === yearLevelId && comparable(unit.title) === wanted);
+  return planner.units.find(unit => unitAppliesToYearLevel(unit, yearLevelId) && comparable(unit.title) === wanted);
 }
 
 function occurrenceDate(weekday: number): string | undefined {

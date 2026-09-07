@@ -6,13 +6,13 @@ function lessons(unitId: string, titles: string[]): Lesson[] {
 
 const subject = { id: "mandarin", name: "Mandarin" };
 const units = [
-  { id: "hello-friends", yearLevelId: "prep", title: "Hello, Friends!", description: "Greetings and classroom language", lessons: lessons("hello-friends", ["Hello", "My name is…", "How are you?", "Classroom greetings", "Review"]) },
-  { id: "my-family", yearLevelId: "year-1", title: "My Family", description: "Introducing family members", lessons: lessons("my-family", ["Family words", "This is my…", "Brothers and sisters", "Family portraits", "Review"]) },
-  { id: "animals", yearLevelId: "year-2", title: "Amazing Animals", description: "Animals, preferences and habitats", lessons: lessons("animals", ["Animal names", "Big and small", "I like…", "Animal habitats", "Class survey", "Review"]) },
-  { id: "daily-life", yearLevelId: "year-3", title: "My Day", description: "Daily routines and time", lessons: lessons("daily-life", ["Morning routines", "Telling time", "School day", "After school", "My timetable", "Review"]) },
-  { id: "weather", yearLevelId: "year-4", title: "Weather", description: "Weather, seasons and clothing", lessons: lessons("weather", ["Weather words", "What is the weather?", "Seasons", "Weather report", "What should I wear?", "Review"]) },
-  { id: "nationalities", yearLevelId: "year-5", title: "Nationalities", description: "Countries, nationalities and home", lessons: lessons("nationalities", ["Introduction", "Countries", "Nationalities", "Where are you from?", "Where do you live?", "Review"]) },
-  { id: "travel", yearLevelId: "year-6", title: "Let’s Travel", description: "Travel plans and practical language", lessons: lessons("travel", ["Places to go", "Transport", "Buying a ticket", "Directions", "Travel plans", "Review"]) },
+  { id: "hello-friends", yearLevelId: "prep", yearLevelIds: ["prep"], title: "Hello, Friends!", description: "Greetings and classroom language", lessons: lessons("hello-friends", ["Hello", "My name is…", "How are you?", "Classroom greetings", "Review"]) },
+  { id: "my-family", yearLevelId: "year-1", yearLevelIds: ["year-1"], title: "My Family", description: "Introducing family members", lessons: lessons("my-family", ["Family words", "This is my…", "Brothers and sisters", "Family portraits", "Review"]) },
+  { id: "animals", yearLevelId: "year-2", yearLevelIds: ["year-2"], title: "Amazing Animals", description: "Animals, preferences and habitats", lessons: lessons("animals", ["Animal names", "Big and small", "I like…", "Animal habitats", "Class survey", "Review"]) },
+  { id: "daily-life", yearLevelId: "year-3", yearLevelIds: ["year-3"], title: "My Day", description: "Daily routines and time", lessons: lessons("daily-life", ["Morning routines", "Telling time", "School day", "After school", "My timetable", "Review"]) },
+  { id: "weather", yearLevelId: "year-4", yearLevelIds: ["year-4"], title: "Weather", description: "Weather, seasons and clothing", lessons: lessons("weather", ["Weather words", "What is the weather?", "Seasons", "Weather report", "What should I wear?", "Review"]) },
+  { id: "nationalities", yearLevelId: "year-5", yearLevelIds: ["year-5"], title: "Nationalities", description: "Countries, nationalities and home", lessons: lessons("nationalities", ["Introduction", "Countries", "Nationalities", "Where are you from?", "Where do you live?", "Review"]) },
+  { id: "travel", yearLevelId: "year-6", yearLevelIds: ["year-6"], title: "Let’s Travel", description: "Travel plans and practical language", lessons: lessons("travel", ["Places to go", "Transport", "Buying a ticket", "Directions", "Travel plans", "Review"]) },
 ];
 
 const yearLevels = [

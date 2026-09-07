@@ -477,6 +477,11 @@ textarea { padding: 11px; resize: vertical; }
 .unit-fields label:last-child { grid-column: 1 / -1; }
 .unit-fields input, .unit-fields select { height: 40px; min-width: 0; }
 .unit-fields i, .session-form i { text-transform: none; letter-spacing: 0; font-weight: 500; }
+.unit-fields .unit-year-levels { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; border: 0; padding: 0; margin: 2px 0; }
+.unit-year-levels legend { width: 100%; margin-bottom: 2px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 8px; font-weight: 800; }
+.unit-fields .unit-year-levels label { flex-direction: row; align-items: center; gap: 5px; border: 1px solid var(--line); border-radius: 999px; padding: 6px 9px; background: white; }
+.unit-fields .unit-year-levels input { width: 14px; height: 14px; }
+.unit-fields .unit-year-levels label span { color: var(--forest); text-transform: none; letter-spacing: 0; font-size: 9px; }
 .unit-library-link-panel { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 12px; border: 1px solid #cfdcd3; border-radius: 13px; background: #f4f8f4; padding: 11px; }
 .unit-library-link-panel > div:first-child { display: flex; flex: 1; min-width: 150px; flex-direction: column; }
 .unit-library-link-panel > div:first-child > span, .unit-library-chooser label > span, .lesson-library-link label > span, .progress-resource-float > span { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 8px; font-weight: 800; }
@@ -611,6 +616,14 @@ textarea { padding: 11px; resize: vertical; }
 .preset-grid button.active { border-color: var(--forest); background: var(--sage); box-shadow: inset 0 0 0 1px var(--forest); }
 .program-name-field { display: flex; flex-direction: column; }
 .program-name-field input { width: 100%; height: 50px; }
+.onboarding-first-unit { margin-top: 20px; border-radius: 16px; background: #f2f5f0; padding: 15px; }
+.onboarding-first-unit > span { color: var(--forest); font-size: 12px; font-weight: 850; }
+.onboarding-first-unit > span i { color: var(--muted); font-size: 9px; font-weight: 600; }
+.onboarding-first-unit > p { margin: 5px 0 12px; color: var(--muted); font-size: 10px; line-height: 1.45; }
+.onboarding-first-unit > div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.onboarding-first-unit label { display: grid; gap: 5px; }
+.onboarding-first-unit label span { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 8px; font-weight: 800; }
+.onboarding-first-unit input { min-width: 0; height: 42px; }
 .loading-screen { align-content: center; gap: 10px; color: var(--forest); font-weight: 750; }
 .loading-screen .brand-mark { justify-self: center; }
 .sync-state { font-weight: 750; }
@@ -746,6 +759,7 @@ textarea { padding: 11px; resize: vertical; }
   .migration-summary { grid-template-columns: 1fr; }
   .migration-summary span { flex-direction: row; align-items: baseline; gap: 7px; }
   .preset-grid { grid-template-columns: repeat(2, 1fr); }
+  .onboarding-first-unit > div { grid-template-columns: 1fr; }
   .reconciliation-list article { grid-template-columns: 1fr auto; }
   .reconciliation-actions { overflow-x: auto; }
   .setup-menu { display: flex; overflow-x: auto; flex-direction: row; padding: 7px; }

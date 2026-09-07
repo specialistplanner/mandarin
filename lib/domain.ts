@@ -50,6 +50,7 @@ export type Lesson = {
 export type Unit = {
   id: string;
   yearLevelId: string;
+  yearLevelIds?: string[];
   title: string;
   description?: string;
   lessons: Lesson[];
@@ -589,6 +590,14 @@ export function lessonLabel(position: number, lessons: Lesson[]): string {
   return item ? `Lesson ${position} · ${item.title}` : `Lesson ${position}`;
 }
 
+export function unitYearLevelIds(unit: Unit): string[] {
+  return [...new Set(unit.yearLevelIds?.length ? unit.yearLevelIds : [unit.yearLevelId])];
+}
+
+export function unitAppliesToYearLevel(unit: Unit, yearLevelId: string | null | undefined): boolean {
+  return Boolean(yearLevelId && unitYearLevelIds(unit).includes(yearLevelId));
+}
+
 export function createClassRecord(
   planner: PlannerData,
   item: SpecialistClass,
@@ -644,14 +653,29 @@ export function deleteClassRecord(planner: PlannerData, classId: string): Planne
 }
 
 export function createUnitRecord(planner: PlannerData, unit: Unit, makeCurrent = true): PlannerData {
-  if (!planner.yearLevels.some((level) => level.id === unit.yearLevelId)) throw new Error("Year level not found.");
+  const yearLevelIds = unitYearLevelIds(unit);
+  if (!yearLevelIds.length || yearLevelIds.some((yearLevelId) => !planner.yearLevels.some((level) => level.id === yearLevelId))) throw new Error("Choose valid year levels.");
   if (!unit.title.trim()) throw new Error("Unit title is required.");
   if (!unit.lessons.length) throw new Error("A unit needs at least one lesson.");
   if (planner.units.some((existing) => existing.id === unit.id)) throw new Error("Unit ID already exists.");
   const normalized = normalizeUnit(unit);
   let next = touchPlanner({ ...planner, units: [...planner.units, normalized] });
-  if (makeCurrent) next = setCurrentUnit(next, unit.yearLevelId, unit.id);
+  if (makeCurrent) next = setCurrentUnit(next, yearLevelIds[0], unit.id);
   return next;
+}
+
+export function setUnitYearLevels(planner: PlannerData, unitId: string, yearLevelIds: string[]): PlannerData {
+  const unit = planner.units.find((candidate) => candidate.id === unitId);
+  const normalizedIds = [...new Set(yearLevelIds)];
+  if (!unit) throw new Error("Unit not found.");
+  if (!normalizedIds.length || normalizedIds.some((yearLevelId) => !planner.yearLevels.some((level) => level.id === yearLevelId))) throw new Error("Choose at least one valid year level.");
+  const removedIds = unitYearLevelIds(unit).filter((yearLevelId) => !normalizedIds.includes(yearLevelId));
+  if (planner.yearLevels.some((level) => removedIds.includes(level.id) && level.currentUnitId === unitId)) throw new Error("Choose another cohort reference Unit before removing that year level.");
+  if (planner.classes.some((item) => removedIds.includes(item.yearLevelId) && planner.classProgress[item.id]?.unitId === unitId)) throw new Error("Move affected classes to another Unit before removing that year level.");
+  return touchPlanner({
+    ...planner,
+    units: planner.units.map((candidate) => candidate.id === unitId ? normalizeUnit({ ...candidate, yearLevelId: normalizedIds[0], yearLevelIds: normalizedIds }) : candidate),
+  });
 }
 
 export function updateUnitDetails(
@@ -670,7 +694,7 @@ export function updateUnitDetails(
 }
 
 export function setCurrentUnit(planner: PlannerData, yearLevelId: string, unitId: string): PlannerData {
-  const unit = planner.units.find((candidate) => candidate.id === unitId && candidate.yearLevelId === yearLevelId);
+  const unit = planner.units.find((candidate) => candidate.id === unitId && unitAppliesToYearLevel(candidate, yearLevelId));
   if (!unit?.lessons[0]) throw new Error("Choose a valid unit with lessons.");
   const classProgress = { ...planner.classProgress };
   const progressBaselines = { ...planner.progressBaselines };
@@ -696,6 +720,9 @@ export function deleteUnitRecord(planner: PlannerData, unitId: string): PlannerD
   }
   if (Object.values(planner.classProgress).some((progress) => progress.unitId === unitId)) {
     throw new Error("Move every class to another unit before deleting this unit.");
+  }
+  if (Object.values(planner.progressBaselines).some((progress) => progress.unitId === unitId) || Object.values(planner.progressCheckpoints).some((progress) => progress.unitId === unitId) || planner.teachingSessions.some((session) => session.plannedUnitId === unitId)) {
+    throw new Error("This Unit is referenced by Progress or History and cannot be deleted.");
   }
   return touchPlanner({ ...planner, units: planner.units.filter((unit) => unit.id !== unitId) });
 }
@@ -755,30 +782,16 @@ export function deleteLessonRecord(planner: PlannerData, unitId: string, lessonI
   if (unit.lessons.length <= 1) throw new Error("A unit must keep at least one lesson.");
   const removedIndex = unit.lessons.findIndex((lesson) => lesson.id === lessonId);
   if (removedIndex < 0) throw new Error("Lesson not found.");
+  const referenced = planner.yearLevels.some((level) => level.expectedLessonId === lessonId)
+    || Object.values(planner.classProgress).some((progress) => progress.lessonId === lessonId)
+    || Object.values(planner.progressBaselines).some((progress) => progress.lessonId === lessonId)
+    || Object.values(planner.progressCheckpoints).some((progress) => progress.lessonId === lessonId)
+    || planner.teachingSessions.some((session) => session.plannedLessonId === lessonId);
+  if (referenced) throw new Error("This Lesson is referenced by Progress or History and cannot be deleted.");
   const remaining = unit.lessons.filter((lesson) => lesson.id !== lessonId);
-  const replacement = remaining[Math.min(removedIndex, remaining.length - 1)];
-  const repairProgress = (progress: ClassProgress) => {
-    if (progress.unitId !== unitId || progress.lessonId !== lessonId) return progress;
-    const activeProgress = { ...progress };
-    delete activeProgress.unitComplete;
-    return { ...activeProgress, lessonId: replacement.id };
-  };
-  const classProgress = Object.fromEntries(Object.entries(planner.classProgress).map(([classId, progress]) => [
-    classId, repairProgress(progress),
-  ]));
-  const progressBaselines = Object.fromEntries(Object.entries(planner.progressBaselines).map(([classId, progress]) => [
-    classId, repairProgress(progress),
-  ]));
-  const progressCheckpoints = Object.fromEntries(Object.entries(planner.progressCheckpoints).map(([classId, progress]) => [
-    classId, repairProgress(progress) as ProgressCheckpoint,
-  ]));
   return touchPlanner({
     ...planner,
     units: planner.units.map((candidate) => candidate.id === unitId ? normalizeUnit({ ...candidate, lessons: remaining }) : candidate),
-    yearLevels: planner.yearLevels.map((level) => level.expectedLessonId === lessonId ? { ...level, expectedLessonId: replacement.id } : level),
-    classProgress,
-    progressBaselines,
-    progressCheckpoints,
   });
 }
 
@@ -786,7 +799,7 @@ export function setClassLesson(planner: PlannerData, classId: string, lessonId: 
   const item = planner.classes.find((candidate) => candidate.id === classId);
   const level = planner.yearLevels.find((candidate) => candidate.id === item?.yearLevelId);
   const existing = planner.classProgress[classId];
-  const unit = planner.units.find((candidate) => candidate.id === existing?.unitId && candidate.yearLevelId === level?.id);
+  const unit = planner.units.find((candidate) => candidate.id === existing?.unitId && unitAppliesToYearLevel(candidate, level?.id));
   if (!item || !level || !unit?.lessons.some((lesson) => lesson.id === lessonId)) {
     throw new Error("Choose a valid lesson for this class.");
   }
@@ -802,7 +815,7 @@ export function setClassPosition(
   const item = planner.classes.find((candidate) => candidate.id === classId);
   const unit = planner.units.find((candidate) =>
     candidate.id === unitId &&
-    candidate.yearLevelId === item?.yearLevelId &&
+    unitAppliesToYearLevel(candidate, item?.yearLevelId) &&
     candidate.lessons.some((lesson) => lesson.id === lessonId),
   );
   if (!item || !unit) throw new Error("Choose a valid unit and lesson for this class.");
@@ -838,5 +851,6 @@ export function setExpectedLesson(planner: PlannerData, yearLevelId: string, les
 }
 
 export function normalizeUnit(unit: Unit): Unit {
-  return { ...unit, lessons: unit.lessons.map((lesson, index) => ({ ...lesson, sequence: index + 1 })) };
+  const yearLevelIds = unitYearLevelIds(unit);
+  return { ...unit, yearLevelId: yearLevelIds[0], yearLevelIds, lessons: unit.lessons.map((lesson, index) => ({ ...lesson, sequence: index + 1 })) };
 }

@@ -3,6 +3,8 @@ import {
   DEFAULT_SESSION_SLOTS,
   PLANNER_SCHEMA_VERSION,
   clonePlanner,
+  unitAppliesToYearLevel,
+  unitYearLevelIds,
   type ClassColourId,
   type PlannerData,
   type ProgressMap,
@@ -139,8 +141,13 @@ export function validatePlannerData(value: unknown): PlannerData {
       };
     });
     uniqueIds(lessons, "Lesson");
+    const yearLevelId = string(item.yearLevelId, "Unit year level");
+    const yearLevelIds = Array.isArray(item.yearLevelIds)
+      ? [...new Set(item.yearLevelIds.map((value, index) => string(value, `Unit year level ${index + 1}`)))]
+      : [yearLevelId];
+    if (!yearLevelIds.includes(yearLevelId)) yearLevelIds.unshift(yearLevelId);
     return {
-      id: string(item.id, "Unit ID"), yearLevelId: string(item.yearLevelId, "Unit year level"),
+      id: string(item.id, "Unit ID"), yearLevelId, yearLevelIds,
       title: string(item.title, "Unit title"), description: optionalString(item.description, "Unit description"), lessons,
       externalResourceRef: externalResourceRef(item.externalResourceRef, "unit"),
     };
@@ -148,7 +155,7 @@ export function validatePlannerData(value: unknown): PlannerData {
   uniqueIds(units, "Unit");
 
   for (const item of classes) if (!yearLevels.some((level) => level.id === item.yearLevelId)) throw new Error(`Class ${item.name} has no valid year level.`);
-  for (const unit of units) if (!yearLevels.some((level) => level.id === unit.yearLevelId)) throw new Error(`Unit ${unit.title} has no valid year level.`);
+  for (const unit of units) if (unitYearLevelIds(unit).some((yearLevelId) => !yearLevels.some((level) => level.id === yearLevelId))) throw new Error(`Unit ${unit.title} has no valid year level.`);
   for (const unit of units) for (const lesson of unit.lessons) {
     if (lesson.externalResourceRef && (!unit.externalResourceRef || lesson.externalResourceRef.provider !== unit.externalResourceRef.provider || lesson.externalResourceRef.parentResourceId !== unit.externalResourceRef.resourceId)) {
       throw new Error(`Lesson ${lesson.title} does not belong to its linked external Unit.`);
@@ -159,7 +166,7 @@ export function validatePlannerData(value: unknown): PlannerData {
       if (level.expectedLessonId !== null) throw new Error(`${level.label} has an expected lesson but no unit.`);
       continue;
     }
-    const unit = units.find((candidate) => candidate.id === level.currentUnitId && candidate.yearLevelId === level.id);
+    const unit = units.find((candidate) => candidate.id === level.currentUnitId && unitAppliesToYearLevel(candidate, level.id));
     if (!unit) throw new Error(`${level.label} references an invalid current unit.`);
     if (!unit.lessons.some((lesson) => lesson.id === level.expectedLessonId)) throw new Error(`${level.label} references an invalid expected lesson.`);
   }
@@ -172,7 +179,7 @@ export function validatePlannerData(value: unknown): PlannerData {
     };
     const specialistClass = classes.find((candidate) => candidate.id === classId && candidate.id === progress.classId);
     const level = yearLevels.find((candidate) => candidate.id === specialistClass?.yearLevelId);
-    const unit = units.find((candidate) => candidate.id === progress.unitId && candidate.yearLevelId === level?.id);
+    const unit = units.find((candidate) => candidate.id === progress.unitId && unitAppliesToYearLevel(candidate, level?.id));
     if (!specialistClass || !unit?.lessons.some((lesson) => lesson.id === progress.lessonId)) throw new Error(`Progress for ${classId} has an invalid reference.`);
     if (progress.unitComplete && unit.lessons.at(-1)?.id !== progress.lessonId) throw new Error(`Progress for ${classId} marks an unfinished lesson as Unit complete.`);
     return [classId, progress];
@@ -192,7 +199,7 @@ export function validatePlannerData(value: unknown): PlannerData {
     };
     const specialistClass = classes.find((candidate) => candidate.id === classId && candidate.id === progress.classId);
     const level = yearLevels.find((candidate) => candidate.id === specialistClass?.yearLevelId);
-    const unit = units.find((candidate) => candidate.id === progress.unitId && candidate.yearLevelId === level?.id);
+    const unit = units.find((candidate) => candidate.id === progress.unitId && unitAppliesToYearLevel(candidate, level?.id));
     if (!specialistClass || !unit?.lessons.some((lesson) => lesson.id === progress.lessonId)) throw new Error(`Progress baseline for ${classId} has an invalid reference.`);
     if (progress.unitComplete && unit.lessons.at(-1)?.id !== progress.lessonId) throw new Error(`Progress baseline for ${classId} marks an unfinished lesson as Unit complete.`);
     return [classId, progress];
@@ -204,7 +211,7 @@ export function validatePlannerData(value: unknown): PlannerData {
     const specialistClass = classes.find((candidate) => candidate.id === classId && candidate.id === item.classId);
     const unitId = string(item.unitId, "Checkpoint unit ID");
     const lessonId = string(item.lessonId, "Checkpoint lesson ID");
-    const unit = units.find((candidate) => candidate.id === unitId && candidate.yearLevelId === specialistClass?.yearLevelId);
+    const unit = units.find((candidate) => candidate.id === unitId && unitAppliesToYearLevel(candidate, specialistClass?.yearLevelId));
     const effectiveDate = string(item.effectiveDate, "Checkpoint effective date");
     const createdAt = string(item.createdAt, "Checkpoint created timestamp");
     if (!specialistClass || !unit?.lessons.some((lesson) => lesson.id === lessonId)) throw new Error(`Progress checkpoint for ${classId} has an invalid reference.`);

@@ -30,7 +30,7 @@ import {
   writeCloudCache,
   type CloudPendingOperation,
 } from "@/lib/cloud-cache";
-import { type PlannerData } from "@/lib/domain";
+import { createUnitRecord, touchPlanner, type PlannerData } from "@/lib/domain";
 import { markOneTimeMigrationsApplied } from "@/lib/migration-markers";
 import { samplePlanner } from "@/lib/sample-data";
 import { loadPlanner } from "@/lib/storage";
@@ -118,12 +118,14 @@ function MigrationChoice({ planner, ownerEmail, backupConfirmed, onBackupConfirm
 }
 
 function ProgramOnboarding({ onCreate, busy, message }: {
-  onCreate: (subjectType: ProgramSubjectType, name: string) => Promise<void>;
+  onCreate: (subjectType: ProgramSubjectType, name: string, firstUnit?: { yearLevelName: string; unitTitle: string }) => Promise<void>;
   busy: boolean;
   message: string;
 }) {
   const [subjectType, setSubjectType] = useState<ProgramSubjectType>("art");
   const [name, setName] = useState(defaultProgramName("art"));
+  const [yearLevelName, setYearLevelName] = useState("");
+  const [unitTitle, setUnitTitle] = useState("");
   function choose(next: ProgramSubjectType) {
     setSubjectType(next);
     setName(defaultProgramName(next));
@@ -140,8 +142,16 @@ function ProgramOnboarding({ onCreate, busy, message }: {
         <span>{subjectType === "languages" ? "Language / Program name" : subjectType === "other" ? "Specialist area / Program name" : "Program name"}</span>
         <input value={name} onChange={(event) => setName(event.target.value)} placeholder={subjectType === "languages" ? "e.g. Mandarin or Japanese" : "e.g. Visual Arts"} />
       </label>
-      <p className="cloud-entry-copy">You can add year levels, classes, Units and your timetable progressively after creating the Program.</p>
-      <button className="primary-button" type="button" disabled={!name.trim() || busy} onClick={() => void onCreate(subjectType, name)}>{busy ? "Creating Program…" : `Create ${name.trim() || "Program"}`}</button>
+      <div className="onboarding-first-unit">
+        <span>Create your first Unit <i>optional</i></span>
+        <p>Add one teaching sequence now, or enter Week and build the Unit Library progressively.</p>
+        <div><label><span>Year level</span><input value={yearLevelName} onChange={(event) => setYearLevelName(event.target.value)} placeholder="e.g. Year 3" /></label><label><span>Unit title</span><input value={unitTitle} onChange={(event) => setUnitTitle(event.target.value)} placeholder="e.g. Drawing" /></label></div>
+      </div>
+      <p className="cloud-entry-copy">After creation, Week opens first. You can add classes, Lessons and your timetable progressively.</p>
+      <div className="cloud-entry-actions">
+        <button className="primary-button" type="button" disabled={!name.trim() || busy || Boolean(yearLevelName.trim()) !== Boolean(unitTitle.trim())} onClick={() => void onCreate(subjectType, name, yearLevelName.trim() && unitTitle.trim() ? { yearLevelName: yearLevelName.trim(), unitTitle: unitTitle.trim() } : undefined)}>{busy ? "Creating Program…" : yearLevelName.trim() && unitTitle.trim() ? "Create Program with first Unit" : `Create ${name.trim() || "Program"}`}</button>
+        {(yearLevelName || unitTitle) && <button className="secondary-button" type="button" disabled={busy} onClick={() => void onCreate(subjectType, name)}>I’ll add Units later</button>}
+      </div>
       {message && <p className="cloud-message" role="alert">{message}</p>}
       <small>No sample classes or progress will be added.</small>
     </section>
@@ -354,13 +364,26 @@ export function CloudPlannerApp() {
     }
   }
 
-  async function createNewProgram(subjectType: ProgramSubjectType, name: string) {
+  async function createNewProgram(subjectType: ProgramSubjectType, name: string, firstUnit?: { yearLevelName: string; unitTitle: string }) {
     if (!services || !user) return;
     setBusy(true);
     setMessage("");
     try {
       const programId = `program-${crypto.randomUUID()}`;
-      const planner = preparePlannerForProgram(programId, name);
+      let planner = preparePlannerForProgram(programId, name);
+      if (firstUnit) {
+        const yearLevelId = `year-${crypto.randomUUID()}`;
+        const numberLabel = firstUnit.yearLevelName.match(/\d+/)?.[0];
+        const shortLabel = numberLabel ?? firstUnit.yearLevelName.trim().slice(0, 2);
+        planner = touchPlanner({ ...planner, yearLevels: [{ id: yearLevelId, label: firstUnit.yearLevelName, shortLabel, currentUnitId: null, expectedLessonId: null }] });
+        planner = createUnitRecord(planner, {
+          id: `unit-${crypto.randomUUID()}`,
+          yearLevelId,
+          yearLevelIds: [yearLevelId],
+          title: firstUnit.unitTitle,
+          lessons: [{ id: `lesson-${crypto.randomUUID()}`, title: "First lesson", sequence: 1 }],
+        });
+      }
       const created = await createProgram(services.db, { programId, uid: user.uid, name, subjectType, customSubjectName: subjectType === "languages" || subjectType === "other" ? name : undefined, planner, mutationId: mutationId("create") });
       openWorkspace(created);
     } catch (error) {

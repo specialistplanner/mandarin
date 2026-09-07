@@ -21,11 +21,14 @@ import {
   setClassColour,
   setLessonExternalResource,
   setUnitExternalResource,
+  setUnitYearLevels,
   setCurrentUnit,
   setExpectedLesson,
   touchPlanner,
   updateLessonRecord,
   updateUnitDetails,
+  unitAppliesToYearLevel,
+  unitYearLevelIds,
   type PlannerData,
   type SessionSlot,
   type SessionType,
@@ -115,7 +118,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
   }
 
   function removeYearLevel(yearLevelId: string) {
-    const hasDependencies = planner.classes.some((item) => item.yearLevelId === yearLevelId) || planner.units.some((unit) => unit.yearLevelId === yearLevelId);
+    const hasDependencies = planner.classes.some((item) => item.yearLevelId === yearLevelId) || planner.units.some((unit) => unitAppliesToYearLevel(unit, yearLevelId));
     if (hasDependencies) return setMessage("Remove this year level’s classes and units first.");
     if (!window.confirm("Remove this empty year level?")) return;
     onChange(touchPlanner({ ...planner, yearLevels: planner.yearLevels.filter((item) => item.id !== yearLevelId) }));
@@ -158,7 +161,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
   }
 
   function removeLesson(unitId: string, lessonId: string, title: string) {
-    if (!window.confirm(`Delete “${title}”? Any class or cohort pointing to it will move to the nearest remaining lesson.`)) return;
+    if (!window.confirm(`Delete “${title}”? Deletion will be blocked if Progress or History still references this Lesson.`)) return;
     apply(() => deleteLessonRecord(planner, unitId, lessonId));
   }
 
@@ -293,7 +296,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
         <div>
           <p className="eyebrow">Planner settings</p>
           <h1>Set up your teaching week.</h1>
-          <p>Everything here is saved only in this browser. Changes appear in Week and Progress straight away.</p>
+          <p>{persistenceMode === "cloud" ? "This Program and its Unit Library sync to your private cloud workspace." : "Everything here is saved only in this browser."} Changes appear in Week and Progress straight away.</p>
         </div>
         <button className="primary-button" type="button" onClick={onBack}>Return to Week</button>
       </section>
@@ -303,7 +306,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
           <div className="setup-subject-card">
             <span>Active subject</span>
             <input aria-label="Active subject name" value={activeSubject.name} onChange={(event) => onChange(touchPlanner({ ...planner, subjects: planner.subjects.map((item) => item.id === activeSubject.id ? { ...item, name: event.target.value } : item) }))} />
-            <small>Single-subject mode for v0.5.1</small>
+            <small>{persistenceMode === "cloud" ? "Program-owned Unit Library" : "Single-subject local mode"}</small>
           </div>
           {([['cohorts', 'Year levels & units'], ['timetable', 'Weekly timetable'], ['notes', `Notes (${planner.trialNotes.length})`], ['data', 'Backup & reset']] as [SetupSection, string][]).map(([id, label]) => (
             <button type="button" key={id} className={section === id ? "active" : ""} onClick={() => setSection(id)}>{label}<span>→</span></button>
@@ -315,7 +318,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
 
           {section === "cohorts" && <>
             <div className="setup-section-title">
-              <div><p className="section-kicker">Step 1–3</p><h2>Year levels, classes & units</h2><p>Define the cohort reference, then set each class’s actual unit and next lesson independently.</p></div>
+              <div><p className="section-kicker">Program-owned Unit Library</p><h2>Year levels, classes & Units</h2><p>This Program owns its Units and Lessons. Week and Progress resolve their stable IDs while History keeps teaching snapshots readable.</p></div>
             </div>
             <div className="add-row top-add-row">
               <input value={newYearLabel} onChange={(event) => setNewYearLabel(event.target.value)} placeholder="New year level, e.g. Year 4" onKeyDown={(event) => event.key === "Enter" && addYearLevel()} />
@@ -323,11 +326,12 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
             </div>
 
             {!planner.yearLevels.length && <div className="setup-empty"><strong>Start with your first year level</strong><p>Add Prep, Year 1, Grade 4 East—or whatever naming your school uses.</p></div>}
+            {planner.yearLevels.length > 0 && !planner.units.length && <div className="setup-empty"><strong>No Units yet</strong><p>Add the teaching sequences you use with your classes. Open a year level below, then choose + New Unit.</p></div>}
 
             <div className="cohort-editor-list">
               {planner.yearLevels.map((level) => {
                 const cohort = planner.classes.filter((item) => item.yearLevelId === level.id);
-                const levelUnits = planner.units.filter((unit) => unit.yearLevelId === level.id);
+                const levelUnits = planner.units.filter((unit) => unitAppliesToYearLevel(unit, level.id));
                 const currentUnit = levelUnits.find((unit) => unit.id === level.currentUnitId);
                 return <details className="cohort-editor" key={level.id}>
                   <summary className="cohort-editor-summary">
@@ -386,19 +390,24 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
                         <div className="unit-fields">
                           <label><span>Unit name</span><input value={currentUnit.title} onChange={(event) => apply(() => updateUnitDetails(planner, currentUnit.id, event.target.value, currentUnit.description))} /></label>
                           <label><span>Short description <i>optional</i></span><input value={currentUnit.description ?? ""} onChange={(event) => apply(() => updateUnitDetails(planner, currentUnit.id, currentUnit.title, event.target.value))} /></label>
+                          <fieldset className="unit-year-levels"><legend>Year levels</legend>{planner.yearLevels.map((candidate) => {
+                            const selectedIds = unitYearLevelIds(currentUnit);
+                            const checked = selectedIds.includes(candidate.id);
+                            return <label key={candidate.id}><input type="checkbox" checked={checked} disabled={checked && selectedIds.length === 1} onChange={(event) => apply(() => setUnitYearLevels(planner, currentUnit.id, event.target.checked ? [...selectedIds, candidate.id] : selectedIds.filter((id) => id !== candidate.id)))} /><span>{candidate.label}</span></label>;
+                          })}</fieldset>
                           <label><span>Cohort expected / next lesson</span><select value={level.expectedLessonId ?? currentUnit.lessons[0].id} onChange={(event) => apply(() => setExpectedLesson(planner, level.id, event.target.value))}>
                             {currentUnit.lessons.map((lesson, index) => <option value={lesson.id} key={lesson.id}>Lesson {index + 1} · {lesson.title}</option>)}
                           </select></label>
                         </div>
-                        <div className="unit-library-link-panel">
+                        {(currentUnit.externalResourceRef?.provider === UNIT_LIBRARY_PROVIDER || /mandarin/i.test(activeSubject.name)) && <div className="unit-library-link-panel">
                           <div>
                             <span>Linked resource</span>
                             {currentUnit.externalResourceRef?.provider === UNIT_LIBRARY_PROVIDER
-                              ? <><strong>{findLinkedUnit(unitLibrary.index, currentUnit.externalResourceRef)?.title ?? currentUnit.externalResourceRef.label ?? currentUnit.externalResourceRef.resourceId}</strong><small>Unit Library owns this content.</small></>
-                              : <><strong>Local only</strong><small>Resource linking is optional.</small></>}
+                              ? <><strong>{findLinkedUnit(unitLibrary.index, currentUnit.externalResourceRef)?.title ?? currentUnit.externalResourceRef.label ?? currentUnit.externalResourceRef.resourceId}</strong><small>Optional linked Mandarin teaching resource.</small></>
+                              : <><strong>Program Unit only</strong><small>External resource linking is optional.</small></>}
                           </div>
                           {currentUnit.externalResourceRef?.provider === UNIT_LIBRARY_PROVIDER && <ResourceLinkAction reference={currentUnit.externalResourceRef} library={unitLibrary} onRelink={() => setLinkingUnitId(currentUnit.id)} />}
-                          <button className="secondary-button compact-button" type="button" onClick={() => setLinkingUnitId(linkingUnitId === currentUnit.id ? null : currentUnit.id)}>{currentUnit.externalResourceRef ? "Change link" : "Choose from Unit Library"}</button>
+                          <button className="secondary-button compact-button" type="button" onClick={() => setLinkingUnitId(linkingUnitId === currentUnit.id ? null : currentUnit.id)}>{currentUnit.externalResourceRef ? "Change link" : "Link Mandarin resource"}</button>
                           {currentUnit.externalResourceRef && <button className="text-button danger" type="button" onClick={() => apply(() => setUnitExternalResource(planner, currentUnit.id))}>Remove link</button>}
                           {linkingUnitId === currentUnit.id && <div className="unit-library-chooser">
                             {unitLibrary.status === "loading" ? <p>Loading Unit Library…</p> : unitLibrary.status === "unavailable" ? <p>Unit Library is unavailable. Your local Unit remains unchanged.</p> : <label><span>Choose Unit Library Unit</span><select defaultValue="" onChange={(event) => {
@@ -406,7 +415,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
                               if (linked) { apply(() => setUnitExternalResource(planner, currentUnit.id, unitReference(linked))); setLinkingUnitId(null); }
                             }}><option value="" disabled>Select a Unit</option>{unitLibrary.index?.units.map((unit) => <option value={unit.id} key={unit.id}>{unit.yearLevel === 0 ? "Prep" : `Year ${unit.yearLevel}`} · {unit.title}</option>)}</select><small>{unitLibrary.source === "live" ? "Live sync · refreshes automatically" : "Using published snapshot · live service unavailable"}</small></label>}
                           </div>}
-                        </div>
+                        </div>}
                         <div className="lesson-editor-title"><span>Lesson sequence</span><small>Progress follows lesson IDs when order changes.</small></div>
                         <ol className="lesson-editor-list">
                           {currentUnit.lessons.map((lesson, index) => <li key={lesson.id}>
@@ -440,7 +449,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
                         <button type="button" onClick={() => addUnit(level.id)}>Create & use</button>
                         {currentUnit && levelUnits.length > 1 && <button className="text-button danger" type="button" onClick={() => {
                           const other = levelUnits.find((unit) => unit.id !== currentUnit.id)!;
-                          if (!window.confirm(`Replace “${currentUnit.title}” with “${other.title}” and delete the old unit? Class progress will reset.`)) return;
+                          if (!window.confirm(`Replace “${currentUnit.title}” with “${other.title}” and delete the old Unit? Deletion will be blocked if any Progress or History still references it.`)) return;
                           apply(() => deleteUnitRecord(setCurrentUnit(planner, level.id, other.id), currentUnit.id));
                         }}>Replace current</button>}
                       </div>

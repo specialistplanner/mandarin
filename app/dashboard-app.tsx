@@ -19,6 +19,7 @@ import { applyLiveTrialWeekReset, LIVE_TRIAL_WEEK_RESET_KEY } from "@/lib/live-t
 import { GENERALIST_COVER_MIGRATION_KEY, migrateClassCoverToGeneralistTeaching } from "@/lib/generalist-cover-migration";
 import { markOneTimeMigrationsApplied, SESSION_ONE_LABEL_MIGRATION_KEY } from "@/lib/migration-markers";
 import { APP_VERSION, RELEASE_DATE_LABEL, RELEASE_NAME } from "@/lib/release";
+import { UNIT_LIBRARY_PROVIDER } from "@/lib/unit-library";
 import { SetupView } from "./setup-view";
 import { WeekView } from "./week-view";
 import { ResourceLinkAction } from "./resource-link";
@@ -113,7 +114,9 @@ export function DashboardApp({ cloud }: { cloud?: CloudWorkspaceControls } = {})
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [quickNote, setQuickNote] = useState<{ classId?: string; context: string } | null>(null);
   const [quickNoteText, setQuickNoteText] = useState("");
-  const unitLibrary = useUnitLibrary();
+  const activeProgramName = planner?.subjects.find((subject) => subject.id === planner.activeSubjectId)?.name ?? "";
+  const hasMandarinLibraryLinks = planner?.units.some((unit) => unit.externalResourceRef?.provider === UNIT_LIBRARY_PROVIDER) ?? false;
+  const unitLibrary = useUnitLibrary(/mandarin/i.test(activeProgramName) || hasMandarinLibraryLinks);
 
   function setPlanner(next: PlannerData) {
     setPlannerState(next);
