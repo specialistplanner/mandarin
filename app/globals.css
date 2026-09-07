@@ -597,6 +597,9 @@ textarea { padding: 11px; resize: vertical; }
 .migration-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 20px 0; }
 .migration-summary span { min-width: 0; display: flex; flex-direction: column; border-radius: 13px; background: #edf2eb; color: var(--muted); padding: 13px; font-size: 9px; }
 .migration-summary strong { color: var(--forest); font-family: var(--font-display), serif; font-size: 24px; }
+.program-owner-note { display: grid; gap: 4px; margin: 14px 0; border-left: 4px solid var(--aqua-dark); border-radius: 8px; background: #edf5f2; padding: 12px 14px; color: var(--forest); }
+.program-owner-note strong { font-size: 12px; overflow-wrap: anywhere; }
+.program-owner-note span { color: var(--muted); font-size: 10px; line-height: 1.5; }
 .backup-confirmation { display: flex; align-items: flex-start; gap: 10px; border: 1px solid #e0c48c; border-radius: 13px; background: #fff9ed; padding: 13px; cursor: pointer; }
 .backup-confirmation input { margin-top: 3px; accent-color: var(--forest); }
 .backup-confirmation span { display: flex; flex-direction: column; gap: 3px; font-size: 11px; }

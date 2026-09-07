@@ -4,6 +4,7 @@ import { SUBJECT_PRESETS, activeProgramName, defaultProgramName, makeCloudProgra
 import { cloudCacheKey, finishMigrationIntent, migrationIntentKey, migrationProgramId, readCloudCache, writeCloudCache } from "../lib/cloud-cache.ts";
 import { AUTH_PROVIDER_IDS, readFirebasePublicConfig } from "../firebase/client.ts";
 import { freshSamplePlanner } from "../lib/sample-data.ts";
+import { readFile } from "node:fs/promises";
 
 function memoryStorage() {
   const data = new Map();
@@ -78,4 +79,19 @@ test("Firebase configuration exposes only public client settings and recognised 
   assert.equal(config?.authMicrosoftEnabled, false);
   assert.equal("clientSecret" in (config ?? {}), false);
   assert.equal(readFirebasePublicConfig({}), null);
+});
+
+test("v0.6 entry is authentication-first and established Programs launch into Week", async () => {
+  const cloudSource = await readFile(new URL("../app/cloud-planner-app.tsx", import.meta.url), "utf8");
+  const dashboardSource = await readFile(new URL("../app/dashboard-app.tsx", import.meta.url), "utf8");
+  assert.match(cloudSource, /Continue with Google/);
+  assert.match(cloudSource, /Continue with Microsoft/);
+  assert.match(cloudSource, /Create your Specialist Planner/);
+  assert.match(cloudSource, /Existing Planner found/);
+  assert.match(cloudSource, /Use this same Specialist Planner sign-in identity on every device/);
+  assert.match(cloudSource, /Google and Microsoft accounts are not automatically merged/);
+  assert.doesNotMatch(cloudSource, /Start a blank one/);
+  assert.match(dashboardSource, /useState<AppView>\("week"\)/);
+  assert.match(cloudSource, /Synced to cloud/);
+  assert.match(cloudSource, /Offline · changes saved locally/);
 });

@@ -81,8 +81,9 @@ function AuthScreen({ googleEnabled, microsoftEnabled, onSignIn, message }: {
   </main>;
 }
 
-function MigrationChoice({ planner, backupConfirmed, onBackupConfirmed, onMigrate, onCreateNew, busy, message }: {
+function MigrationChoice({ planner, ownerEmail, backupConfirmed, onBackupConfirmed, onMigrate, onCreateNew, busy, message }: {
   planner: PlannerData;
+  ownerEmail: string;
   backupConfirmed: boolean;
   onBackupConfirmed: (confirmed: boolean) => void;
   onMigrate: () => Promise<void>;
@@ -101,6 +102,7 @@ function MigrationChoice({ planner, backupConfirmed, onBackupConfirmed, onMigrat
         <span><strong>{summary.recordedSessions}</strong> recorded sessions</span>
       </div>
       <p className="cloud-entry-copy">Move this local Program into your private cloud workspace. The local copy will remain untouched until you verify the cloud version.</p>
+      <p className="program-owner-note"><strong>Cloud owner: {ownerEmail}</strong><span>Use this same Specialist Planner sign-in identity on every device. Google and Microsoft accounts are not automatically merged.</span></p>
       <label className="backup-confirmation">
         <input aria-label="Confirm that a fresh JSON backup was exported" type="checkbox" checked={backupConfirmed} onChange={(event) => onBackupConfirmed(event.target.checked)} />
         <span><strong>I exported a fresh JSON backup</strong><small>Required before the first cloud migration.</small></span>
@@ -129,7 +131,7 @@ function ProgramOnboarding({ onCreate, busy, message }: {
   return <main className="cloud-entry">
     <section className="cloud-entry-card onboarding-program">
       <p className="eyebrow">Welcome to Specialist Planner</p>
-      <h1>Create your private Program</h1>
+      <h1>Create your Specialist Planner</h1>
       <fieldset>
         <legend>What do you teach?</legend>
         <div className="preset-grid">{SUBJECT_PRESETS.map((preset) => <button className={subjectType === preset.id ? "active" : ""} type="button" key={preset.id} onClick={() => choose(preset.id)}>{preset.label}</button>)}</div>
@@ -389,7 +391,7 @@ export function CloudPlannerApp() {
   if (!services) return <AuthScreen googleEnabled={false} microsoftEnabled={false} onSignIn={handleSignIn} message={message} />;
   if (phase === "initializing" || phase === "loading-program") return <div className="loading-screen"><span className="brand-mark">SP</span><p>{phase === "initializing" ? "Opening secure sign-in…" : "Opening your private Program…"}</p></div>;
   if (phase === "signed-out" || (phase === "error" && !user)) return <AuthScreen googleEnabled={services.config.authGoogleEnabled} microsoftEnabled={services.config.authMicrosoftEnabled} onSignIn={handleSignIn} message={message} />;
-  if (phase === "migration" && localPlanner) return <MigrationChoice planner={localPlanner} backupConfirmed={backupConfirmed} onBackupConfirmed={setBackupConfirmed} onMigrate={migrateLocalProgram} onCreateNew={() => setPhase("onboarding")} busy={busy} message={message} />;
+  if (phase === "migration" && localPlanner && user) return <MigrationChoice planner={localPlanner} ownerEmail={user.email ?? "this signed-in account"} backupConfirmed={backupConfirmed} onBackupConfirmed={setBackupConfirmed} onMigrate={migrateLocalProgram} onCreateNew={() => setPhase("onboarding")} busy={busy} message={message} />;
   if (phase === "onboarding") return <ProgramOnboarding onCreate={createNewProgram} busy={busy} message={message} />;
   if (phase === "workspace" && program && user) return <>
     <DashboardApp key={`${program.id}-${workspaceEpoch}`} cloud={{ planner: program.data, user: { displayName: user.displayName ?? user.email?.split("@")[0] ?? "Teacher", email: user.email ?? "Signed-in account", initials: initialsFor(user) }, sync, onPlannerChange: changePlanner, onImportBackup: importCloudBackup, onSignOut: handleSignOut }} />

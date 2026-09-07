@@ -61,6 +61,8 @@ service cloud.firestore {
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.schemaVersion == resource.data.schemaVersion
         && request.resource.data.plannerSchemaVersion == resource.data.plannerSchemaVersion
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
         && request.resource.data.revision == resource.data.revision + 1
         && request.resource.data.lastMutationId is string
         && request.resource.data.updatedAt == request.time

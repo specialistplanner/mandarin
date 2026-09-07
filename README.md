@@ -1,16 +1,26 @@
-# Specialist Planner v0.5.1
+# Specialist Planner v0.6 development
 
-Specialist Planner is a local-first, progress-aware weekly planner for a single specialist teacher. v0.5.1 retains the stable v0.5.0 classroom workflow and adds a migration-safety hotfix for authoritative backup restores on a new browser origin.
+Specialist Planner is a private, progress-aware weekly planner for a single specialist teacher. v0.6 adds authenticated cloud Programs and cross-device continuity while preserving the stable v0.5.1 classroom workflow, JSON backups and local resilience.
 
 ## Production
 
-The independent production site is:
+The stable v0.5.1 production site remains:
 
 **https://specialistplanner.github.io/mandarin/**
 
 Production is built from `main` by [the GitHub Pages workflow](.github/workflows/pages.yml). Vite emits a static site to `dist-pages` using the required `/mandarin/` base path, and GitHub Actions deploys that artifact. The application has one client-side page, so bookmarking or refreshing the production URL does not depend on a server-side route fallback.
 
-The former `chatgpt.site` deployment is a temporary migration reference only. It is not the production identity and should remain available until the imported data has been checked on the independent site.
+v0.6 remains on its staging branch and private preview until the release-blocking migration, provider, isolation, cross-device and regression checks pass. The former `chatgpt.site` deployment remains available as an owner-only staging and migration reference.
+
+## Authentication and startup routing
+
+- Signed-out visitors see Google and Microsoft sign-in before any Planner creation path.
+- A signed-in teacher with one cloud Program opens that Program directly in **Week**.
+- A signed-in teacher with no cloud Program enters first-time specialist-area onboarding.
+- If a valid local v0.5.x Planner is present, the teacher is offered an explicit cloud migration before blank Program creation.
+- JSON import remains disaster recovery; it is not the normal way to move an established cloud Program between devices.
+
+Cloud ownership belongs to the exact authenticated Specialist Planner identity shown during migration and in the account menu. A Google identity and a Microsoft identity are separate unless a future release implements verified provider linking. v0.6 never merges accounts by name, similar email, browser state or client-side assertion. The owner must use the same authenticated identity on every device.
 
 ## Core views
 
@@ -31,23 +41,23 @@ The former `chatgpt.site` deployment is a temporary migration reference only. It
 
 Planner Units and Lessons can optionally link to the independent [The Mandarin Room Unit Library](https://themandarinroom.github.io/units/). Planner owns timetable, outcomes and progress; Unit Library owns teaching content. Missing or unavailable Library resources do not prevent Week, Progress, History or outcome recording from working.
 
-## Local storage and backup
+## Cloud storage, local resilience and backup
 
-Planner state is stored in this browser under `specialist-planner.data.v9`. JSON export/import is the complete backup format, preserving subjects, cohorts, Units, Lessons, class progress, checkpoints, timetable and session times, class colours, confirmed Teaching Sessions, History snapshots, resource references, Notes and reconciliation metadata. Import is validated before replacing current data. If current storage cannot be read, Planner preserves it and opens a deliberate backup-recovery screen instead of silently loading older data.
+Cloud Programs are privately owned Firestore documents protected by owner-only security rules. Each save uses a monotonic revision and mutation ID so stale devices cannot silently overwrite a newer revision. The footer reports **Synced to cloud**, **Saving…**, **Sync pending**, or **Offline · changes saved locally** truthfully. Offline cache keys include the authenticated UID and are never loaded for another account.
 
-Browser storage is origin-specific. Data saved on `chatgpt.site` does not automatically appear on `specialistplanner.github.io`, and data on one computer does not automatically appear on another. Until cloud sync is introduced, JSON export/import is the manual migration and device-transfer mechanism.
+JSON export/import remains the complete backup format. A cloud restore validates the file, requires a currently synced Program, creates an immutable pre-restore snapshot, writes through revision protection and verifies the restored Program. Legacy localStorage stays intact until the first cloud migration has been read back successfully.
 
-### Move existing data to production
+### Move an existing v0.5.x Planner into v0.6
 
-1. On the old site, open **Settings → Backup & reset** and export a JSON backup.
-2. Keep that file outside the browser and do not commit or publish it.
-3. Open the independent production site and choose **Import backup** in **Settings → Backup & reset**.
-4. Compare Week, Progress, Units, History and Settings, including timetable, colours, class positions, outcomes, reconciliation data, Notes and Unit Library links.
-5. Keep the old site unchanged as a temporary reference until the new site has been verified through normal use.
+1. On the original device, open **Settings → Backup & reset** and export a fresh JSON backup.
+2. Keep the backup outside the browser and never commit or publish it.
+3. Sign in with the account that should permanently own the Program.
+4. Review the detected Program summary and confirm the fresh backup before choosing **Move this Program to my cloud account**.
+5. Verify Week, Progress, Units, History and Settings from the cloud copy, then sign in with that same identity on a second device and confirm it opens directly in Week without JSON import.
 
 ## Current limitations
 
-v0.5.x is a stable single-teacher, single-subject, device-and-browser-local Planner. Independent hosting means the application can be opened on another computer; it does not make local Planner data follow the teacher automatically. It does not provide accounts, cross-device cloud sync, multi-teacher collaboration, co-teaching, CRT workflows, curriculum integration, reports, analytics or notifications. Those remain outside the v0.5 release boundary.
+v0.6 remains single-owner and single-Program in normal use. It does not include sharing, co-teaching, automatic Google/Microsoft identity merging, CRT workflows, curriculum integration, reports, analytics or notifications. Microsoft sign-in is a release blocker until a real Microsoft Entra application registration is connected and tested.
 
 ## Development and preview
 
