@@ -1,4 +1,4 @@
-import { PLANNER_SCHEMA_VERSION, type PlannerData } from "./domain.ts";
+import { PLANNER_SCHEMA_VERSION, clonePlanner, type PlannerData } from "./domain.ts";
 import { createBlankPlanner } from "./sample-data.ts";
 import { validatePlannerData } from "./storage.ts";
 
@@ -107,7 +107,7 @@ export function makeCloudProgram(input: {
     lastMutationId: input.mutationId,
     createdAt: input.timestamp ?? null,
     updatedAt: input.timestamp ?? null,
-    data: planner,
+    data: clonePlanner(planner),
   };
 }
 
@@ -134,7 +134,7 @@ export function validateCloudProgram(value: unknown): CloudProgram {
     lastMutationId: candidate.lastMutationId,
     createdAt: candidate.createdAt,
     updatedAt: candidate.updatedAt,
-    data: validatePlannerData(candidate.data),
+    data: clonePlanner(validatePlannerData(candidate.data)),
   };
 }
 
