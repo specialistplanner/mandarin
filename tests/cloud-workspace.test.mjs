@@ -94,4 +94,7 @@ test("v0.6 entry is authentication-first and established Programs launch into We
   assert.match(dashboardSource, /useState<AppView>\("week"\)/);
   assert.match(cloudSource, /Synced to cloud/);
   assert.match(cloudSource, /Offline · changes saved locally/);
+  assert.match(cloudSource, /pending: cached\.pending/);
+  assert.match(cloudSource, /pendingOperation: cached\.pendingOperation/);
+  assert.doesNotMatch(cloudSource, /tone === "pending" \|\| tone === "offline"/);
 });

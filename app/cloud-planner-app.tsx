@@ -187,18 +187,25 @@ export function CloudPlannerApp() {
     });
   }, []);
 
-  const openWorkspace = useCallback((next: CloudProgram, tone: SyncTone = "synced", label = "Synced to cloud") => {
+  const openWorkspace = useCallback((next: CloudProgram, options: {
+    tone?: SyncTone;
+    label?: string;
+    pending?: boolean;
+    pendingOperation?: CloudPendingOperation | null;
+  } = {}) => {
+    const tone = options.tone ?? "synced";
+    const label = options.label ?? "Synced to cloud";
     programRef.current = next;
     plannerRef.current = next.data;
     revisionRef.current = next.revision;
-    pendingOperationRef.current = null;
+    pendingOperationRef.current = options.pendingOperation ?? null;
     conflictRef.current = null;
     setProgram(next);
     setSync({ tone, label });
     setConflict(null);
     setWorkspaceEpoch((current) => current + 1);
     setPhase("workspace");
-    cacheProgram(next, tone === "pending" || tone === "offline");
+    cacheProgram(next, options.pending ?? false, options.pendingOperation?.mutationId, options.pendingOperation);
   }, [cacheProgram]);
 
   useEffect(() => {
@@ -237,8 +244,12 @@ export function CloudPlannerApp() {
               ...makeCloudProgram({ id: cached.programId, ownerUid: nextUser.uid, name: cached.programName, subjectType: cached.subjectType, customSubjectName: cached.customSubjectName, planner: cached.planner, mutationId: cached.mutationId ?? "cached-state" }),
               revision: cached.revision,
             };
-            openWorkspace(cachedProgram, cached.pending ? "pending" : "offline", cached.pending ? "Sync pending" : "Offline · showing your locked local cache");
-            pendingOperationRef.current = cached.pendingOperation ?? null;
+            openWorkspace(cachedProgram, {
+              tone: cached.pending ? "pending" : "offline",
+              label: cached.pending ? "Sync pending" : "Offline · showing your locked local cache",
+              pending: cached.pending,
+              pendingOperation: cached.pendingOperation ?? null,
+            });
             if (cached.pending && navigator.onLine) setTimeout(() => void flushRef.current(), 1000);
             return;
           }

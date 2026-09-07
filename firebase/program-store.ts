@@ -15,9 +15,12 @@ import { clonePlanner, type PlannerData } from "../lib/domain.ts";
 import { activeProgramName, makeCloudProgram, programBelongsTo, validateCloudProgram, type CloudProgram, type ProgramSubjectType } from "../lib/cloud-program.ts";
 
 export class ProgramConflictError extends Error {
-  constructor(public latest: CloudProgram) {
+  latest: CloudProgram;
+
+  constructor(latest: CloudProgram) {
     super("This Program was updated on another device.");
     this.name = "ProgramConflictError";
+    this.latest = latest;
   }
 }
 
