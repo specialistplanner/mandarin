@@ -5,7 +5,8 @@
         "oAuthBrandDisplayName": "Specialist Planner",
         "supportEmail": "wei.wang.mandarin@gmail.com",
         "authorizedRedirectUris": [
-          "https://specialistplanner.github.io"
+          "https://specialistplanner.github.io",
+          "https://specialist-progress-dashboard.vivien-wangwei.chatgpt.site"
         ]
       }
     }
