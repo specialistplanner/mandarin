@@ -41,6 +41,15 @@ ruleTest("a teacher can create and update only their own Program", async () => {
   await assertSucceeds(updateDoc(reference, { name: "Visual Arts 2027", revision: 2, lastMutationId: "save-a", updatedAt: serverTimestamp(), data: { schemaVersion: 9, marker: "owner update" } }));
 });
 
+ruleTest("a signed-in create transaction can read an unused random Program ID without exposing an existing Program", async () => {
+  const owner = environment.authenticatedContext("teacher-a").firestore();
+  const other = environment.authenticatedContext("teacher-b").firestore();
+  const missing = await assertSucceeds(getDoc(doc(owner, "programs", "unused-random-id")));
+  assert.equal(missing.exists(), false);
+  await assertSucceeds(setDoc(doc(owner, "programs", "program-private"), program("teacher-a", "program-private")));
+  await assertFails(getDoc(doc(other, "programs", "program-private")));
+});
+
 ruleTest("revision skipping, ownership changes and injected membership are denied", async () => {
   const owner = environment.authenticatedContext("teacher-a").firestore();
   const reference = doc(owner, "programs", "program-a");
