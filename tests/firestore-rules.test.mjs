@@ -87,7 +87,7 @@ ruleTest("pre-restore snapshots are owner-readable, immutable and owner-created"
 ruleTest("Program writes reload across clients, retry idempotently and reject stale revisions", async () => {
   const owner = environment.authenticatedContext("teacher-a").firestore();
   const initialPlanner = freshSamplePlanner();
-  const created = await createProgram(owner, { programId: "program-a", uid: "teacher-a", name: "Mandarin", subjectType: "languages", customSubjectName: "Mandarin", planner: initialPlanner, mutationId: "create-a" });
+  const created = await createProgram(owner, { programId: "program-sync", uid: "teacher-a", name: "Mandarin", subjectType: "languages", customSubjectName: "Mandarin", planner: initialPlanner, mutationId: "create-sync" });
   assert.equal(created.revision, 1);
 
   const changedPlanner = {
@@ -95,23 +95,23 @@ ruleTest("Program writes reload across clients, retry idempotently and reject st
     subjects: initialPlanner.subjects.map((subject) => subject.id === initialPlanner.activeSubjectId ? { ...subject, name: "Mandarin 2027" } : subject),
     updatedAt: new Date().toISOString(),
   };
-  const saved = await saveProgram(owner, { uid: "teacher-a", programId: "program-a", expectedRevision: 1, planner: changedPlanner, mutationId: "save-a" });
+  const saved = await saveProgram(owner, { uid: "teacher-a", programId: "program-sync", expectedRevision: 1, planner: changedPlanner, mutationId: "save-sync" });
   assert.equal(saved.revision, 2);
   assert.equal(saved.name, "Mandarin 2027");
 
-  const replayed = await saveProgram(owner, { uid: "teacher-a", programId: "program-a", expectedRevision: 1, planner: changedPlanner, mutationId: "save-a" });
+  const replayed = await saveProgram(owner, { uid: "teacher-a", programId: "program-sync", expectedRevision: 1, planner: changedPlanner, mutationId: "save-sync" });
   assert.equal(replayed.revision, 2);
-  await assert.rejects(() => saveProgram(owner, { uid: "teacher-a", programId: "program-a", expectedRevision: 1, planner: initialPlanner, mutationId: "stale-a" }), ProgramConflictError);
+  await assert.rejects(() => saveProgram(owner, { uid: "teacher-a", programId: "program-sync", expectedRevision: 1, planner: initialPlanner, mutationId: "stale-sync" }), ProgramConflictError);
 
-  const reloaded = await loadProgram(owner, "teacher-a", "program-a");
+  const reloaded = await loadProgram(owner, "teacher-a", "program-sync");
   const listed = await listProgramsForUser(owner, "teacher-a");
   assert.equal(reloaded.name, "Mandarin 2027");
-  assert.deepEqual(listed.map((item) => item.id), ["program-a"]);
+  assert.deepEqual(listed.map((item) => item.id), ["program-sync"]);
 
-  const restored = await restoreProgram(owner, { uid: "teacher-a", programId: "program-a", expectedRevision: 2, restoredPlanner: initialPlanner, mutationId: "restore-a" });
+  const restored = await restoreProgram(owner, { uid: "teacher-a", programId: "program-sync", expectedRevision: 2, restoredPlanner: initialPlanner, mutationId: "restore-sync" });
   assert.equal(restored.revision, 3);
   assert.equal(restored.name, "Mandarin");
-  assert.equal((await getDocs(collection(owner, "programs", "program-a", "snapshots"))).size, 1);
+  assert.equal((await getDocs(collection(owner, "programs", "program-sync", "snapshots"))).size, 1);
 });
 
 ruleTest("two teacher accounts create and list independent Programs", async () => {
@@ -124,15 +124,15 @@ ruleTest("two teacher accounts create and list independent Programs", async () =
     units: freshSamplePlanner().units.map((unit, index) => index === 0 ? { ...unit, title: "Movement Fundamentals" } : unit),
     updatedAt: new Date().toISOString(),
   };
-  await createProgram(teacherA, { programId: "program-a", uid: "teacher-a", name: "Mandarin", subjectType: "languages", customSubjectName: "Mandarin", planner: plannerA, mutationId: "create-a" });
-  await createProgram(teacherB, { programId: "program-b", uid: "teacher-b", name: "Physical Education", subjectType: "pe", planner: plannerB, mutationId: "create-b" });
+  await createProgram(teacherA, { programId: "program-teacher-a", uid: "teacher-a", name: "Mandarin", subjectType: "languages", customSubjectName: "Mandarin", planner: plannerA, mutationId: "create-teacher-a-isolated" });
+  await createProgram(teacherB, { programId: "program-teacher-b", uid: "teacher-b", name: "Physical Education", subjectType: "pe", planner: plannerB, mutationId: "create-teacher-b-isolated" });
 
   const programsA = await listProgramsForUser(teacherA, "teacher-a");
   const programsB = await listProgramsForUser(teacherB, "teacher-b");
-  assert.deepEqual(programsA.map((item) => item.id), ["program-a"]);
-  assert.deepEqual(programsB.map((item) => item.id), ["program-b"]);
+  assert.deepEqual(programsA.map((item) => item.id), ["program-teacher-a"]);
+  assert.deepEqual(programsB.map((item) => item.id), ["program-teacher-b"]);
   assert.equal(programsA[0].data.units.some((unit) => unit.title === "Movement Fundamentals"), false);
   assert.equal(programsB[0].data.units.some((unit) => unit.title === "Movement Fundamentals"), true);
-  await assert.rejects(() => loadProgram(teacherA, "teacher-a", "program-b"));
-  await assert.rejects(() => loadProgram(teacherB, "teacher-b", "program-a"));
+  await assert.rejects(() => loadProgram(teacherA, "teacher-a", "program-teacher-b"));
+  await assert.rejects(() => loadProgram(teacherB, "teacher-b", "program-teacher-a"));
 });
