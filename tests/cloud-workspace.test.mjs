@@ -74,9 +74,10 @@ test("migration retries use one stable Program ID until verification finishes", 
 
 test("Firebase configuration exposes only public client settings and recognised providers", () => {
   assert.deepEqual(AUTH_PROVIDER_IDS, { google: "google.com", microsoft: "microsoft.com" });
-  const config = readFirebasePublicConfig({ VITE_FIREBASE_API_KEY: "public-browser-key", VITE_FIREBASE_AUTH_DOMAIN: "example.firebaseapp.com", VITE_FIREBASE_PROJECT_ID: "example", VITE_FIREBASE_APP_ID: "app-id", VITE_FIREBASE_MESSAGING_SENDER_ID: "sender", VITE_FIREBASE_AUTH_GOOGLE_ENABLED: "true", VITE_FIREBASE_AUTH_MICROSOFT_ENABLED: "false" });
+  const config = readFirebasePublicConfig({ VITE_FIREBASE_API_KEY: "public-browser-key", VITE_FIREBASE_AUTH_DOMAIN: "example.firebaseapp.com", VITE_FIREBASE_PROJECT_ID: "example", VITE_FIREBASE_APP_ID: "app-id", VITE_FIREBASE_MESSAGING_SENDER_ID: "sender", VITE_FIREBASE_AUTH_GOOGLE_ENABLED: "true", VITE_FIREBASE_AUTH_MICROSOFT_ENABLED: "true", VITE_FIREBASE_AUTH_MICROSOFT_VISIBLE: "false" });
   assert.equal(config?.authGoogleEnabled, true);
-  assert.equal(config?.authMicrosoftEnabled, false);
+  assert.equal(config?.authMicrosoftEnabled, true);
+  assert.equal(config?.authMicrosoftVisible, false);
   assert.equal("clientSecret" in (config ?? {}), false);
   assert.equal(readFirebasePublicConfig({}), null);
 });
@@ -86,10 +87,10 @@ test("v0.6 entry is authentication-first and established Programs launch into We
   const dashboardSource = await readFile(new URL("../app/dashboard-app.tsx", import.meta.url), "utf8");
   assert.match(cloudSource, /Continue with Google/);
   assert.match(cloudSource, /Continue with Microsoft/);
+  assert.match(cloudSource, /microsoftVisible &&/);
   assert.match(cloudSource, /Create your Specialist Planner/);
   assert.match(cloudSource, /Existing Planner found/);
-  assert.match(cloudSource, /Use this same Specialist Planner sign-in identity on every device/);
-  assert.match(cloudSource, /Google and Microsoft accounts are not automatically merged/);
+  assert.match(cloudSource, /Use this same Google account on every device/);
   assert.doesNotMatch(cloudSource, /Start a blank one/);
   assert.match(dashboardSource, /useState<AppView>\("week"\)/);
   assert.match(cloudSource, /Synced to cloud/);

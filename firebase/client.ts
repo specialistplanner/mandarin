@@ -19,6 +19,7 @@ export type AuthProviderName = keyof typeof AUTH_PROVIDER_IDS;
 export type FirebasePublicConfig = FirebaseOptions & {
   authGoogleEnabled: boolean;
   authMicrosoftEnabled: boolean;
+  authMicrosoftVisible: boolean;
   useEmulators: boolean;
 };
 
@@ -52,6 +53,7 @@ export function readFirebasePublicConfig(environment: Record<string, string | bo
     storageBucket: typeof environment.VITE_FIREBASE_STORAGE_BUCKET === "string" ? environment.VITE_FIREBASE_STORAGE_BUCKET : undefined,
     authGoogleEnabled: bool(String(environment.VITE_FIREBASE_AUTH_GOOGLE_ENABLED ?? "false")),
     authMicrosoftEnabled: bool(String(environment.VITE_FIREBASE_AUTH_MICROSOFT_ENABLED ?? "false")),
+    authMicrosoftVisible: bool(String(environment.VITE_FIREBASE_AUTH_MICROSOFT_VISIBLE ?? "false")),
     useEmulators: bool(String(environment.VITE_USE_FIREBASE_EMULATORS ?? "false")),
   };
 }

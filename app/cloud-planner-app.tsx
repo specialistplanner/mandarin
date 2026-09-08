@@ -58,9 +58,10 @@ function inferredSubject(name: string): ProgramSubjectType {
   return LANGUAGE_NAMES.some((language) => name.toLowerCase().includes(language.toLowerCase())) ? "languages" : "other";
 }
 
-function AuthScreen({ googleEnabled, microsoftEnabled, onSignIn, message }: {
+function AuthScreen({ googleEnabled, microsoftEnabled, microsoftVisible, onSignIn, message }: {
   googleEnabled: boolean;
   microsoftEnabled: boolean;
+  microsoftVisible: boolean;
   onSignIn: (provider: AuthProviderName) => Promise<void>;
   message: string;
 }) {
@@ -72,9 +73,8 @@ function AuthScreen({ googleEnabled, microsoftEnabled, onSignIn, message }: {
       <p className="cloud-entry-copy">A private workspace for specialist teachers, available wherever you sign in.</p>
       <div className="identity-actions">
         <button type="button" disabled={!googleEnabled} onClick={() => void onSignIn("google")}><span aria-hidden="true">G</span>Continue with Google</button>
-        <button type="button" disabled={!microsoftEnabled} onClick={() => void onSignIn("microsoft")}><span aria-hidden="true" className="microsoft-mark">▦</span>Continue with Microsoft</button>
+        {microsoftVisible && <button type="button" disabled={!microsoftEnabled} onClick={() => void onSignIn("microsoft")}><span aria-hidden="true" className="microsoft-mark">▦</span>Continue with Microsoft</button>}
       </div>
-      {!microsoftEnabled && <small className="provider-note">Microsoft sign-in will be enabled after the Microsoft app registration is connected.</small>}
       {message && <p className="cloud-message" role="alert">{message}</p>}
       <small>Your Program is private to your signed-in account. Sharing is not included in v0.6.</small>
     </section>
@@ -102,7 +102,7 @@ function MigrationChoice({ planner, ownerEmail, backupConfirmed, onBackupConfirm
         <span><strong>{summary.recordedSessions}</strong> recorded sessions</span>
       </div>
       <p className="cloud-entry-copy">Move this local Program into your private cloud workspace. The local copy will remain untouched until you verify the cloud version.</p>
-      <p className="program-owner-note"><strong>Cloud owner: {ownerEmail}</strong><span>Use this same Specialist Planner sign-in identity on every device. Google and Microsoft accounts are not automatically merged.</span></p>
+      <p className="program-owner-note"><strong>Cloud owner: {ownerEmail}</strong><span>Use this same Google account on every device.</span></p>
       <label className="backup-confirmation">
         <input aria-label="Confirm that a fresh JSON backup was exported" type="checkbox" checked={backupConfirmed} onChange={(event) => onBackupConfirmed(event.target.checked)} />
         <span><strong>I exported a fresh JSON backup</strong><small>Required before the first cloud migration.</small></span>
@@ -422,9 +422,9 @@ export function CloudPlannerApp() {
     openWorkspace(conflict);
   }
 
-  if (!services) return <AuthScreen googleEnabled={false} microsoftEnabled={false} onSignIn={handleSignIn} message={message} />;
+  if (!services) return <AuthScreen googleEnabled={false} microsoftEnabled={false} microsoftVisible={false} onSignIn={handleSignIn} message={message} />;
   if (phase === "initializing" || phase === "loading-program") return <div className="loading-screen"><span className="brand-mark">SP</span><p>{phase === "initializing" ? "Opening secure sign-in…" : "Opening your private Program…"}</p></div>;
-  if (phase === "signed-out" || (phase === "error" && !user)) return <AuthScreen googleEnabled={services.config.authGoogleEnabled} microsoftEnabled={services.config.authMicrosoftEnabled} onSignIn={handleSignIn} message={message} />;
+  if (phase === "signed-out" || (phase === "error" && !user)) return <AuthScreen googleEnabled={services.config.authGoogleEnabled} microsoftEnabled={services.config.authMicrosoftEnabled} microsoftVisible={services.config.authMicrosoftVisible} onSignIn={handleSignIn} message={message} />;
   if (phase === "migration" && localPlanner && user) return <MigrationChoice planner={localPlanner} ownerEmail={user.email ?? "this signed-in account"} backupConfirmed={backupConfirmed} onBackupConfirmed={setBackupConfirmed} onMigrate={migrateLocalProgram} onCreateNew={() => setPhase("onboarding")} busy={busy} message={message} />;
   if (phase === "onboarding") return <ProgramOnboarding onCreate={createNewProgram} busy={busy} message={message} />;
   if (phase === "workspace" && program && user) return <>
