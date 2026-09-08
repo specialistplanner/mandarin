@@ -21,7 +21,7 @@ test("server-renders the Specialist Planner authenticated workspace shell", asyn
   const html = await response.text();
   assert.match(html, /<title>Specialist Planner v0\.5\.1 — Migration Safety Hotfix<\/title>/i);
   assert.match(html, /Opening secure sign-in|Continue with Google/);
-  assert.match(html, /Continue with Microsoft|Opening secure sign-in/);
+  assert.doesNotMatch(html, /Continue with Microsoft/);
   assert.match(html, /Specialist Planner/);
   assert.doesNotMatch(html, /codex-preview|react-loading-skeleton/i);
 });
