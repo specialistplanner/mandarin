@@ -40,6 +40,7 @@ yarn-error.log*
 
 /dist/
 /dist-pages/
+/dist-pages-staging/
 /.wrangler/
 /outputs/
 /work/

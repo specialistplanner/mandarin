@@ -70,6 +70,17 @@ test("GitHub Pages production entry and workflow preserve the project base path"
   assert.doesNotMatch(entry, /chatgpt\.site/i);
 });
 
+test("the temporary v0.6 Pages staging build is isolated from production", async () => {
+  const [config, packageJson] = await Promise.all([
+    readFile(new URL("../vite.github-pages-staging.config.ts", import.meta.url), "utf8"),
+    readFile(new URL("../package.json", import.meta.url), "utf8").then(JSON.parse),
+  ]);
+  assert.match(config, /envDir:\s*projectRoot/);
+  assert.match(config, /base:\s*["']\/mandarin-v06-staging\/["']/);
+  assert.match(config, /dist-pages-staging/);
+  assert.equal(packageJson.scripts["build:pages:staging"], "vite build --config vite.github-pages-staging.config.ts");
+});
+
 test("authoritative imports mark every one-time migration as already handled", () => {
   const memory = new Map();
   const storage = { setItem: (key, value) => memory.set(key, value) };

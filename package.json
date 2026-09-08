@@ -9,11 +9,12 @@
     "dev": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext dev",
     "build": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext build",
     "build:pages": "vite build --config vite.github-pages.config.ts",
+    "build:pages:staging": "vite build --config vite.github-pages-staging.config.ts",
     "start": "WRANGLER_LOG_PATH=.wrangler/wrangler.log vinext start",
     "preview:pages": "vite preview --config vite.github-pages.config.ts",
     "test": "npm run build && node --test tests/*.test.mjs",
     "test:rules": "firebase emulators:exec --only firestore --project specialist-planner-staging \"node --test tests/firestore-rules.test.mjs\"",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern dist-pages --ignore-pattern .next",
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern dist-pages --ignore-pattern dist-pages-staging --ignore-pattern .next",
     "db:generate": "drizzle-kit generate"
   },
   "dependencies": {
