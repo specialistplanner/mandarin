@@ -19,7 +19,7 @@ test("server-renders the Specialist Planner authenticated workspace shell", asyn
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
   const html = await response.text();
-  assert.match(html, /<title>Specialist Planner v0\.5\.1 — Migration Safety Hotfix<\/title>/i);
+  assert.match(html, /<title>Specialist Planner v0\.6\.0 — Private Cloud Workspaces<\/title>/i);
   assert.match(html, /Opening secure sign-in|Continue with Google/);
   assert.doesNotMatch(html, /Continue with Microsoft/);
   assert.match(html, /Specialist Planner/);

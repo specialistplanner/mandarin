@@ -5,7 +5,7 @@ import { resolve } from "node:path";
 
 const projectRoot = fileURLToPath(new URL(".", import.meta.url));
 
-// This build is intentionally isolated from the v0.5.1 production Pages path.
+// This build is intentionally isolated from the production Pages path.
 // Firebase client settings are loaded from the ignored project-root .env.local.
 export default defineConfig({
   root: resolve(projectRoot, "github-pages"),

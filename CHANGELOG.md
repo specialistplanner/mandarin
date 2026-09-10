@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.6.0 — 2026-09-10
+
+- Added private, owner-scoped cloud Programs and cross-device Firebase sync.
+- Added authentication-first entry with Google as the visible production provider.
+- Added Program-owned Units and Lessons with stable IDs and protected History references.
+- Preserved JSON backup/restore, local resilience and the established Week and Progress workflows.
+- Kept Microsoft support configured in the application while hiding it from normal production users.
+- Documented the school-managed student iPad Firebase auth-handler certificate limitation; users must not bypass certificate warnings.
+
 ## v0.5.1 — 2026-09-06
 
 ### Fixed

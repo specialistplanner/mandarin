@@ -1,20 +1,20 @@
-# Specialist Planner v0.6 development
+# Specialist Planner v0.6.0 — Private Cloud Workspaces
 
-Specialist Planner is a private, progress-aware weekly planner for a single specialist teacher. v0.6 adds authenticated cloud Programs and cross-device continuity while preserving the stable v0.5.1 classroom workflow, JSON backups and local resilience.
+Specialist Planner is a private, progress-aware weekly planner for a single specialist teacher. v0.6.0 adds authenticated cloud Programs and cross-device continuity while preserving the established classroom workflow, JSON backups and local resilience.
 
 ## Production
 
-The stable v0.5.1 production site remains:
+The production site is:
 
 **https://specialistplanner.github.io/mandarin/**
 
 Production is built from `main` by [the GitHub Pages workflow](.github/workflows/pages.yml). Vite emits a static site to `dist-pages` using the required `/mandarin/` base path, and GitHub Actions deploys that artifact. The application has one client-side page, so bookmarking or refreshing the production URL does not depend on a server-side route fallback.
 
-v0.6 remains on its staging branch and private preview until the release-blocking migration, provider, isolation, cross-device and regression checks pass. The former `chatgpt.site` deployment remains available as an owner-only staging and migration reference.
+The separate v0.6 staging deployment remains available for release verification. The former `chatgpt.site` deployment remains available as an owner-only migration reference.
 
 ## Authentication and startup routing
 
-- Signed-out visitors see Google and Microsoft sign-in before any Planner creation path.
+- Signed-out visitors see Google sign-in before any Planner creation path. Microsoft support remains retained in the application configuration but is hidden from the normal v0.6.0 production entry.
 - A signed-in teacher with one cloud Program opens that Program directly in **Week**.
 - A signed-in teacher with no cloud Program enters first-time specialist-area onboarding.
 - If a valid local v0.5.x Planner is present, the teacher is offered an explicit cloud migration before blank Program creation.
@@ -67,7 +67,9 @@ JSON export/import remains the complete backup format. A cloud restore validates
 
 ## Current limitations
 
-v0.6 remains single-owner and single-Program in normal use. It does not include sharing, co-teaching, automatic Google/Microsoft identity merging, CRT workflows, curriculum integration, reports, analytics or notifications. Microsoft sign-in is a release blocker until a real Microsoft Entra application registration is connected and tested.
+v0.6.0 remains single-owner and single-Program in normal use. It does not include sharing, co-teaching, automatic Google/Microsoft identity merging, CRT workflows, curriculum integration, reports, analytics or notifications.
+
+School-managed student iPads may fail during Google authentication at the Firebase auth handler with a certificate warning. The current release is teacher-facing and its teacher-laptop workflow has been validated. Users must not bypass browser certificate warnings.
 
 ## Development and preview
 

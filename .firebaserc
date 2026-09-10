@@ -1,5 +1,6 @@
 {
   "projects": {
-    "staging": "specialist-planner-staging"
+    "staging": "specialist-planner-staging",
+    "production": "specialist-planner"
   }
 }
