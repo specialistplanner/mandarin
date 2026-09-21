@@ -105,6 +105,7 @@ test("stable interface copy contains no visible trial identity", async () => {
     "../app/page.tsx",
   ].map((path) => readFile(new URL(path, import.meta.url), "utf8")))).join("\n");
   assert.doesNotMatch(source, /Live trial|Live Classroom Trial|Integration Trial|Trial notes|trial note/i);
+  assert.doesNotMatch(source, /v0\.6\.0|Sharing is not included in v0\.6/i);
   assert.doesNotMatch(source, /x-forwarded-host|x-forwarded-proto/);
 });
 

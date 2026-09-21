@@ -76,7 +76,7 @@ function AuthScreen({ googleEnabled, microsoftEnabled, microsoftVisible, onSignI
         {microsoftVisible && <button type="button" disabled={!microsoftEnabled} onClick={() => void onSignIn("microsoft")}><span aria-hidden="true" className="microsoft-mark">▦</span>Continue with Microsoft</button>}
       </div>
       {message && <p className="cloud-message" role="alert">{message}</p>}
-      <small>Your Program is private to your signed-in account. Sharing is not included in v0.6.</small>
+      <small>Your Program is private to your signed-in account. Sharing is not included in v0.7.</small>
     </section>
   </main>;
 }
