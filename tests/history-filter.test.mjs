@@ -10,6 +10,12 @@ test("Term Overview replaces History navigation while retaining multi-class Teac
   ]);
   assert.match(dashboard, />Term Overview</);
   assert.doesNotMatch(dashboard, />History</);
+  assert.match(dashboard, />Weekly View<\/button>/);
+  assert.match(dashboard, />Unit Library<\/button>/);
+  assert.doesNotMatch(dashboard, /setView\("progress"\)/);
+  assert.match(dashboard, /progressView={<ProgressView/);
+  assert.match(overview, /aria-label="Term workspace"/);
+  assert.match(overview, />Progress<\/button>/);
   assert.match(overview, /cell\.items\.map/);
   assert.match(overview, /Classes differ/);
   assert.match(calendar, /planner\.teachingSessions/);

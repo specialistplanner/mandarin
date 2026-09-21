@@ -799,6 +799,11 @@ textarea { padding: 11px; resize: vertical; }
 .mandarin-room-link { color: var(--pine, #174b3b); font-size: .78rem; font-weight: 800; white-space: nowrap; }
 
 .term-overview-main { padding: 1.5rem; min-height: calc(100vh - 130px); }
+.term-workspace-tabs { display: inline-flex; gap: .25rem; margin-bottom: 1.25rem; padding: .25rem; border: 1px solid #d9d4c8; border-radius: .85rem; background: rgba(255,253,248,.78); }
+.term-workspace-tabs button { min-height: 2.5rem; padding: 0 1rem; border: 0; border-radius: .65rem; background: transparent; color: var(--muted); font-size: .78rem; font-weight: 800; cursor: pointer; }
+.term-workspace-tabs button.active { background: var(--forest); color: white; box-shadow: 0 4px 12px rgba(13,56,43,.16); }
+.term-progress-view .intro { padding-top: 1rem; }
+.term-progress-view .overview-section { padding-top: 1.5rem; }
 .term-overview-hero { display: flex; justify-content: space-between; gap: 2rem; align-items: end; margin-bottom: 1.25rem; }
 .term-overview-hero h1 { margin: .2rem 0; }
 .term-overview-selectors { display: flex; gap: .75rem; }

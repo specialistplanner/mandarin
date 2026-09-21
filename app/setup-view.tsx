@@ -308,9 +308,9 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
         <div>
           <p className="eyebrow">Planner settings</p>
           <h1>Set up your teaching week.</h1>
-          <p>{persistenceMode === "cloud" ? "This Program and its Unit Library sync to your private cloud workspace." : "Everything here is saved only in this browser."} Changes appear in Week and Progress straight away.</p>
+          <p>{persistenceMode === "cloud" ? "This Program and its Unit Library sync to your private cloud workspace." : "Everything here is saved only in this browser."} Changes appear in Weekly View and Term Overview straight away.</p>
         </div>
-        <button className="primary-button" type="button" onClick={onBack}>Return to Week</button>
+        <button className="primary-button" type="button" onClick={onBack}>Return to Weekly View</button>
       </section>
 
       <div className="setup-layout">
@@ -348,7 +348,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
 
           {section === "cohorts" && <>
             <div className="setup-section-title">
-              <div><p className="section-kicker">Program-owned Unit Library</p><h2>Year levels, classes & Units</h2><p>This Program owns its Units and Lessons. Week and Progress resolve their stable IDs while History keeps teaching snapshots readable.</p></div>
+              <div><p className="section-kicker">Program-owned Unit Library</p><h2>Year levels, classes & Units</h2><p>This Program owns its Units and Lessons. Weekly View and Term Overview resolve their stable IDs while teaching snapshots remain readable.</p></div>
             </div>
             <div className="add-row top-add-row">
               <input value={newYearLabel} onChange={(event) => setNewYearLabel(event.target.value)} placeholder="New year level, e.g. Year 4" onKeyDown={(event) => event.key === "Enter" && addYearLevel()} />

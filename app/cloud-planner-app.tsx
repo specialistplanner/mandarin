@@ -144,10 +144,10 @@ function ProgramOnboarding({ onCreate, busy, message }: {
       </label>
       <div className="onboarding-first-unit">
         <span>Create your first Unit <i>optional</i></span>
-        <p>Add one teaching sequence now, or enter Week and build the Unit Library progressively.</p>
+        <p>Add one teaching sequence now, or enter Weekly View and build the Unit Library progressively.</p>
         <div><label><span>Year level</span><input value={yearLevelName} onChange={(event) => setYearLevelName(event.target.value)} placeholder="e.g. Year 3" /></label><label><span>Unit title</span><input value={unitTitle} onChange={(event) => setUnitTitle(event.target.value)} placeholder="e.g. Drawing" /></label></div>
       </div>
-      <p className="cloud-entry-copy">After creation, Week opens first. You can add classes, Lessons and your timetable progressively.</p>
+      <p className="cloud-entry-copy">After creation, Weekly View opens first. You can add classes, Lessons and your timetable progressively.</p>
       <div className="cloud-entry-actions">
         <button className="primary-button" type="button" disabled={!name.trim() || busy || Boolean(yearLevelName.trim()) !== Boolean(unitTitle.trim())} onClick={() => void onCreate(subjectType, name, yearLevelName.trim() && unitTitle.trim() ? { yearLevelName: yearLevelName.trim(), unitTitle: unitTitle.trim() } : undefined)}>{busy ? "Creating Program…" : yearLevelName.trim() && unitTitle.trim() ? "Create Program with first Unit" : `Create ${name.trim() || "Program"}`}</button>
         {(yearLevelName || unitTitle) && <button className="secondary-button" type="button" disabled={busy} onClick={() => void onCreate(subjectType, name)}>I’ll add Units later</button>}
