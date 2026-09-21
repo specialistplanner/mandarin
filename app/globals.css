@@ -796,3 +796,45 @@ textarea { padding: 11px; resize: vertical; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
+.mandarin-room-link { color: var(--pine, #174b3b); font-size: .78rem; font-weight: 800; white-space: nowrap; }
+
+.term-overview-main { padding: 1.5rem; min-height: calc(100vh - 130px); }
+.term-overview-hero { display: flex; justify-content: space-between; gap: 2rem; align-items: end; margin-bottom: 1.25rem; }
+.term-overview-hero h1 { margin: .2rem 0; }
+.term-overview-selectors { display: flex; gap: .75rem; }
+.term-overview-selectors label { display: grid; gap: .35rem; font-size: .75rem; font-weight: 800; text-transform: uppercase; }
+.term-overview-selectors select { min-width: 10rem; }
+.term-overview-scroll { overflow: auto; border: 1px solid #d9d4c8; border-radius: 1rem; background: #fff; }
+.term-matrix { border-collapse: collapse; min-width: 1080px; width: 100%; }
+.term-matrix th, .term-matrix td { border: 1px solid #e4dfd4; padding: .65rem; vertical-align: top; }
+.term-matrix thead th { position: sticky; top: 0; z-index: 2; background: #f7f5ee; color: #173b31; }
+.term-matrix tbody > tr > th { position: sticky; left: 0; z-index: 1; background: #f7f5ee; min-width: 7.5rem; }
+.term-matrix tbody > tr > th small { display: block; margin-top: .25rem; color: #68736e; }
+.term-matrix td.is-divergent { background: #fff8e8; }
+.term-cell-items { display: grid; gap: .4rem; min-width: 9rem; }
+.term-divergence-label { color: #9b5b08; font-size: .68rem; font-weight: 900; text-transform: uppercase; }
+.term-class-item { display: grid; gap: .1rem; border-left: 3px solid #9aa9a3; padding-left: .45rem; }
+.term-class-item > span, .term-class-item small { font-size: .7rem; color: #66716c; }
+.term-class-item.outcome-completed { border-color: #3f7d4c; }
+.term-class-item.outcome-partial { border-color: #c9881f; }
+.term-class-item.outcome-not-taught { border-color: #b04436; }
+.term-overview-empty { max-width: 44rem; margin: 4rem auto; padding: 2rem; border: 1px solid #ded8ca; border-radius: 1rem; background: #fff; text-align: center; }
+
+.calendar-add-row { display: flex; gap: .6rem; flex-wrap: wrap; align-items: end; padding: 1rem; border: 1px solid #ded8ca; border-radius: 1rem; background: #fff; margin-bottom: 1rem; }
+.calendar-add-row input, .calendar-add-row select { min-width: 9rem; flex: 1 1 9rem; }
+.calendar-list { display: grid; gap: .75rem; margin-bottom: 1.25rem; }
+.calendar-card { display: grid; grid-template-columns: 1fr auto; gap: .75rem; padding: 1rem; border: 1px solid #ded8ca; border-radius: .9rem; background: #fff; }
+.calendar-card > div:first-child { display: grid; gap: .2rem; }
+.calendar-card span { color: #66716c; }
+.term-list { grid-column: 1 / -1; display: grid; gap: .4rem; }
+.term-list > div { display: grid; grid-template-columns: 1fr 2fr auto; gap: .5rem; align-items: center; padding: .55rem; background: #f4f5ef; border-radius: .6rem; }
+.settings-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+.settings-card { display: grid; gap: .7rem; padding: 1.2rem; border: 1px solid #ded8ca; border-radius: 1rem; background: #fff; }
+.settings-card label { display: grid; gap: .4rem; }
+.week-day-header.is-non-teaching-day { background: #f1f1ed; }
+
+@media (max-width: 900px) {
+  .term-overview-hero { align-items: stretch; flex-direction: column; }
+  .term-overview-selectors { flex-wrap: wrap; }
+  .mandarin-room-link { display: none; }
+}

@@ -11,7 +11,7 @@ const ruleTest = emulatorHost ? test : test.skip;
 let environment;
 
 function program(ownerUid, id = `program-${ownerUid}`) {
-  return { id, ownerUid, memberUids: [ownerUid], members: { [ownerUid]: "owner" }, name: "Visual Arts", subjectType: "art", schemaVersion: 1, plannerSchemaVersion: 9, revision: 1, lastMutationId: `create-${ownerUid}`, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), data: { schemaVersion: 9 } };
+  return { id, ownerUid, memberUids: [ownerUid], members: { [ownerUid]: "owner" }, name: "Visual Arts", subjectType: "art", schemaVersion: 1, plannerSchemaVersion: 10, revision: 1, lastMutationId: `create-${ownerUid}`, createdAt: serverTimestamp(), updatedAt: serverTimestamp(), data: { schemaVersion: 10 } };
 }
 
 before(async () => {
@@ -38,7 +38,28 @@ ruleTest("a teacher can create and update only their own Program", async () => {
   await assertSucceeds(getDoc(reference));
   await assertFails(getDoc(doc(other, "programs", "program-a")));
   await assertFails(updateDoc(doc(other, "programs", "program-a"), { name: "Taken over" }));
-  await assertSucceeds(updateDoc(reference, { name: "Visual Arts 2027", revision: 2, lastMutationId: "save-a", updatedAt: serverTimestamp(), data: { schemaVersion: 9, marker: "owner update" } }));
+  await assertSucceeds(updateDoc(reference, { name: "Visual Arts 2027", revision: 2, lastMutationId: "save-a", updatedAt: serverTimestamp(), data: { schemaVersion: 10, marker: "owner update" } }));
+});
+
+ruleTest("an owner can promote an existing planner schema 9 Program to schema 10 exactly once", async () => {
+  const planner = JSON.parse(JSON.stringify(freshSamplePlanner()));
+  planner.schemaVersion = 9;
+  delete planner.schoolYears;
+  delete planner.terms;
+  delete planner.nonTeachingPeriods;
+  await environment.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "programs", "program-v06"), {
+      ...program("teacher-a", "program-v06"),
+      plannerSchemaVersion: 9,
+      data: planner,
+    });
+  });
+  const owner = environment.authenticatedContext("teacher-a").firestore();
+  const loaded = await loadProgram(owner, "teacher-a", "program-v06");
+  assert.equal(loaded.data.schemaVersion, 10);
+  const saved = await saveProgram(owner, { uid: "teacher-a", programId: "program-v06", expectedRevision: 1, planner: loaded.data, mutationId: "promote-v07" });
+  assert.equal(saved.revision, 2);
+  assert.equal((await getDoc(doc(owner, "programs", "program-v06"))).data().plannerSchemaVersion, 10);
 });
 
 ruleTest("a signed-in create transaction can read an unused random Program ID without exposing an existing Program", async () => {
@@ -87,7 +108,7 @@ ruleTest("pre-restore snapshots are owner-readable, immutable and owner-created"
   const other = environment.authenticatedContext("teacher-b").firestore();
   await assertSucceeds(setDoc(doc(owner, "programs", "program-a"), program("teacher-a", "program-a")));
   const snapshot = doc(owner, "programs", "program-a", "snapshots", "snapshot-a");
-  await assertSucceeds(setDoc(snapshot, { programId: "program-a", revision: 1, createdBy: "teacher-a", createdAt: serverTimestamp(), reason: "backup-restore", data: { schemaVersion: 9 } }));
+  await assertSucceeds(setDoc(snapshot, { programId: "program-a", revision: 1, createdBy: "teacher-a", createdAt: serverTimestamp(), reason: "backup-restore", data: { schemaVersion: 10 } }));
   await assertSucceeds(getDoc(snapshot));
   await assertFails(getDoc(doc(other, "programs", "program-a", "snapshots", "snapshot-a")));
   await assertFails(updateDoc(snapshot, { reason: "changed" }));

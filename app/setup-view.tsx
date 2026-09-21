@@ -8,6 +8,9 @@ import {
   createClassRecord,
   createUnitRecord,
   deleteClassRecord,
+  deleteNonTeachingPeriod,
+  deleteSchoolYear,
+  deleteTerm,
   deleteLessonRecord,
   deleteUnitRecord,
   getScheduledTeachingOccurrencesInRange,
@@ -25,11 +28,17 @@ import {
   setCurrentUnit,
   setExpectedLesson,
   touchPlanner,
+  updateLessonMetadata,
   updateLessonRecord,
   updateUnitDetails,
+  updateUnitMetadata,
+  upsertNonTeachingPeriod,
+  upsertSchoolYear,
+  upsertTerm,
   unitAppliesToYearLevel,
   unitYearLevelIds,
   type PlannerData,
+  type NonTeachingPeriodType,
   type SessionSlot,
   type SessionType,
   type TimetableSession,
@@ -41,7 +50,7 @@ import { findLinkedUnit, lessonReference, unitReference, UNIT_LIBRARY_PROVIDER }
 import { ResourceLinkAction } from "./resource-link";
 import type { UnitLibraryState } from "./use-unit-library";
 
-type SetupSection = "cohorts" | "timetable" | "notes" | "data";
+type SetupSection = "program" | "cohorts" | "timetable" | "calendar" | "holidays" | "notes" | "data" | "account";
 const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const outcomeLabels = { planned: "Planned", completed: "Completed", partial: "Partial", "not-taught": "Not taught" } as const;
 const classColourOptions = Object.entries(CLASS_COLOUR_PRESETS);
@@ -78,7 +87,7 @@ function downloadBackup(planner: PlannerData) {
   URL.revokeObjectURL(url);
 }
 
-export function SetupView({ planner, onChange, onBack, unitLibrary, initialSection = "cohorts", persistenceMode = "local", onImportBackup }: {
+export function SetupView({ planner, onChange, onBack, unitLibrary, initialSection = "program", persistenceMode = "local", onImportBackup }: {
   planner: PlannerData;
   onChange: (planner: PlannerData) => void;
   onBack: () => void;
@@ -97,6 +106,9 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
   const [linkingUnitId, setLinkingUnitId] = useState<string | null>(null);
   const [sessionDraft, setSessionDraft] = useState({ weekday: 1, slotId: planner.sessionSlots.find(item => item.kind === "session")?.id ?? "", type: "specialist-teaching" as SessionType, classId: "", customClassName: "", label: "" });
   const [slotDraft, setSlotDraft] = useState({ label: "", startTime: "09:00", endTime: "10:00", kind: "session" as SessionSlot["kind"] });
+  const [schoolYearDraft, setSchoolYearDraft] = useState({ label: String(new Date().getFullYear()), startDate: `${new Date().getFullYear()}-01-01`, endDate: `${new Date().getFullYear()}-12-31` });
+  const [termDraft, setTermDraft] = useState({ schoolYearId: planner.schoolYears[0]?.id ?? "", name: "Term 1", startDate: "", endDate: "", sequence: 1 });
+  const [holidayDraft, setHolidayDraft] = useState({ schoolYearId: planner.schoolYears[0]?.id ?? "", type: "school_holiday" as NonTeachingPeriodType, name: "School holidays", startDate: "", endDate: "" });
   const [reconciliationRange, setReconciliationRange] = useState(previousTeachingWeek);
   const importRef = useRef<HTMLInputElement>(null);
   const activeSubject = planner.subjects.find((item) => item.id === planner.activeSubjectId)!;
@@ -308,13 +320,31 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
             <input aria-label="Active subject name" value={activeSubject.name} onChange={(event) => onChange(touchPlanner({ ...planner, subjects: planner.subjects.map((item) => item.id === activeSubject.id ? { ...item, name: event.target.value } : item) }))} />
             <small>{persistenceMode === "cloud" ? "Program-owned Unit Library" : "Single-subject local mode"}</small>
           </div>
-          {([['cohorts', 'Year levels & units'], ['timetable', 'Weekly timetable'], ['notes', `Notes (${planner.trialNotes.length})`], ['data', 'Backup & reset']] as [SetupSection, string][]).map(([id, label]) => (
+          {([['program', 'Program'], ['cohorts', 'Classes & Unit Library'], ['timetable', 'Timetable'], ['calendar', 'School Year & Terms'], ['holidays', 'Holidays / non-teaching'], ['notes', `Notes (${planner.trialNotes.length})`], ['data', 'Backup & Restore'], ['account', 'Account & cloud']] as [SetupSection, string][]).map(([id, label]) => (
             <button type="button" key={id} className={section === id ? "active" : ""} onClick={() => setSection(id)}>{label}<span>→</span></button>
           ))}
         </aside>
 
         <section className="setup-content">
           {message && <div className="setup-message" role="status">{message}<button type="button" onClick={() => setMessage("")}>×</button></div>}
+
+          {section === "program" && <>
+            <div className="setup-section-title"><div><p className="section-kicker">Program</p><h2>Program details</h2><p>Your Program is the private owner of its classes, timetable, curriculum and Unit Library.</p></div></div>
+            <div className="settings-card-grid"><article className="settings-card"><label><span>Program / subject name</span><input value={activeSubject.name} onChange={(event) => onChange(touchPlanner({ ...planner, subjects: planner.subjects.map((item) => item.id === activeSubject.id ? { ...item, name: event.target.value } : item) }))} /></label><small>Program ID: {planner.id}</small></article></div>
+          </>}
+
+          {section === "calendar" && <>
+            <div className="setup-section-title"><div><p className="section-kicker">Academic calendar</p><h2>School Year &amp; Terms</h2><p>Dates are intentionally manual and editable. No Victorian or other regional calendar is hard-coded.</p></div></div>
+            <div className="calendar-add-row"><input aria-label="School year label" value={schoolYearDraft.label} onChange={(event) => setSchoolYearDraft({ ...schoolYearDraft, label: event.target.value })} /><input aria-label="School year start" type="date" value={schoolYearDraft.startDate} onChange={(event) => setSchoolYearDraft({ ...schoolYearDraft, startDate: event.target.value })} /><input aria-label="School year end" type="date" value={schoolYearDraft.endDate} onChange={(event) => setSchoolYearDraft({ ...schoolYearDraft, endDate: event.target.value })} /><button className="secondary-button" type="button" onClick={() => { const id = makeId("school-year"); apply(() => upsertSchoolYear(planner, { id, ...schoolYearDraft })); setTermDraft((current) => ({ ...current, schoolYearId: id })); setHolidayDraft((current) => ({ ...current, schoolYearId: id })); }}>Add school year</button></div>
+            <div className="calendar-list">{planner.schoolYears.map((year) => <article className="calendar-card" key={year.id}><div><strong>{year.label}</strong><span>{year.startDate} – {year.endDate}</span></div><button className="text-button danger" type="button" onClick={() => apply(() => deleteSchoolYear(planner, year.id))}>Remove</button><div className="term-list">{planner.terms.filter((term) => term.schoolYearId === year.id).sort((a, b) => a.sequence - b.sequence).map((term) => <div key={term.id}><strong>{term.name}</strong><span>{term.startDate} – {term.endDate}</span><button className="icon-button danger" type="button" onClick={() => apply(() => deleteTerm(planner, term.id))}>×</button></div>)}</div></article>)}</div>
+            {!!planner.schoolYears.length && <div className="calendar-add-row"><select aria-label="Term school year" value={termDraft.schoolYearId || planner.schoolYears[0].id} onChange={(event) => setTermDraft({ ...termDraft, schoolYearId: event.target.value })}>{planner.schoolYears.map((year) => <option key={year.id} value={year.id}>{year.label}</option>)}</select><input aria-label="Term name" value={termDraft.name} onChange={(event) => setTermDraft({ ...termDraft, name: event.target.value })} /><input aria-label="Term start" type="date" value={termDraft.startDate} onChange={(event) => setTermDraft({ ...termDraft, startDate: event.target.value })} /><input aria-label="Term end" type="date" value={termDraft.endDate} onChange={(event) => setTermDraft({ ...termDraft, endDate: event.target.value })} /><input aria-label="Term sequence" type="number" min="1" value={termDraft.sequence} onChange={(event) => setTermDraft({ ...termDraft, sequence: Number(event.target.value) })} /><button className="secondary-button" type="button" onClick={() => apply(() => upsertTerm(planner, { id: makeId("term"), ...termDraft, schoolYearId: termDraft.schoolYearId || planner.schoolYears[0].id }))}>Add Term</button></div>}
+          </>}
+
+          {section === "holidays" && <>
+            <div className="setup-section-title"><div><p className="section-kicker">Academic calendar</p><h2>Holidays &amp; non-teaching periods</h2><p>Scheduled classes inside these dates are suppressed, so they do not create false missed or behind signals.</p></div></div>
+            {!planner.schoolYears.length ? <div className="setup-empty"><strong>Add a School Year first</strong><p>Non-teaching periods belong to a School Year.</p></div> : <div className="calendar-add-row"><select value={holidayDraft.schoolYearId || planner.schoolYears[0].id} onChange={(event) => setHolidayDraft({ ...holidayDraft, schoolYearId: event.target.value })}>{planner.schoolYears.map((year) => <option key={year.id} value={year.id}>{year.label}</option>)}</select><select value={holidayDraft.type} onChange={(event) => setHolidayDraft({ ...holidayDraft, type: event.target.value as NonTeachingPeriodType })}><option value="school_holiday">School holiday</option><option value="public_holiday">Public holiday</option><option value="curriculum_day">Curriculum day</option><option value="school_closure">School closure</option><option value="custom">Custom</option></select><input value={holidayDraft.name} onChange={(event) => setHolidayDraft({ ...holidayDraft, name: event.target.value })} placeholder="Name" /><input type="date" value={holidayDraft.startDate} onChange={(event) => setHolidayDraft({ ...holidayDraft, startDate: event.target.value })} /><input type="date" value={holidayDraft.endDate} onChange={(event) => setHolidayDraft({ ...holidayDraft, endDate: event.target.value })} /><button className="secondary-button" type="button" onClick={() => apply(() => upsertNonTeachingPeriod(planner, { id: makeId("non-teaching"), ...holidayDraft, schoolYearId: holidayDraft.schoolYearId || planner.schoolYears[0].id }))}>Add period</button></div>}
+            <div className="calendar-list">{planner.nonTeachingPeriods.map((period) => <article className="calendar-card" key={period.id}><div><strong>{period.name}</strong><span>{period.type.replaceAll("_", " ")} · {period.startDate} – {period.endDate}</span></div><button className="text-button danger" type="button" onClick={() => apply(() => deleteNonTeachingPeriod(planner, period.id))}>Remove</button></article>)}</div>
+          </>}
 
           {section === "cohorts" && <>
             <div className="setup-section-title">
@@ -390,6 +420,10 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
                         <div className="unit-fields">
                           <label><span>Unit name</span><input value={currentUnit.title} onChange={(event) => apply(() => updateUnitDetails(planner, currentUnit.id, event.target.value, currentUnit.description))} /></label>
                           <label><span>Short description <i>optional</i></span><input value={currentUnit.description ?? ""} onChange={(event) => apply(() => updateUnitDetails(planner, currentUnit.id, currentUnit.title, event.target.value))} /></label>
+                          <label><span>Teacher notes <i>optional</i></span><textarea rows={2} value={currentUnit.teacherNotes ?? ""} onChange={(event) => apply(() => updateUnitMetadata(planner, currentUnit.id, { teacherNotes: event.target.value || undefined, resources: currentUnit.resources, curriculumMetadata: currentUnit.curriculumMetadata }))} /></label>
+                          <label><span>Curriculum framework <i>optional</i></span><input value={currentUnit.curriculumMetadata?.framework ?? ""} onChange={(event) => apply(() => updateUnitMetadata(planner, currentUnit.id, { teacherNotes: currentUnit.teacherNotes, resources: currentUnit.resources, curriculumMetadata: { ...currentUnit.curriculumMetadata, framework: event.target.value || undefined } }))} /></label>
+                          <label><span>Curriculum codes <i>comma separated</i></span><input value={currentUnit.curriculumMetadata?.codes?.join(", ") ?? ""} onChange={(event) => apply(() => updateUnitMetadata(planner, currentUnit.id, { teacherNotes: currentUnit.teacherNotes, resources: currentUnit.resources, curriculumMetadata: { ...currentUnit.curriculumMetadata, codes: event.target.value.split(",").map((code) => code.trim()).filter(Boolean) } }))} /></label>
+                          <label><span>Resource URL <i>optional HTTPS</i></span><input type="url" defaultValue={currentUnit.resources?.[0]?.url ?? ""} onBlur={(event) => apply(() => updateUnitMetadata(planner, currentUnit.id, { teacherNotes: currentUnit.teacherNotes, curriculumMetadata: currentUnit.curriculumMetadata, resources: event.target.value ? [{ id: currentUnit.resources?.[0]?.id ?? makeId("resource"), label: currentUnit.resources?.[0]?.label ?? "Unit resource", url: event.target.value }] : undefined }))} /></label>
                           <fieldset className="unit-year-levels"><legend>Year levels</legend>{planner.yearLevels.map((candidate) => {
                             const selectedIds = unitYearLevelIds(currentUnit);
                             const checked = selectedIds.includes(candidate.id);
@@ -423,6 +457,10 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
                             <div className="lesson-inputs">
                               <input aria-label={`Lesson ${index + 1} title`} value={lesson.title} onChange={(event) => apply(() => updateLessonRecord(planner, currentUnit.id, lesson.id, event.target.value, lesson.description))} />
                               <input aria-label={`Lesson ${index + 1} description`} className="lesson-description-input" value={lesson.description ?? ""} placeholder="Optional description" onChange={(event) => apply(() => updateLessonRecord(planner, currentUnit.id, lesson.id, lesson.title, event.target.value))} />
+                              <input aria-label={`Lesson ${index + 1} teacher notes`} value={lesson.teacherNotes ?? ""} placeholder="Optional teacher notes" onChange={(event) => apply(() => updateLessonMetadata(planner, currentUnit.id, lesson.id, { teacherNotes: event.target.value || undefined, resources: lesson.resources, curriculumMetadata: lesson.curriculumMetadata, vocabularySetId: lesson.vocabularySetId }))} />
+                              <input aria-label={`Lesson ${index + 1} curriculum codes`} value={lesson.curriculumMetadata?.codes?.join(", ") ?? ""} placeholder="Curriculum codes (comma separated)" onChange={(event) => apply(() => updateLessonMetadata(planner, currentUnit.id, lesson.id, { teacherNotes: lesson.teacherNotes, resources: lesson.resources, curriculumMetadata: { ...lesson.curriculumMetadata, codes: event.target.value.split(",").map((code) => code.trim()).filter(Boolean) }, vocabularySetId: lesson.vocabularySetId }))} />
+                              <input aria-label={`Lesson ${index + 1} resource URL`} type="url" defaultValue={lesson.resources?.[0]?.url ?? ""} placeholder="Optional HTTPS resource URL" onBlur={(event) => apply(() => updateLessonMetadata(planner, currentUnit.id, lesson.id, { teacherNotes: lesson.teacherNotes, curriculumMetadata: lesson.curriculumMetadata, vocabularySetId: lesson.vocabularySetId, resources: event.target.value ? [{ id: lesson.resources?.[0]?.id ?? makeId("resource"), label: lesson.resources?.[0]?.label ?? "Lesson resource", url: event.target.value }] : undefined }))} />
+                              {/mandarin/i.test(activeSubject.name) && <input aria-label={`Lesson ${index + 1} vocabulary set ID`} value={lesson.vocabularySetId ?? ""} placeholder="The Mandarin Room vocabularySetId (optional)" onChange={(event) => apply(() => updateLessonMetadata(planner, currentUnit.id, lesson.id, { teacherNotes: lesson.teacherNotes, resources: lesson.resources, curriculumMetadata: lesson.curriculumMetadata, vocabularySetId: event.target.value || undefined }))} />}
                               {currentUnit.externalResourceRef?.provider === UNIT_LIBRARY_PROVIDER && <div className="lesson-library-link">
                                 <label><span>Unit Library lesson <i>optional</i></span><select aria-label={`${lesson.title} Unit Library lesson`} value={lesson.externalResourceRef?.resourceId ?? ""} onChange={(event) => {
                                   const libraryUnit = findLinkedUnit(unitLibrary.index, currentUnit.externalResourceRef);
@@ -548,6 +586,11 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
               <button className="secondary-button" type="button" onClick={() => { if (!window.confirm("Replace all current data with the Mandarin sample planner?")) return; markOneTimeMigrationsApplied(window.localStorage); onChange(freshSamplePlanner()); }}>Load sample data</button>
               <button className="danger-button" type="button" onClick={() => { if (!window.confirm("Reset to a blank planner? All current local data will be replaced.")) return; markOneTimeMigrationsApplied(window.localStorage); onChange(createBlankPlanner()); }}>Reset planner</button>
             </div></div>}
+          </>}
+
+          {section === "account" && <>
+            <div className="setup-section-title"><div><p className="section-kicker">Account &amp; cloud</p><h2>{persistenceMode === "cloud" ? "Private cloud workspace" : "Local workspace"}</h2><p>{persistenceMode === "cloud" ? "This Program is owner-isolated and synchronises through its authenticated cloud workspace." : "Sign in from the entry screen to use private cross-device cloud sync."}</p></div></div>
+            <div className="settings-card-grid"><article className="settings-card"><strong>Storage mode</strong><span>{persistenceMode === "cloud" ? "Authenticated private cloud" : "This browser only"}</span><small>Program schema {planner.schemaVersion} · stable Program ID {planner.id}</small></article><article className="settings-card"><strong>Conflict protection</strong><span>{persistenceMode === "cloud" ? "Revision checks enabled" : "Not applicable in local mode"}</span><small>JSON Backup &amp; Restore remains available.</small></article></div>
           </>}
         </section>
       </div>

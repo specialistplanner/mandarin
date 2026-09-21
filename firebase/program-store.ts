@@ -11,7 +11,7 @@ import {
   where,
   type Firestore,
 } from "firebase/firestore";
-import { clonePlanner, type PlannerData } from "../lib/domain.ts";
+import { PLANNER_SCHEMA_VERSION, clonePlanner, type PlannerData } from "../lib/domain.ts";
 import { activeProgramName, makeCloudProgram, programBelongsTo, validateCloudProgram, type CloudProgram, type ProgramSubjectType } from "../lib/cloud-program.ts";
 
 export class ProgramConflictError extends Error {
@@ -116,6 +116,7 @@ export async function saveProgram(db: Firestore, input: {
     if (current.revision !== input.expectedRevision) throw new ProgramConflictError(current);
     transaction.update(reference, {
       data: clonePlanner(input.planner),
+      plannerSchemaVersion: PLANNER_SCHEMA_VERSION,
       name: activeProgramName(input.planner),
       revision: current.revision + 1,
       lastMutationId: input.mutationId,
@@ -151,6 +152,7 @@ export async function restoreProgram(db: Firestore, input: {
     });
     transaction.update(reference, {
       data: clonePlanner(input.restoredPlanner),
+      plannerSchemaVersion: PLANNER_SCHEMA_VERSION,
       name: activeProgramName(input.restoredPlanner),
       revision: current.revision + 1,
       lastMutationId: input.mutationId,

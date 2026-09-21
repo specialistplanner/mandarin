@@ -1,7 +1,9 @@
-import { DEFAULT_SESSION_SLOTS, PLANNER_SCHEMA_VERSION, type Lesson, type PlannerData, type TimetableSession } from "./domain.ts";
+import { DEFAULT_SESSION_SLOTS, LESSON_SCHEMA_VERSION, PLANNER_SCHEMA_VERSION, UNIT_SCHEMA_VERSION, type Lesson, type PlannerData, type TimetableSession } from "./domain.ts";
+
+const seedTimestamp = "2026-08-23T00:00:00.000Z";
 
 function lessons(unitId: string, titles: string[]): Lesson[] {
-  return titles.map((title, index) => ({ id: `${unitId}-lesson-${index + 1}`, title, sequence: index + 1 }));
+  return titles.map((title, index) => ({ id: `${unitId}-lesson-${index + 1}`, title, sequence: index + 1, schemaVersion: LESSON_SCHEMA_VERSION, createdAt: seedTimestamp, updatedAt: seedTimestamp }));
 }
 
 const subject = { id: "mandarin", name: "Mandarin" };
@@ -13,7 +15,7 @@ const units = [
   { id: "weather", yearLevelId: "year-4", yearLevelIds: ["year-4"], title: "Weather", description: "Weather, seasons and clothing", lessons: lessons("weather", ["Weather words", "What is the weather?", "Seasons", "Weather report", "What should I wear?", "Review"]) },
   { id: "nationalities", yearLevelId: "year-5", yearLevelIds: ["year-5"], title: "Nationalities", description: "Countries, nationalities and home", lessons: lessons("nationalities", ["Introduction", "Countries", "Nationalities", "Where are you from?", "Where do you live?", "Review"]) },
   { id: "travel", yearLevelId: "year-6", yearLevelIds: ["year-6"], title: "Let’s Travel", description: "Travel plans and practical language", lessons: lessons("travel", ["Places to go", "Transport", "Buying a ticket", "Directions", "Travel plans", "Review"]) },
-];
+].map((unit) => ({ ...unit, schemaVersion: UNIT_SCHEMA_VERSION, createdAt: seedTimestamp, updatedAt: seedTimestamp }));
 
 const yearLevels = [
   { id: "prep", label: "Prep", shortLabel: "P", currentUnitId: "hello-friends", expectedLessonId: "hello-friends-lesson-3" },
@@ -72,8 +74,11 @@ export const samplePlanner: PlannerData = {
   sessionSlots: JSON.parse(JSON.stringify(DEFAULT_SESSION_SLOTS)),
   timetableSessions,
   teachingSessions: [],
+  schoolYears: [],
+  terms: [],
+  nonTeachingPeriods: [],
   trialNotes: [],
-  updatedAt: "2026-08-23T00:00:00.000Z",
+  updatedAt: seedTimestamp,
 };
 
 export function createBlankPlanner(): PlannerData {
@@ -92,6 +97,9 @@ export function createBlankPlanner(): PlannerData {
     sessionSlots: JSON.parse(JSON.stringify(DEFAULT_SESSION_SLOTS)),
     timetableSessions: [],
     teachingSessions: [],
+    schoolYears: [],
+    terms: [],
+    nonTeachingPeriods: [],
     trialNotes: [],
     updatedAt: new Date().toISOString(),
   };

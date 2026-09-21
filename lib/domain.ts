@@ -1,4 +1,6 @@
-export const PLANNER_SCHEMA_VERSION = 9 as const;
+export const PLANNER_SCHEMA_VERSION = 10 as const;
+export const UNIT_SCHEMA_VERSION = 1 as const;
+export const LESSON_SCHEMA_VERSION = 1 as const;
 
 export const CLASS_COLOUR_PRESETS = {
   "hot-pink": { label: "Hot pink", background: "#fce4f1", accent: "#d61f75", foreground: "#17372c" },
@@ -19,6 +21,51 @@ export type ExternalResourceRef = {
   parentResourceId?: string;
   label?: string;
   url?: string;
+};
+
+export type ResourceLink = {
+  id: string;
+  label: string;
+  url: string;
+  kind?: string;
+};
+
+export type CurriculumMetadata = {
+  framework?: string;
+  codes?: string[];
+  notes?: string;
+};
+
+export type SchoolYear = {
+  id: string;
+  label: string;
+  startDate: string;
+  endDate: string;
+};
+
+export type Term = {
+  id: string;
+  schoolYearId: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  sequence: number;
+};
+
+export type NonTeachingPeriodType =
+  | "school_holiday"
+  | "public_holiday"
+  | "curriculum_day"
+  | "school_closure"
+  | "custom";
+
+export type NonTeachingPeriod = {
+  id: string;
+  schoolYearId: string;
+  type: NonTeachingPeriodType;
+  name: string;
+  startDate: string;
+  endDate: string;
 };
 
 export type SessionType =
@@ -44,6 +91,13 @@ export type Lesson = {
   title: string;
   description?: string;
   sequence: number;
+  teacherNotes?: string;
+  resources?: ResourceLink[];
+  curriculumMetadata?: CurriculumMetadata;
+  vocabularySetId?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  schemaVersion?: typeof LESSON_SCHEMA_VERSION;
   externalResourceRef?: ExternalResourceRef;
 };
 
@@ -53,6 +107,12 @@ export type Unit = {
   yearLevelIds?: string[];
   title: string;
   description?: string;
+  teacherNotes?: string;
+  resources?: ResourceLink[];
+  curriculumMetadata?: CurriculumMetadata;
+  createdAt?: string;
+  updatedAt?: string;
+  schemaVersion?: typeof UNIT_SCHEMA_VERSION;
   lessons: Lesson[];
   externalResourceRef?: ExternalResourceRef;
 };
@@ -153,6 +213,9 @@ export type PlannerData = {
   sessionSlots: SessionSlot[];
   timetableSessions: TimetableSession[];
   teachingSessions: TeachingSession[];
+  schoolYears: SchoolYear[];
+  terms: Term[];
+  nonTeachingPeriods: NonTeachingPeriod[];
   reconciliationStatus?: ReconciliationStatus;
   trialNotes: TrialNote[];
   updatedAt: string;
@@ -215,6 +278,7 @@ export function setUnitExternalResource(planner: PlannerData, unitId: string, re
       const sameResource = reference?.resourceId === unit.externalResourceRef?.resourceId && reference?.provider === unit.externalResourceRef?.provider;
       return {
         ...unit,
+        updatedAt: new Date().toISOString(),
         externalResourceRef: reference,
         lessons: sameResource ? unit.lessons : unit.lessons.map((lesson) => ({ ...lesson, externalResourceRef: undefined })),
       };
@@ -233,7 +297,8 @@ export function setLessonExternalResource(planner: PlannerData, unitId: string, 
     ...planner,
     units: planner.units.map((candidate) => candidate.id === unitId ? {
       ...candidate,
-      lessons: candidate.lessons.map((lesson) => lesson.id === lessonId ? { ...lesson, externalResourceRef: reference } : lesson),
+      updatedAt: new Date().toISOString(),
+      lessons: candidate.lessons.map((lesson) => lesson.id === lessonId ? { ...lesson, updatedAt: new Date().toISOString(), externalResourceRef: reference } : lesson),
     } : candidate),
   });
 }
@@ -327,6 +392,13 @@ function teachingSessionId(date: string, timetableSessionId: string): string {
   return `teaching-${date}-${timetableSessionId}`;
 }
 
+export function isConfiguredTeachingDate(planner: PlannerData, date: Date): boolean {
+  const dateKey = localDateKey(date);
+  if (planner.nonTeachingPeriods.some((period) => period.startDate <= dateKey && period.endDate >= dateKey)) return false;
+  if (planner.terms.length && !planner.terms.some((term) => term.startDate <= dateKey && term.endDate >= dateKey)) return false;
+  return date.getDay() !== 0 && date.getDay() !== 6;
+}
+
 function plannedTeachingSession(
   planner: PlannerData,
   timetable: TimetableSession,
@@ -360,6 +432,7 @@ function plannedTeachingSession(
 export function getTeachingSessionsForDate(planner: PlannerData, date: Date): TeachingSession[] {
   const dateKey = localDateKey(date);
   const existing = new Map(planner.teachingSessions.filter((item) => item.date === dateKey).map((item) => [item.timetableSessionId, item]));
+  if (!isConfiguredTeachingDate(planner, date)) return [...existing.values()].filter((item) => item.outcome !== "planned");
   const timestamp = new Date().toISOString();
   return getTeachingSessionsForWeekday(planner.timetableSessions, date.getDay())
     .map((timetable) => {
@@ -443,6 +516,7 @@ export function recordTeachingSessionOutcome(
 }
 
 export function markAllTaughtAsPlanned(planner: PlannerData, date: Date): PlannerData {
+  if (!isConfiguredTeachingDate(planner, date)) return planner;
   const materialized = materializeTeachingSessionsForDate(planner, date);
   const dateKey = localDateKey(date);
   const timestamp = new Date().toISOString();
@@ -491,7 +565,7 @@ export function getScheduledTeachingOccurrencesInRange(
   const last = dateFromKey(endDate);
   while (cursor <= last) {
     const date = localDateKey(cursor);
-    for (const timetableSession of getTeachingSessionsForWeekday(planner.timetableSessions, cursor.getDay())) {
+    for (const timetableSession of isConfiguredTeachingDate(planner, cursor) ? getTeachingSessionsForWeekday(planner.timetableSessions, cursor.getDay()) : []) {
       occurrences.push({ date, timetableSession });
     }
     cursor.setDate(cursor.getDate() + 1);
@@ -688,8 +762,16 @@ export function updateUnitDetails(
   return touchPlanner({
     ...planner,
     units: planner.units.map((unit) => unit.id === unitId
-      ? { ...unit, title, description: description || undefined }
+      ? { ...unit, title, description: description || undefined, updatedAt: new Date().toISOString() }
       : unit),
+  });
+}
+
+export function updateUnitMetadata(planner: PlannerData, unitId: string, patch: Pick<Unit, "teacherNotes" | "resources" | "curriculumMetadata">): PlannerData {
+  if (!planner.units.some((unit) => unit.id === unitId)) throw new Error("Unit not found.");
+  return touchPlanner({
+    ...planner,
+    units: planner.units.map((unit) => unit.id === unitId ? normalizeUnit({ ...unit, ...patch, updatedAt: new Date().toISOString() }) : unit),
   });
 }
 
@@ -732,7 +814,7 @@ export function addLessonRecord(planner: PlannerData, unitId: string, lesson: Le
   return touchPlanner({
     ...planner,
     units: planner.units.map((unit) => unit.id === unitId
-      ? normalizeUnit({ ...unit, lessons: [...unit.lessons, { ...lesson, title: lesson.title.trim() }] })
+      ? normalizeUnit({ ...unit, updatedAt: new Date().toISOString(), lessons: [...unit.lessons, { ...lesson, title: lesson.title.trim() }] })
       : unit),
   });
 }
@@ -749,10 +831,24 @@ export function updateLessonRecord(
     ...planner,
     units: planner.units.map((unit) => unit.id === unitId ? {
       ...unit,
+      updatedAt: new Date().toISOString(),
       lessons: unit.lessons.map((lesson) => lesson.id === lessonId
-        ? { ...lesson, title, description: description || undefined }
+        ? { ...lesson, title, description: description || undefined, updatedAt: new Date().toISOString() }
         : lesson),
     } : unit),
+  });
+}
+
+export function updateLessonMetadata(planner: PlannerData, unitId: string, lessonId: string, patch: Pick<Lesson, "teacherNotes" | "resources" | "curriculumMetadata" | "vocabularySetId">): PlannerData {
+  const unit = planner.units.find((candidate) => candidate.id === unitId);
+  if (!unit?.lessons.some((lesson) => lesson.id === lessonId)) throw new Error("Lesson not found.");
+  return touchPlanner({
+    ...planner,
+    units: planner.units.map((candidate) => candidate.id === unitId ? normalizeUnit({
+      ...candidate,
+      updatedAt: new Date().toISOString(),
+      lessons: candidate.lessons.map((lesson) => lesson.id === lessonId ? { ...lesson, ...patch, updatedAt: new Date().toISOString() } : lesson),
+    }) : candidate),
   });
 }
 
@@ -771,7 +867,7 @@ export function reorderLessonRecord(
       const target = index + direction;
       if (index < 0 || target < 0 || target >= lessons.length) return unit;
       [lessons[index], lessons[target]] = [lessons[target], lessons[index]];
-      return normalizeUnit({ ...unit, lessons });
+      return normalizeUnit({ ...unit, updatedAt: new Date().toISOString(), lessons });
     }),
   });
 }
@@ -791,8 +887,64 @@ export function deleteLessonRecord(planner: PlannerData, unitId: string, lessonI
   const remaining = unit.lessons.filter((lesson) => lesson.id !== lessonId);
   return touchPlanner({
     ...planner,
-    units: planner.units.map((candidate) => candidate.id === unitId ? normalizeUnit({ ...candidate, lessons: remaining }) : candidate),
+    units: planner.units.map((candidate) => candidate.id === unitId ? normalizeUnit({ ...candidate, updatedAt: new Date().toISOString(), lessons: remaining }) : candidate),
   });
+}
+
+function validCalendarDate(value: string): boolean {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00`));
+}
+
+function assertDateRange(startDate: string, endDate: string) {
+  if (!validCalendarDate(startDate) || !validCalendarDate(endDate) || startDate > endDate) {
+    throw new Error("Enter a valid start and end date.");
+  }
+}
+
+export function upsertSchoolYear(planner: PlannerData, item: SchoolYear): PlannerData {
+  if (!item.id.trim() || !item.label.trim()) throw new Error("School year name is required.");
+  assertDateRange(item.startDate, item.endDate);
+  const schoolYears = planner.schoolYears.some((candidate) => candidate.id === item.id)
+    ? planner.schoolYears.map((candidate) => candidate.id === item.id ? item : candidate)
+    : [...planner.schoolYears, item];
+  return touchPlanner({ ...planner, schoolYears });
+}
+
+export function deleteSchoolYear(planner: PlannerData, schoolYearId: string): PlannerData {
+  if (planner.terms.some((term) => term.schoolYearId === schoolYearId) || planner.nonTeachingPeriods.some((period) => period.schoolYearId === schoolYearId)) {
+    throw new Error("Remove this school year's Terms and non-teaching periods first.");
+  }
+  return touchPlanner({ ...planner, schoolYears: planner.schoolYears.filter((item) => item.id !== schoolYearId) });
+}
+
+export function upsertTerm(planner: PlannerData, item: Term): PlannerData {
+  const year = planner.schoolYears.find((candidate) => candidate.id === item.schoolYearId);
+  if (!year || !item.id.trim() || !item.name.trim() || !Number.isInteger(item.sequence) || item.sequence < 1) throw new Error("Term details are invalid.");
+  assertDateRange(item.startDate, item.endDate);
+  if (item.startDate < year.startDate || item.endDate > year.endDate) throw new Error("Term dates must sit inside the school year.");
+  const terms = planner.terms.some((candidate) => candidate.id === item.id)
+    ? planner.terms.map((candidate) => candidate.id === item.id ? item : candidate)
+    : [...planner.terms, item];
+  return touchPlanner({ ...planner, terms });
+}
+
+export function deleteTerm(planner: PlannerData, termId: string): PlannerData {
+  return touchPlanner({ ...planner, terms: planner.terms.filter((item) => item.id !== termId) });
+}
+
+export function upsertNonTeachingPeriod(planner: PlannerData, item: NonTeachingPeriod): PlannerData {
+  const year = planner.schoolYears.find((candidate) => candidate.id === item.schoolYearId);
+  if (!year || !item.id.trim() || !item.name.trim()) throw new Error("Non-teaching period details are invalid.");
+  assertDateRange(item.startDate, item.endDate);
+  if (item.startDate < year.startDate || item.endDate > year.endDate) throw new Error("Non-teaching dates must sit inside the school year.");
+  const nonTeachingPeriods = planner.nonTeachingPeriods.some((candidate) => candidate.id === item.id)
+    ? planner.nonTeachingPeriods.map((candidate) => candidate.id === item.id ? item : candidate)
+    : [...planner.nonTeachingPeriods, item];
+  return touchPlanner({ ...planner, nonTeachingPeriods });
+}
+
+export function deleteNonTeachingPeriod(planner: PlannerData, periodId: string): PlannerData {
+  return touchPlanner({ ...planner, nonTeachingPeriods: planner.nonTeachingPeriods.filter((item) => item.id !== periodId) });
 }
 
 export function setClassLesson(planner: PlannerData, classId: string, lessonId: string): PlannerData {
@@ -852,5 +1004,20 @@ export function setExpectedLesson(planner: PlannerData, yearLevelId: string, les
 
 export function normalizeUnit(unit: Unit): Unit {
   const yearLevelIds = unitYearLevelIds(unit);
-  return { ...unit, yearLevelId: yearLevelIds[0], yearLevelIds, lessons: unit.lessons.map((lesson, index) => ({ ...lesson, sequence: index + 1 })) };
+  const timestamp = unit.updatedAt ?? new Date().toISOString();
+  return {
+    ...unit,
+    yearLevelId: yearLevelIds[0],
+    yearLevelIds,
+    schemaVersion: UNIT_SCHEMA_VERSION,
+    createdAt: unit.createdAt ?? timestamp,
+    updatedAt: timestamp,
+    lessons: unit.lessons.map((lesson, index) => ({
+      ...lesson,
+      sequence: index + 1,
+      schemaVersion: LESSON_SCHEMA_VERSION,
+      createdAt: lesson.createdAt ?? timestamp,
+      updatedAt: lesson.updatedAt ?? timestamp,
+    })),
+  };
 }

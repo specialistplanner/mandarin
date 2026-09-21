@@ -1,6 +1,6 @@
 import { PLANNER_SCHEMA_VERSION, clonePlanner, type PlannerData } from "./domain.ts";
 import { createBlankPlanner } from "./sample-data.ts";
-import { validatePlannerData } from "./storage.ts";
+import { migrateV9PlannerData, validatePlannerData } from "./storage.ts";
 
 export const CLOUD_PROGRAM_SCHEMA_VERSION = 1 as const;
 
@@ -118,7 +118,7 @@ export function validateCloudProgram(value: unknown): CloudProgram {
   if (!Array.isArray(candidate.memberUids) || !candidate.memberUids.includes(candidate.ownerUid)) throw new Error("Cloud Program membership is invalid.");
   if (!candidate.members || typeof candidate.members !== "object" || Array.isArray(candidate.members) || (candidate.members as Record<string, unknown>)[candidate.ownerUid] !== "owner") throw new Error("Cloud Program owner membership is invalid.");
   if (typeof candidate.name !== "string" || !candidate.name.trim() || !isProgramSubjectType(candidate.subjectType)) throw new Error("Cloud Program details are invalid.");
-  if (candidate.schemaVersion !== CLOUD_PROGRAM_SCHEMA_VERSION || candidate.plannerSchemaVersion !== PLANNER_SCHEMA_VERSION) throw new Error("Cloud Program schema is incompatible.");
+  if (candidate.schemaVersion !== CLOUD_PROGRAM_SCHEMA_VERSION || (candidate.plannerSchemaVersion !== 9 && candidate.plannerSchemaVersion !== PLANNER_SCHEMA_VERSION)) throw new Error("Cloud Program schema is incompatible.");
   if (!Number.isInteger(candidate.revision) || Number(candidate.revision) < 1 || typeof candidate.lastMutationId !== "string" || !candidate.lastMutationId) throw new Error("Cloud Program revision is invalid.");
   return {
     id: candidate.id,
@@ -134,7 +134,7 @@ export function validateCloudProgram(value: unknown): CloudProgram {
     lastMutationId: candidate.lastMutationId,
     createdAt: candidate.createdAt,
     updatedAt: candidate.updatedAt,
-    data: clonePlanner(validatePlannerData(candidate.data)),
+    data: clonePlanner(candidate.plannerSchemaVersion === 9 ? migrateV9PlannerData(candidate.data) : validatePlannerData(candidate.data)),
   };
 }
 

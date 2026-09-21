@@ -1,6 +1,6 @@
 import type { PlannerData } from "./domain.ts";
 import { isProgramSubjectType, type ProgramSubjectType } from "./cloud-program.ts";
-import { validatePlannerData } from "./storage.ts";
+import { migrateV9PlannerData, validatePlannerData } from "./storage.ts";
 
 export const CLOUD_CACHE_SCHEMA_VERSION = 1 as const;
 export const CLOUD_CACHE_PREFIX = "specialist-planner.cloud-cache.v1";
@@ -29,6 +29,11 @@ export type CloudCache = {
 
 type CacheStorage = Pick<Storage, "getItem" | "setItem"> & Partial<Pick<Storage, "removeItem">>;
 
+function validateCachedPlanner(value: unknown): PlannerData {
+  const schemaVersion = value && typeof value === "object" && !Array.isArray(value) ? (value as { schemaVersion?: unknown }).schemaVersion : undefined;
+  return schemaVersion === 9 ? migrateV9PlannerData(value) : validatePlannerData(value);
+}
+
 export function cloudCacheKey(uid: string): string {
   return `${CLOUD_CACHE_PREFIX}.${uid}`;
 }
@@ -47,9 +52,9 @@ export function readCloudCache(storage: CacheStorage, uid: string): CloudCache |
     if (value.pendingOperation !== undefined) {
       const operation = value.pendingOperation as Partial<CloudPendingOperation>;
       if (typeof operation.mutationId !== "string" || !operation.mutationId || !Number.isInteger(operation.expectedRevision) || Number(operation.expectedRevision) < 1) return null;
-      pendingOperation = { mutationId: operation.mutationId, expectedRevision: Number(operation.expectedRevision), planner: validatePlannerData(operation.planner) };
+      pendingOperation = { mutationId: operation.mutationId, expectedRevision: Number(operation.expectedRevision), planner: validateCachedPlanner(operation.planner) };
     }
-    return { ...value, revision: Number(value.revision), planner: validatePlannerData(value.planner), ...(pendingOperation ? { pendingOperation } : {}) } as CloudCache;
+    return { ...value, revision: Number(value.revision), planner: validateCachedPlanner(value.planner), ...(pendingOperation ? { pendingOperation } : {}) } as CloudCache;
   } catch {
     return null;
   }

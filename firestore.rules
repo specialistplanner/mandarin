@@ -41,7 +41,7 @@ service cloud.firestore {
         && request.resource.data.name.size() > 0
         && request.resource.data.subjectType in ['art', 'music', 'pe', 'performing_arts', 'stem', 'languages', 'library', 'other']
         && request.resource.data.schemaVersion == 1
-        && request.resource.data.plannerSchemaVersion == 9
+        && request.resource.data.plannerSchemaVersion == 10
         && request.resource.data.revision == 1
         && request.resource.data.lastMutationId is string
         && (!request.resource.data.keys().hasAny(['customSubjectName']) || request.resource.data.customSubjectName is string)
@@ -60,7 +60,8 @@ service cloud.firestore {
         && request.resource.data.get('customSubjectName', null) == resource.data.get('customSubjectName', null)
         && request.resource.data.createdAt == resource.data.createdAt
         && request.resource.data.schemaVersion == resource.data.schemaVersion
-        && request.resource.data.plannerSchemaVersion == resource.data.plannerSchemaVersion
+        && request.resource.data.plannerSchemaVersion == 10
+        && resource.data.plannerSchemaVersion in [9, 10]
         && request.resource.data.name is string
         && request.resource.data.name.size() > 0
         && request.resource.data.revision == resource.data.revision + 1

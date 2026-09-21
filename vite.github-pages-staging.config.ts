@@ -10,7 +10,7 @@ const projectRoot = fileURLToPath(new URL(".", import.meta.url));
 export default defineConfig({
   root: resolve(projectRoot, "github-pages"),
   envDir: projectRoot,
-  base: "/mandarin-v06-staging/",
+  base: "/mandarin-v07-staging/",
   publicDir: resolve(projectRoot, "public"),
   plugins: [react()],
   resolve: { alias: { "@": projectRoot } },

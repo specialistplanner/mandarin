@@ -75,6 +75,9 @@ function fixture() {
       { id: "cover", slotId: "custom-10", weekday: 3, startTime: "10:00", endTime: "11:00", classId: "5c", type: "cover-release" },
     ],
     teachingSessions: [],
+    schoolYears: [],
+    terms: [],
+    nonTeachingPeriods: [],
     trialNotes: [{ id: "note", text: "Half a lesson", createdAt: "2026-08-23T00:00:00.000Z", classId: "5c", context: "Class drawer" }],
     updatedAt: "2026-08-23T00:00:00.000Z",
   };
@@ -264,16 +267,16 @@ test("an unreadable current planner stops migration before older data can overwr
     removeItem: (key) => memory.delete(key),
   };
 
-  assert.deepEqual(loadPlanner(storage, fixture()), { planner: null, source: "invalid-v9" });
+  assert.deepEqual(loadPlanner(storage, fixture()), { planner: null, source: "invalid-v10" });
   assert.equal(memory.get(STORAGE_KEY), current);
   assert.equal(writes, 0);
 });
 
-test("localStorage v9 persists fully and older planner schemas migrate safely", () => {
+test("localStorage v10 persists fully and older planner schemas migrate safely", () => {
   const memory = new Map();
   const storage = { getItem: (key) => memory.get(key) ?? null, setItem: (key, value) => memory.set(key, value), removeItem: (key) => memory.delete(key) };
   persistPlanner(storage, fixture());
-  assert.equal(loadPlanner(storage, fixture()).source, "v9");
+  assert.equal(loadPlanner(storage, fixture()).source, "v10");
   assert.equal(JSON.parse(memory.get(STORAGE_KEY)).trialNotes.length, 1);
 
   memory.delete(STORAGE_KEY);

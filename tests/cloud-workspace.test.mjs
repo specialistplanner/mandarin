@@ -40,6 +40,22 @@ test("the existing Mandarin Program summary retains real classroom collections",
   assert.equal(summary.recordedSessions, planner.teachingSessions.filter((session) => session.outcome !== "planned").length);
 });
 
+test("a live v0.6 cloud Program is read as schema 10 without duplicating or renaming IDs", () => {
+  const planner = freshSamplePlanner();
+  const cloud = makeCloudProgram({ id: "program-mandarin", ownerUid: "teacher-a", name: "Mandarin", subjectType: "languages", planner, mutationId: "existing" });
+  const old = JSON.parse(JSON.stringify(cloud));
+  old.plannerSchemaVersion = 9;
+  old.data.schemaVersion = 9;
+  delete old.data.schoolYears;
+  delete old.data.terms;
+  delete old.data.nonTeachingPeriods;
+  const migrated = validateCloudProgram(old);
+  assert.equal(migrated.plannerSchemaVersion, 10);
+  assert.equal(migrated.id, cloud.id);
+  assert.deepEqual(migrated.data.teachingSessions.map((session) => session.id), cloud.data.teachingSessions.map((session) => session.id));
+  assert.deepEqual(migrated.data.units.map((unit) => unit.id), cloud.data.units.map((unit) => unit.id));
+});
+
 test("local cloud caches are isolated by authenticated UID", () => {
   const storage = memoryStorage();
   const planner = freshSamplePlanner();
@@ -47,6 +63,20 @@ test("local cloud caches are isolated by authenticated UID", () => {
   assert.ok(readCloudCache(storage, "teacher-a"));
   assert.equal(readCloudCache(storage, "teacher-b"), null);
   assert.notEqual(cloudCacheKey("teacher-a"), cloudCacheKey("teacher-b"));
+});
+
+test("a v0.6 cloud cache upgrades locally without changing Program or curriculum IDs", () => {
+  const storage = memoryStorage();
+  const planner = JSON.parse(JSON.stringify(freshSamplePlanner()));
+  planner.schemaVersion = 9;
+  delete planner.schoolYears;
+  delete planner.terms;
+  delete planner.nonTeachingPeriods;
+  storage.setItem(cloudCacheKey("teacher-a"), JSON.stringify({ schemaVersion: 1, uid: "teacher-a", programId: "program-a", programName: "Mandarin", subjectType: "languages", revision: 7, planner, pending: false, savedAt: "2026-09-10T00:00:00.000Z" }));
+  const restored = readCloudCache(storage, "teacher-a");
+  assert.equal(restored?.planner.schemaVersion, 10);
+  assert.equal(restored?.programId, "program-a");
+  assert.deepEqual(restored?.planner.units.map((unit) => unit.id), planner.units.map((unit) => unit.id));
 });
 
 test("an uncertain write keeps its mutation and source revision for idempotent retry", () => {

@@ -5,6 +5,7 @@ import {
   localDateKey,
   type Lesson,
   type ClassColourId,
+  type NonTeachingPeriod,
   type PlannerData,
   type ProgressStatus,
   type SpecialistClass,
@@ -13,6 +14,7 @@ import {
   type Unit,
   type YearLevel,
 } from "./domain.ts";
+import { nonTeachingPeriodForDate, shiftConfiguredTeachingWeek } from "./academic-calendar.ts";
 
 export type WeekEntryState = "actual" | "planned" | "unconfirmed" | "projected" | "legacy" | "unit-complete" | "needs-setup";
 
@@ -42,6 +44,7 @@ export type WeekDay = {
   dateKey: string;
   weekday: number;
   entries: WeekEntry[];
+  nonTeachingPeriod?: NonTeachingPeriod;
 };
 
 export type DerivedWeek = {
@@ -56,7 +59,8 @@ export function startOfTeachingWeek(date: Date): Date {
   return start;
 }
 
-export function shiftTeachingWeek(start: Date, amount: number): Date {
+export function shiftTeachingWeek(start: Date, amount: number, planner?: PlannerData): Date {
+  if (planner?.terms.length || planner?.nonTeachingPeriods.length) return shiftConfiguredTeachingWeek(planner, start, amount);
   const shifted = new Date(start);
   shifted.setDate(shifted.getDate() + amount * 7);
   return startOfTeachingWeek(shifted);
@@ -117,8 +121,9 @@ export function deriveTeachingWeek(planner: PlannerData, anchorDate: Date, today
     const date = new Date(start);
     date.setDate(start.getDate() + offset);
     const dateKey = localDateKey(date);
+    const nonTeachingPeriod = nonTeachingPeriodForDate(planner, dateKey);
     const timetable = planner.timetableSessions
-      .filter((item) => item.weekday === date.getDay())
+      .filter((item) => !nonTeachingPeriod && item.weekday === date.getDay())
       .sort((a, b) => a.startTime.localeCompare(b.startTime));
     const entries = timetable.map<WeekEntry>((item) => {
       if (item.type === "generalist-teaching") {
@@ -201,7 +206,7 @@ export function deriveTeachingWeek(planner: PlannerData, anchorDate: Date, today
         classColourId: specialistClass ? planner.classColours[specialistClass.id] : undefined,
       };
     });
-    days.push({ date, dateKey, weekday: date.getDay(), entries });
+    days.push({ date, dateKey, weekday: date.getDay(), entries, nonTeachingPeriod });
   }
   return { start, end, days };
 }

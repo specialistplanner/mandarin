@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.7.0 — staging candidate (2026-09-21)
+
+- Added an explicit Program-owned academic calendar with School Years, Terms and editable non-teaching periods.
+- Replaced History in primary navigation with a derived Term Overview while retaining all Teaching Session history.
+- Expanded the Program-owned Unit Library with curriculum metadata, teacher notes, HTTPS resources, timestamps and schema versions.
+- Added optional Mandarin Lesson `vocabularySetId` references and a Mandarin-only link to The Mandarin Room.
+- Added an idempotent planner schema 9 → 10 migration for live cloud Programs, local data, JSON backups and offline cloud caches.
+- Kept production unchanged; v0.7 remains a staging candidate until owner acceptance.
+
 ## v0.6.0 — 2026-09-10
 
 - Added private, owner-scoped cloud Programs and cross-device Firebase sync.

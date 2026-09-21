@@ -1,4 +1,6 @@
-# Specialist Planner v0.6.0 — Private Cloud Workspaces
+# Specialist Planner v0.7.0 — Term & Curriculum Workspace (staging)
+
+v0.7.0 is being validated on an isolated staging deployment. Production remains the accepted v0.6.0 release until owner acceptance. See [V0.7_STAGING_READINESS.md](./V0.7_STAGING_READINESS.md) for schema, migration, security and custom-domain readiness details.
 
 Specialist Planner is a private, progress-aware weekly planner for a single specialist teacher. v0.6.0 adds authenticated cloud Programs and cross-device continuity while preserving the established classroom workflow, JSON backups and local resilience.
 

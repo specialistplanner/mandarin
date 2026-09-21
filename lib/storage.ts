@@ -1,11 +1,14 @@
 import {
   CLASS_COLOUR_PRESETS,
   DEFAULT_SESSION_SLOTS,
+  LESSON_SCHEMA_VERSION,
   PLANNER_SCHEMA_VERSION,
+  UNIT_SCHEMA_VERSION,
   clonePlanner,
   unitAppliesToYearLevel,
   unitYearLevelIds,
   type ClassColourId,
+  type NonTeachingPeriodType,
   type PlannerData,
   type ProgressMap,
   type SessionSlot,
@@ -13,7 +16,8 @@ import {
   type TeachingSessionOutcome,
 } from "./domain.ts";
 
-export const STORAGE_KEY = "specialist-planner.data.v9";
+export const STORAGE_KEY = "specialist-planner.data.v10";
+export const LEGACY_V9_STORAGE_KEY = "specialist-planner.data.v9";
 export const LEGACY_V8_STORAGE_KEY = "specialist-planner.data.v8";
 export const LEGACY_V7_STORAGE_KEY = "specialist-planner.data.v7";
 export const LEGACY_V6_STORAGE_KEY = "specialist-planner.data.v6";
@@ -24,12 +28,13 @@ export const LEGACY_V2_STORAGE_KEY = "specialist-planner.data.v2";
 export const LEGACY_STORAGE_KEY = "specialist-planner.dashboard.progress.v1";
 
 export type StorageLike = Pick<Storage, "getItem" | "setItem"> & Partial<Pick<Storage, "removeItem">>;
-export type PlannerLoadResult = { planner: PlannerData | null; source: "v9" | "invalid-v9" | "migrated-v8" | "migrated-v7" | "migrated-v6" | "migrated-v5" | "migrated-v4" | "migrated-v3" | "migrated-v2" | "migrated-v1" | "empty" };
+export type PlannerLoadResult = { planner: PlannerData | null; source: "v10" | "invalid-v10" | "migrated-v9" | "migrated-v8" | "migrated-v7" | "migrated-v6" | "migrated-v5" | "migrated-v4" | "migrated-v3" | "migrated-v2" | "migrated-v1" | "empty" };
 
 const sessionTypes = new Set<SessionType>([
   "specialist-teaching", "generalist-teaching", "cover-release", "planning", "meeting", "school-activity", "break", "other",
 ]);
 const teachingOutcomes = new Set<TeachingSessionOutcome>(["planned", "completed", "partial", "not-taught"]);
+const nonTeachingPeriodTypes = new Set<NonTeachingPeriodType>(["school_holiday", "public_holiday", "curriculum_day", "school_closure", "custom"]);
 
 function record(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -48,6 +53,45 @@ function optionalString(value: unknown, field: string): string | undefined {
 function uniqueIds(items: Array<{ id: string }>, label: string) {
   const ids = new Set(items.map((item) => item.id));
   if (ids.size !== items.length) throw new Error(`${label} IDs must be unique.`);
+}
+
+function date(value: unknown, field: string): string {
+  const parsed = string(value, field);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(parsed) || Number.isNaN(Date.parse(`${parsed}T00:00:00`))) throw new Error(`${field} is invalid.`);
+  return parsed;
+}
+
+function timestamp(value: unknown, field: string): string {
+  const parsed = string(value, field);
+  if (Number.isNaN(Date.parse(parsed))) throw new Error(`${field} is invalid.`);
+  return parsed;
+}
+
+function resources(value: unknown, field: string) {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value)) throw new Error(`${field} is invalid.`);
+  const parsed = value.map((item, index) => {
+    if (!record(item)) throw new Error(`${field} ${index + 1} is invalid.`);
+    const url = string(item.url, `${field} URL`);
+    if (!/^https:\/\//i.test(url)) throw new Error(`${field} URL must use HTTPS.`);
+    return { id: string(item.id, `${field} ID`), label: string(item.label, `${field} label`), url, kind: optionalString(item.kind, `${field} kind`) };
+  });
+  uniqueIds(parsed, field);
+  return parsed;
+}
+
+function curriculumMetadata(value: unknown) {
+  if (value === undefined) return undefined;
+  if (!record(value)) throw new Error("Curriculum metadata is invalid.");
+  const codes = value.codes === undefined ? undefined : (() => {
+    if (!Array.isArray(value.codes)) throw new Error("Curriculum codes are invalid.");
+    return [...new Set(value.codes.map((item, index) => string(item, `Curriculum code ${index + 1}`)))];
+  })();
+  return {
+    framework: optionalString(value.framework, "Curriculum framework"),
+    codes,
+    notes: optionalString(value.notes, "Curriculum notes"),
+  };
 }
 
 function addSessionSlots(value: Record<string, unknown>): Record<string, unknown> {
@@ -71,6 +115,15 @@ function addSessionSlots(value: Record<string, unknown>): Record<string, unknown
   return { ...value, sessionSlots, timetableSessions };
 }
 
+function addV10Collections(value: Record<string, unknown>): Record<string, unknown> {
+  return {
+    ...value,
+    schoolYears: Array.isArray(value.schoolYears) ? value.schoolYears : [],
+    terms: Array.isArray(value.terms) ? value.terms : [],
+    nonTeachingPeriods: Array.isArray(value.nonTeachingPeriods) ? value.nonTeachingPeriods : [],
+  };
+}
+
 function externalResourceRef(value: unknown, resourceType: "unit" | "lesson") {
   if (value === undefined || value === null) return undefined;
   if (!record(value) || value.resourceType !== resourceType) throw new Error(`External ${resourceType} reference is invalid.`);
@@ -90,10 +143,11 @@ function externalResourceRef(value: unknown, resourceType: "unit" | "lesson") {
 
 export function validatePlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== PLANNER_SCHEMA_VERSION) {
-    throw new Error("This file is not a Specialist Planner v0.5 backup.");
+    throw new Error("This file is not a Specialist Planner v0.7 backup.");
   }
   if (!Array.isArray(value.subjects) || !Array.isArray(value.yearLevels) || !Array.isArray(value.classes) ||
       !Array.isArray(value.units) || !Array.isArray(value.sessionSlots) || !Array.isArray(value.timetableSessions) || !Array.isArray(value.teachingSessions) || !Array.isArray(value.trialNotes) ||
+      !Array.isArray(value.schoolYears) || !Array.isArray(value.terms) || !Array.isArray(value.nonTeachingPeriods) ||
       !record(value.classProgress) || !record(value.progressBaselines) || !record(value.progressCheckpoints) || !record(value.classColours)) {
     throw new Error("Planner collections are missing or invalid.");
   }
@@ -137,6 +191,13 @@ export function validatePlannerData(value: unknown): PlannerData {
       return {
         id: string(lesson.id, "Lesson ID"), title: string(lesson.title, "Lesson title"),
         description: optionalString(lesson.description, "Lesson description"), sequence: lessonIndex + 1,
+        teacherNotes: optionalString(lesson.teacherNotes, "Lesson teacher notes"),
+        resources: resources(lesson.resources, "Lesson resource"),
+        curriculumMetadata: curriculumMetadata(lesson.curriculumMetadata),
+        vocabularySetId: optionalString(lesson.vocabularySetId, "Vocabulary Set ID"),
+        createdAt: timestamp(lesson.createdAt ?? item.createdAt ?? value.updatedAt ?? new Date().toISOString(), "Lesson created timestamp"),
+        updatedAt: timestamp(lesson.updatedAt ?? item.updatedAt ?? value.updatedAt ?? new Date().toISOString(), "Lesson updated timestamp"),
+        schemaVersion: LESSON_SCHEMA_VERSION,
         externalResourceRef: externalResourceRef(lesson.externalResourceRef, "lesson"),
       };
     });
@@ -149,6 +210,12 @@ export function validatePlannerData(value: unknown): PlannerData {
     return {
       id: string(item.id, "Unit ID"), yearLevelId, yearLevelIds,
       title: string(item.title, "Unit title"), description: optionalString(item.description, "Unit description"), lessons,
+      teacherNotes: optionalString(item.teacherNotes, "Unit teacher notes"),
+      resources: resources(item.resources, "Unit resource"),
+      curriculumMetadata: curriculumMetadata(item.curriculumMetadata),
+      createdAt: timestamp(item.createdAt ?? value.updatedAt ?? new Date().toISOString(), "Unit created timestamp"),
+      updatedAt: timestamp(item.updatedAt ?? value.updatedAt ?? new Date().toISOString(), "Unit updated timestamp"),
+      schemaVersion: UNIT_SCHEMA_VERSION,
       externalResourceRef: externalResourceRef(item.externalResourceRef, "unit"),
     };
   });
@@ -296,6 +363,39 @@ export function validatePlannerData(value: unknown): PlannerData {
   });
   uniqueIds(teachingSessions, "Teaching session");
 
+  const schoolYears = value.schoolYears.map((item, index) => {
+    if (!record(item)) throw new Error(`School year ${index + 1} is invalid.`);
+    const startDate = date(item.startDate, "School year start date");
+    const endDate = date(item.endDate, "School year end date");
+    if (startDate > endDate) throw new Error("School year dates are invalid.");
+    return { id: string(item.id, "School year ID"), label: string(item.label, "School year label"), startDate, endDate };
+  });
+  uniqueIds(schoolYears, "School year");
+
+  const terms = value.terms.map((item, index) => {
+    if (!record(item)) throw new Error(`Term ${index + 1} is invalid.`);
+    const schoolYearId = string(item.schoolYearId, "Term school year ID");
+    const schoolYear = schoolYears.find((candidate) => candidate.id === schoolYearId);
+    const startDate = date(item.startDate, "Term start date");
+    const endDate = date(item.endDate, "Term end date");
+    const sequence = Number(item.sequence);
+    if (!schoolYear || startDate > endDate || startDate < schoolYear.startDate || endDate > schoolYear.endDate || !Number.isInteger(sequence) || sequence < 1) throw new Error(`Term ${index + 1} has invalid dates or sequence.`);
+    return { id: string(item.id, "Term ID"), schoolYearId, name: string(item.name, "Term name"), startDate, endDate, sequence };
+  });
+  uniqueIds(terms, "Term");
+
+  const nonTeachingPeriods = value.nonTeachingPeriods.map((item, index) => {
+    if (!record(item)) throw new Error(`Non-teaching period ${index + 1} is invalid.`);
+    const schoolYearId = string(item.schoolYearId, "Non-teaching school year ID");
+    const schoolYear = schoolYears.find((candidate) => candidate.id === schoolYearId);
+    const type = string(item.type, "Non-teaching period type") as NonTeachingPeriodType;
+    const startDate = date(item.startDate, "Non-teaching start date");
+    const endDate = date(item.endDate, "Non-teaching end date");
+    if (!schoolYear || !nonTeachingPeriodTypes.has(type) || startDate > endDate || startDate < schoolYear.startDate || endDate > schoolYear.endDate) throw new Error(`Non-teaching period ${index + 1} has invalid dates or type.`);
+    return { id: string(item.id, "Non-teaching period ID"), schoolYearId, type, name: string(item.name, "Non-teaching period name"), startDate, endDate };
+  });
+  uniqueIds(nonTeachingPeriods, "Non-teaching period");
+
   const trialNotes = value.trialNotes.map((item, index) => {
     if (!record(item)) throw new Error(`Trial note ${index + 1} is invalid.`);
     const createdAt = string(item.createdAt, "Note timestamp");
@@ -308,7 +408,7 @@ export function validatePlannerData(value: unknown): PlannerData {
 
   return {
     schemaVersion: PLANNER_SCHEMA_VERSION, id: string(value.id, "Planner ID"), subjects, activeSubjectId,
-    yearLevels, classes, units, classProgress, progressBaselines, progressCheckpoints, classColours, sessionSlots, timetableSessions, teachingSessions, reconciliationStatus, trialNotes,
+    yearLevels, classes, units, classProgress, progressBaselines, progressCheckpoints, classColours, sessionSlots, timetableSessions, teachingSessions, schoolYears, terms, nonTeachingPeriods, reconciliationStatus, trialNotes,
     updatedAt: typeof value.updatedAt === "string" && !Number.isNaN(Date.parse(value.updatedAt)) ? value.updatedAt : new Date().toISOString(),
   };
 }
@@ -316,8 +416,13 @@ export function validatePlannerData(value: unknown): PlannerData {
 export function loadPlanner(storage: StorageLike, sample: PlannerData): PlannerLoadResult {
   const current = storage.getItem(STORAGE_KEY);
   if (current) {
-    try { return { planner: validatePlannerData(JSON.parse(current)), source: "v9" }; }
-    catch { return { planner: null, source: "invalid-v9" }; }
+    try { return { planner: validatePlannerData(JSON.parse(current)), source: "v10" }; }
+    catch { return { planner: null, source: "invalid-v10" }; }
+  }
+  const v9 = storage.getItem(LEGACY_V9_STORAGE_KEY);
+  if (v9) {
+    try { return { planner: migrateV9PlannerData(JSON.parse(v9)), source: "migrated-v9" }; }
+    catch { /* Fall through to the v0.5 migration. */ }
   }
   const v8 = storage.getItem(LEGACY_V8_STORAGE_KEY);
   if (v8) {
@@ -392,6 +497,7 @@ export function importPlannerData(text: string): PlannerData {
   let parsed: unknown;
   try { parsed = JSON.parse(text); }
   catch { throw new Error("The selected file is not valid JSON."); }
+  if (record(parsed) && parsed.schemaVersion === 9) return migrateV9PlannerData(parsed);
   if (record(parsed) && parsed.schemaVersion === 8) return migrateV8PlannerData(parsed);
   if (record(parsed) && parsed.schemaVersion === 7) return migrateV7PlannerData(parsed);
   if (record(parsed) && parsed.schemaVersion === 6) return migrateV6PlannerData(parsed);
@@ -402,6 +508,11 @@ export function importPlannerData(text: string): PlannerData {
   return validatePlannerData(parsed);
 }
 
+export function migrateV9PlannerData(value: unknown): PlannerData {
+  if (!record(value) || value.schemaVersion !== 9 || !Array.isArray(value.units) || !Array.isArray(value.teachingSessions)) throw new Error("This is not a valid Specialist Planner v0.6 backup.");
+  return validatePlannerData(addV10Collections({ ...value, schemaVersion: PLANNER_SCHEMA_VERSION }));
+}
+
 export function migrateV2PlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== 2) throw new Error("This is not a valid Specialist Planner v0.2 backup.");
   return migrateV3PlannerData({ ...value, schemaVersion: 3 });
@@ -409,12 +520,12 @@ export function migrateV2PlannerData(value: unknown): PlannerData {
 
 export function migrateV8PlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== 8 || !Array.isArray(value.timetableSessions)) throw new Error("This is not a valid Specialist Planner v0.5 backup.");
-  return validatePlannerData({ ...addSessionSlots(value), schemaVersion: PLANNER_SCHEMA_VERSION });
+  return validatePlannerData(addV10Collections({ ...addSessionSlots(value), schemaVersion: PLANNER_SCHEMA_VERSION }));
 }
 
 export function migrateV7PlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== 7 || !Array.isArray(value.units)) throw new Error("This is not a valid Specialist Planner v0.4.2 backup.");
-  return validatePlannerData({ ...addSessionSlots(value), schemaVersion: PLANNER_SCHEMA_VERSION });
+  return validatePlannerData(addV10Collections({ ...addSessionSlots(value), schemaVersion: PLANNER_SCHEMA_VERSION }));
 }
 
 export function migrateV6PlannerData(value: unknown): PlannerData {
@@ -432,33 +543,33 @@ export function migrateV6PlannerData(value: unknown): PlannerData {
   for (const [classId, colourId] of Object.entries(value.classColours)) {
     if (typeof colourId === "string" && replacements[colourId]) colourMap[classId] = replacements[colourId];
   }
-  return validatePlannerData({ ...addSessionSlots(value), schemaVersion: PLANNER_SCHEMA_VERSION, classColours: colourMap });
+  return validatePlannerData(addV10Collections({ ...addSessionSlots(value), schemaVersion: PLANNER_SCHEMA_VERSION, classColours: colourMap }));
 }
 
 export function migrateV5PlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== 5 || !record(value.classProgress) || !record(value.progressBaselines) || !record(value.progressCheckpoints) || !Array.isArray(value.teachingSessions)) {
     throw new Error("This is not a valid Specialist Planner v0.3.1/v0.4 backup.");
   }
-  return validatePlannerData({ ...addSessionSlots(value), schemaVersion: PLANNER_SCHEMA_VERSION, classColours: {} });
+  return validatePlannerData(addV10Collections({ ...addSessionSlots(value), schemaVersion: PLANNER_SCHEMA_VERSION, classColours: {} }));
 }
 
 export function migrateV3PlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== 3 || !record(value.classProgress)) throw new Error("This is not a valid Specialist Planner v0.2.1 backup.");
-  return validatePlannerData(addSessionSlots({
+  return validatePlannerData(addV10Collections(addSessionSlots({
     ...value,
     schemaVersion: PLANNER_SCHEMA_VERSION,
     progressBaselines: JSON.parse(JSON.stringify(value.classProgress)),
     progressCheckpoints: {},
     classColours: {},
     teachingSessions: [],
-  }));
+  })));
 }
 
 export function migrateV4PlannerData(value: unknown): PlannerData {
   if (!record(value) || value.schemaVersion !== 4 || !record(value.classProgress) || !record(value.progressBaselines) || !Array.isArray(value.teachingSessions)) {
     throw new Error("This is not a valid Specialist Planner v0.3 backup.");
   }
-  return validatePlannerData({ ...addSessionSlots(value), schemaVersion: PLANNER_SCHEMA_VERSION, progressCheckpoints: {}, classColours: {} });
+  return validatePlannerData(addV10Collections({ ...addSessionSlots(value), schemaVersion: PLANNER_SCHEMA_VERSION, progressCheckpoints: {}, classColours: {} }));
 }
 
 // v0.1 API retained to prove the migration source remains readable.

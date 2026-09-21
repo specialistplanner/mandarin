@@ -44,15 +44,15 @@ function weekSummary(planner, anchor) {
 }
 
 test("release metadata has one stable production version source", async () => {
-  assert.equal(APP_VERSION, "v0.6.0");
-  assert.equal(RELEASE_DATE, "2026-09-10");
-  assert.equal(RELEASE_NAME, "Private Cloud Workspaces");
-  assert.equal(RELEASE_TITLE, "Specialist Planner v0.6.0 — Private Cloud Workspaces");
+  assert.equal(APP_VERSION, "v0.7.0");
+  assert.equal(RELEASE_DATE, "2026-09-21");
+  assert.equal(RELEASE_NAME, "Term & Curriculum Workspace");
+  assert.equal(RELEASE_TITLE, "Specialist Planner v0.7.0 — Term & Curriculum Workspace");
   assert.equal(SITE_ORIGIN, "https://specialistplanner.github.io/mandarin/");
   assert.equal(SITE_BASE_PATH, "/mandarin/");
-  assert.equal(STORAGE_KEY, "specialist-planner.data.v9");
+  assert.equal(STORAGE_KEY, "specialist-planner.data.v10");
   const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
-  assert.equal(packageJson.version, "0.6.0");
+  assert.equal(packageJson.version, "0.7.0");
 });
 
 test("GitHub Pages production entry and workflow preserve the project base path", async () => {
@@ -77,13 +77,13 @@ test("GitHub Pages production entry and workflow preserve the project base path"
   assert.doesNotMatch(entry, /chatgpt\.site/i);
 });
 
-test("the temporary v0.6 Pages staging build is isolated from production", async () => {
+test("the temporary v0.7 Pages staging build is isolated from production", async () => {
   const [config, packageJson] = await Promise.all([
     readFile(new URL("../vite.github-pages-staging.config.ts", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8").then(JSON.parse),
   ]);
   assert.match(config, /envDir:\s*projectRoot/);
-  assert.match(config, /base:\s*["']\/mandarin-v06-staging\/["']/);
+  assert.match(config, /base:\s*["']\/mandarin-v07-staging\/["']/);
   assert.match(config, /dist-pages-staging/);
   assert.equal(packageJson.scripts["build:pages:staging"], "vite build --mode staging --config vite.github-pages-staging.config.ts");
 });
