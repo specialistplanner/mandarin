@@ -27,9 +27,11 @@ test("Term Overview replaces History navigation while retaining multi-class Teac
   assert.match(overview, /aria-label="Term workspace"/);
   assert.match(overview, />Progress<\/button>/);
   assert.doesNotMatch(overview, /term-progress-section/);
-  assert.match(overview, /Majority position/);
-  assert.match(overview, /cell\.items\.map/);
-  assert.match(overview, /Majority position/);
+  assert.match(overview, />Export Excel</);
+  assert.match(overview, /deriveTermOverviewDataset/);
+  assert.doesNotMatch(overview, /Majority position/);
+  assert.doesNotMatch(overview, /Completed ·|Scheduled/);
   assert.match(calendar, /planner\.teachingSessions/);
   assert.match(calendar, /session\.outcome !== "planned"/);
+  assert.doesNotMatch(calendar, /planner\.classProgress/);
 });

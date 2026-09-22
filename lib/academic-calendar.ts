@@ -1,4 +1,4 @@
-import { localDateKey, type NonTeachingPeriod, type PlannerData, type TeachingSessionOutcome, type Term } from "./domain.ts";
+import { localDateKey, type NonTeachingPeriod, type PlannerData, type TeachingSession, type Term } from "./domain.ts";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const SHORT_MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -65,27 +65,25 @@ export function teachingWeekStarts(planner: PlannerData, term: Term): Date[] {
   return starts;
 }
 
-export type TermOverviewClassItem = {
-  classId: string;
-  className: string;
-  unitId?: string;
-  unitTitle?: string;
-  lessonId?: string;
-  lessonTitle?: string;
-  outcome: TeachingSessionOutcome | "scheduled" | "none";
-  supportingClassCount: number;
-  totalClassCount: number;
-  outcomes: { outcome: TeachingSessionOutcome | "scheduled" | "none"; count: number }[];
+export type TermOverviewAlternative = {
+  label: string;
+  classCount: number;
 };
 
 export type TermOverviewCell = {
   yearLevelId: string;
   weekNumber: number;
-  items: TermOverviewClassItem[];
+  kind: "blank" | "lesson" | "event" | "split";
+  unitTitle?: string;
+  lessonNumber?: number;
+  lessonTitle?: string;
+  eventTitle?: string;
+  alternatives?: TermOverviewAlternative[];
   divergent: boolean;
+  differentClassCount: number;
+  evidenceClassCount: number;
+  scheduledClassCount: number;
 };
-
-type TermOverviewClassDetail = Omit<TermOverviewClassItem, "supportingClassCount" | "totalClassCount" | "outcomes">;
 
 export type TermOverviewRow = {
   weekNumber: number;
@@ -94,75 +92,175 @@ export type TermOverviewRow = {
   cells: TermOverviewCell[];
 };
 
-export function deriveTermOverview(planner: PlannerData, termId: string): TermOverviewRow[] {
+export type TermOverviewDataset = {
+  schoolYearLabel: string;
+  termId: string;
+  termName: string;
+  columns: { id: string; label: string }[];
+  rows: TermOverviewRow[];
+};
+
+function humanReadableEvent(value: string): string {
+  const cleaned = value.trim().replace(/[_-]+/g, " ").replace(/\s+/g, " ");
+  if (!cleaned) return "";
+  return cleaned.replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function scheduledDateForWeek(weekStart: Date, weekday: number): string {
+  const date = atNoon(weekStart);
+  date.setDate(date.getDate() + ((weekday + 6) % 7));
+  return localDateKey(date);
+}
+
+function latestByClass(sessions: TeachingSession[]): Map<string, TeachingSession> {
+  const result = new Map<string, TeachingSession>();
+  for (const session of [...sessions].sort((a, b) => a.date.localeCompare(b.date) || a.updatedAt.localeCompare(b.updatedAt))) {
+    result.set(session.classId, session);
+  }
+  return result;
+}
+
+function strictMajority<T>(groups: Map<string, T[]>, denominator: number): [string, T[]] | undefined {
+  return [...groups.entries()]
+    .sort(([leftKey, left], [rightKey, right]) => right.length - left.length || leftKey.localeCompare(rightKey))
+    .find(([, values]) => values.length > denominator / 2);
+}
+
+function recordedLessonNumber(planner: PlannerData, session: TeachingSession): number | undefined {
+  const unit = planner.units.find((item) => item.id === session.plannedUnitId);
+  const lesson = unit?.lessons.find((item) => item.id === session.plannedLessonId);
+  return lesson?.sequence ?? (unit ? unit.lessons.findIndex((item) => item.id === session.plannedLessonId) + 1 : undefined);
+}
+
+function lessonLabel(planner: PlannerData, session: TeachingSession): string {
+  const lessonNumber = recordedLessonNumber(planner, session);
+  const lessonTitle = lessonNumber ? `L${lessonNumber} · ${session.plannedLessonTitle}` : session.plannedLessonTitle;
+  return `${session.plannedUnitTitle} — ${lessonTitle}`;
+}
+
+function deriveCell(
+  planner: PlannerData,
+  term: Term,
+  weekStart: Date,
+  weekNumber: number,
+  yearLevelId: string,
+  startDate: string,
+  endDate: string,
+): TermOverviewCell {
+  const classIds = new Set(planner.classes.filter((item) => item.yearLevelId === yearLevelId).map((item) => item.id));
+  const scheduled = planner.timetableSessions
+    .filter((session) => session.type === "specialist-teaching" && session.classId && classIds.has(session.classId))
+    .map((session) => ({ session, date: scheduledDateForWeek(weekStart, session.weekday) }))
+    .filter(({ date }) => date >= startDate && date <= endDate && date >= term.startDate && date <= term.endDate);
+
+  const recorded = planner.teachingSessions.filter((session) =>
+    session.yearLevelId === yearLevelId
+    && session.date >= startDate
+    && session.date <= endDate
+    && session.outcome !== "planned",
+  );
+  const scheduledClassIds = new Set([...scheduled.map(({ session }) => session.classId!), ...recorded.map((session) => session.classId)]);
+  const taughtByClass = latestByClass(recorded.filter((session) => session.outcome === "completed" || session.outcome === "partial"));
+  const eventByClass = new Map<string, string>();
+
+  for (const session of recorded) {
+    if (session.outcome !== "not-taught" || taughtByClass.has(session.classId)) continue;
+    const reason = humanReadableEvent(session.reason ?? "");
+    if (reason) eventByClass.set(session.classId, reason);
+  }
+  for (const { session, date } of scheduled) {
+    if (!session.classId || taughtByClass.has(session.classId) || eventByClass.has(session.classId)) continue;
+    const period = nonTeachingPeriodForDate(planner, date);
+    if (period?.name.trim()) eventByClass.set(session.classId, humanReadableEvent(period.name));
+  }
+
+  const eventGroups = new Map<string, string[]>();
+  for (const [classId, event] of eventByClass) eventGroups.set(event, [...(eventGroups.get(event) ?? []), classId]);
+  const eventMajority = strictMajority(eventGroups, scheduledClassIds.size);
+  if (eventMajority) {
+    const [eventTitle, supportingClasses] = eventMajority;
+    return {
+      yearLevelId, weekNumber, kind: "event", eventTitle,
+      divergent: supportingClasses.length < scheduledClassIds.size,
+      differentClassCount: Math.max(0, scheduledClassIds.size - supportingClasses.length),
+      evidenceClassCount: new Set([...taughtByClass.keys(), ...eventByClass.keys()]).size,
+      scheduledClassCount: scheduledClassIds.size,
+    };
+  }
+
+  const lessonGroups = new Map<string, TeachingSession[]>();
+  for (const session of taughtByClass.values()) {
+    const signature = `${session.plannedUnitId}:${session.plannedLessonId}`;
+    lessonGroups.set(signature, [...(lessonGroups.get(signature) ?? []), session]);
+  }
+  const lessonMajority = strictMajority(lessonGroups, taughtByClass.size);
+  if (lessonMajority) {
+    const [, supportingSessions] = lessonMajority;
+    const representative = supportingSessions[0];
+    return {
+      yearLevelId, weekNumber, kind: "lesson",
+      unitTitle: representative.plannedUnitTitle,
+      lessonNumber: recordedLessonNumber(planner, representative),
+      lessonTitle: representative.plannedLessonTitle,
+      divergent: supportingSessions.length < scheduledClassIds.size || lessonGroups.size > 1 || eventByClass.size > 0,
+      differentClassCount: Math.max(0, scheduledClassIds.size - supportingSessions.length),
+      evidenceClassCount: new Set([...taughtByClass.keys(), ...eventByClass.keys()]).size,
+      scheduledClassCount: scheduledClassIds.size,
+    };
+  }
+
+  const alternatives: TermOverviewAlternative[] = [
+    ...[...lessonGroups.values()].map((sessions) => ({ label: lessonLabel(planner, sessions[0]), classCount: sessions.length })),
+    ...[...eventGroups.entries()].map(([label, classes]) => ({ label, classCount: classes.length })),
+  ].sort((a, b) => b.classCount - a.classCount || a.label.localeCompare(b.label));
+  const evidenceClassCount = new Set([...taughtByClass.keys(), ...eventByClass.keys(), ...recorded.map((session) => session.classId)]).size;
+  if (evidenceClassCount > 0) {
+    return {
+      yearLevelId, weekNumber, kind: "split", alternatives,
+      divergent: true,
+      differentClassCount: Math.max(0, scheduledClassIds.size - (alternatives[0]?.classCount ?? 0)),
+      evidenceClassCount,
+      scheduledClassCount: scheduledClassIds.size,
+    };
+  }
+
+  return {
+    yearLevelId, weekNumber, kind: "blank", divergent: false,
+    differentClassCount: 0, evidenceClassCount: 0, scheduledClassCount: scheduledClassIds.size,
+  };
+}
+
+export function termOverviewCellText(cell: TermOverviewCell): string {
+  if (cell.kind === "lesson") {
+    const lesson = cell.lessonTitle ? `${cell.lessonNumber ? `L${cell.lessonNumber} · ` : ""}${cell.lessonTitle}` : "";
+    return [cell.unitTitle, lesson].filter(Boolean).join(" — ");
+  }
+  if (cell.kind === "event") return cell.eventTitle ?? "";
+  if (cell.kind === "split") return cell.alternatives?.length
+    ? `Split: ${cell.alternatives.map((item) => item.label).join(" | ")}`
+    : "Mixed teaching week";
+  return "";
+}
+
+export function deriveTermOverviewDataset(planner: PlannerData, termId: string): TermOverviewDataset {
   const term = planner.terms.find((item) => item.id === termId);
-  if (!term) return [];
-  const unitById = new Map(planner.units.map((item) => [item.id, item]));
-  return teachingWeekStarts(planner, term).map((start, index) => {
+  const schoolYear = term ? planner.schoolYears.find((item) => item.id === term.schoolYearId) : undefined;
+  const columns = planner.yearLevels.map((level) => ({ id: level.id, label: level.label }));
+  if (!term) return { schoolYearLabel: schoolYear?.label ?? "", termId, termName: "", columns, rows: [] };
+  const rows = teachingWeekStarts(planner, term).map((start, index) => {
     const end = new Date(start.getTime() + 4 * DAY_MS);
     const startDate = localDateKey(start);
     const endDate = localDateKey(end);
-    const cells = planner.yearLevels.map((yearLevel) => {
-      const classes = planner.classes.filter((item) => item.yearLevelId === yearLevel.id);
-      const items = classes.map<TermOverviewClassDetail>((specialistClass) => {
-        const recorded = planner.teachingSessions
-          .filter((session) => session.classId === specialistClass.id && session.date >= startDate && session.date <= endDate && session.outcome !== "planned")
-          .sort((a, b) => b.date.localeCompare(a.date) || b.updatedAt.localeCompare(a.updatedAt))[0];
-        if (recorded) return {
-          classId: specialistClass.id,
-          className: specialistClass.name,
-          unitId: recorded.plannedUnitId,
-          unitTitle: recorded.plannedUnitTitle,
-          lessonId: recorded.plannedLessonId,
-          lessonTitle: recorded.plannedLessonTitle,
-          outcome: recorded.outcome,
-        };
-        const hasScheduledOccurrence = planner.timetableSessions.some((session) => {
-          if (session.type !== "specialist-teaching" || session.classId !== specialistClass.id) return false;
-          const date = new Date(start);
-          const offset = (session.weekday + 6) % 7;
-          date.setDate(start.getDate() + offset);
-          return localDateKey(date) >= startDate && localDateKey(date) <= endDate && isTeachingDate(planner, date);
-        });
-        const progress = planner.classProgress[specialistClass.id];
-        const unit = unitById.get(progress?.unitId ?? "");
-        const lesson = unit?.lessons.find((candidate) => candidate.id === progress?.lessonId);
-        return {
-          classId: specialistClass.id,
-          className: specialistClass.name,
-          unitId: unit?.id,
-          unitTitle: unit?.title,
-          lessonId: lesson?.id,
-          lessonTitle: lesson?.title,
-          outcome: hasScheduledOccurrence ? "scheduled" : "none",
-        };
-      });
-      const progressGroups = new Map<string, TermOverviewClassDetail[]>();
-      for (const item of items) {
-        const signature = `${item.unitId ?? ""}:${item.lessonId ?? ""}`;
-        progressGroups.set(signature, [...(progressGroups.get(signature) ?? []), item]);
-      }
-      const referenceSignature = `${yearLevel.currentUnitId ?? ""}:${yearLevel.expectedLessonId ?? ""}`;
-      const majorityGroup = [...progressGroups.entries()].sort(([leftKey, left], [rightKey, right]) =>
-        right.length - left.length
-        || Number(rightKey === referenceSignature) - Number(leftKey === referenceSignature)
-        || leftKey.localeCompare(rightKey)
-      )[0]?.[1] ?? [];
-      const outcomeCounts = new Map<TermOverviewClassDetail["outcome"], number>();
-      for (const item of items) outcomeCounts.set(item.outcome, (outcomeCounts.get(item.outcome) ?? 0) + 1);
-      const majorityOutcome = [...outcomeCounts.entries()].sort(([leftOutcome, left], [rightOutcome, right]) => right - left || leftOutcome.localeCompare(rightOutcome))[0]?.[0] ?? "none";
-      const representative = [...majorityGroup].sort((a, b) => a.className.localeCompare(b.className))[0];
-      const yearItem = representative ? [{
-        ...representative,
-        classId: yearLevel.id,
-        className: yearLevel.label,
-        outcome: majorityOutcome,
-        supportingClassCount: majorityGroup.length,
-        totalClassCount: items.length,
-        outcomes: [...outcomeCounts.entries()].map(([outcome, count]) => ({ outcome, count })).sort((a, b) => b.count - a.count || a.outcome.localeCompare(b.outcome)),
-      }] : [];
-      return { yearLevelId: yearLevel.id, weekNumber: index + 1, items: yearItem, divergent: progressGroups.size > 1 };
-    });
-    return { weekNumber: index + 1, startDate, endDate, cells };
+    return {
+      weekNumber: index + 1,
+      startDate,
+      endDate,
+      cells: planner.yearLevels.map((yearLevel) => deriveCell(planner, term, start, index + 1, yearLevel.id, startDate, endDate)),
+    };
   });
+  return { schoolYearLabel: schoolYear?.label ?? "", termId: term.id, termName: term.name, columns, rows };
+}
+
+export function deriveTermOverview(planner: PlannerData, termId: string): TermOverviewRow[] {
+  return deriveTermOverviewDataset(planner, termId).rows;
 }

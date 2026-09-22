@@ -44,15 +44,15 @@ function weekSummary(planner, anchor) {
 }
 
 test("release metadata has one stable production version source", async () => {
-  assert.equal(APP_VERSION, "v0.7.0");
-  assert.equal(RELEASE_DATE, "2026-09-21");
-  assert.equal(RELEASE_NAME, "Term & Curriculum Workspace");
-  assert.equal(RELEASE_TITLE, "Specialist Planner v0.7.0 — Term & Curriculum Workspace");
+  assert.equal(APP_VERSION, "v0.7.1");
+  assert.equal(RELEASE_DATE, "2026-09-23");
+  assert.equal(RELEASE_NAME, "Progress Lifecycle & Term Overview");
+  assert.equal(RELEASE_TITLE, "Specialist Planner v0.7.1 — Progress Lifecycle & Term Overview");
   assert.equal(SITE_ORIGIN, "https://specialistplanner.github.io/mandarin/");
   assert.equal(SITE_BASE_PATH, "/mandarin/");
   assert.equal(STORAGE_KEY, "specialist-planner.data.v10");
   const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
-  assert.equal(packageJson.version, "0.7.0");
+  assert.equal(packageJson.version, "0.7.1");
 });
 
 test("GitHub Pages production entry and workflow preserve the project base path", async () => {

@@ -974,22 +974,85 @@ export function setClassPosition(
   return applyManualProgressCorrection(planner, { classId, unitId, lessonId });
 }
 
-function applyManualProgressCorrection(planner: PlannerData, progress: ClassProgress): PlannerData {
+function establishProgressBaseline(
+  planner: PlannerData,
+  progress: ClassProgress,
+  reason: string,
+  effectiveDate = localDateKey(new Date()),
+): PlannerData {
+  validDateRange(effectiveDate, effectiveDate);
   const timestamp = new Date().toISOString();
   return touchPlanner({
     ...planner,
     classProgress: { ...planner.classProgress, [progress.classId]: progress },
-    progressBaselines: { ...planner.progressBaselines, [progress.classId]: progress },
+    progressBaselines: { ...planner.progressBaselines, [progress.classId]: { ...progress } },
     progressCheckpoints: { ...planner.progressCheckpoints, [progress.classId]: {
       ...progress,
-      effectiveDate: localDateKey(new Date()),
+      effectiveDate,
       createdAt: timestamp,
-      reason: "Manual progress correction",
+      reason,
     } },
-    teachingSessions: planner.teachingSessions.map((session) => session.classId === progress.classId
-      ? { ...session, affectsProgress: false }
-      : session),
   });
+}
+
+export function alignClassWithCohort(
+  planner: PlannerData,
+  classId: string,
+  effectiveDate = localDateKey(new Date()),
+): PlannerData {
+  const specialistClass = planner.classes.find((item) => item.id === classId);
+  const level = planner.yearLevels.find((item) => item.id === specialistClass?.yearLevelId);
+  const unit = planner.units.find((item) => item.id === level?.currentUnitId && unitAppliesToYearLevel(item, level?.id));
+  const lesson = unit?.lessons.find((item) => item.id === level?.expectedLessonId);
+  if (!specialistClass || !level || !unit || !lesson) throw new Error("Set a valid cohort reference before aligning this class.");
+  return establishProgressBaseline(
+    planner,
+    { classId, unitId: unit.id, lessonId: lesson.id },
+    `Aligned with ${level.label} at ${unit.title} · ${lesson.title}. Earlier untaught lessons remain historically unchanged.`,
+    effectiveDate,
+  );
+}
+
+export function startCohortTogether(
+  planner: PlannerData,
+  yearLevelId: string,
+  unitId: string,
+  lessonId: string,
+  effectiveDate = localDateKey(new Date()),
+): PlannerData {
+  validDateRange(effectiveDate, effectiveDate);
+  const level = planner.yearLevels.find((item) => item.id === yearLevelId);
+  const unit = planner.units.find((item) => item.id === unitId && unitAppliesToYearLevel(item, yearLevelId));
+  const lesson = unit?.lessons.find((item) => item.id === lessonId);
+  if (!level || !unit || !lesson) throw new Error("Choose a valid cohort starting position.");
+  const timestamp = new Date().toISOString();
+  const classProgress = { ...planner.classProgress };
+  const progressBaselines = { ...planner.progressBaselines };
+  const progressCheckpoints = { ...planner.progressCheckpoints };
+  for (const specialistClass of planner.classes.filter((item) => item.yearLevelId === yearLevelId)) {
+    const progress = { classId: specialistClass.id, unitId, lessonId };
+    classProgress[specialistClass.id] = progress;
+    progressBaselines[specialistClass.id] = { ...progress };
+    progressCheckpoints[specialistClass.id] = {
+      ...progress,
+      effectiveDate,
+      createdAt: timestamp,
+      reason: `Started ${level.label} together at ${unit.title} · ${lesson.title}. The previous teaching cycle ended without inferred completion.`,
+    };
+  }
+  return touchPlanner({
+    ...planner,
+    yearLevels: planner.yearLevels.map((item) => item.id === yearLevelId
+      ? { ...item, currentUnitId: unitId, expectedLessonId: lessonId }
+      : item),
+    classProgress,
+    progressBaselines,
+    progressCheckpoints,
+  });
+}
+
+function applyManualProgressCorrection(planner: PlannerData, progress: ClassProgress): PlannerData {
+  return establishProgressBaseline(planner, progress, "Manual progress correction");
 }
 
 export function setExpectedLesson(planner: PlannerData, yearLevelId: string, lessonId: string): PlannerData {

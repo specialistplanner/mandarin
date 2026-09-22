@@ -52,7 +52,7 @@ test("teaching-week navigation skips a fully non-teaching week", () => {
   assert.equal(shiftConfiguredTeachingWeek(planner, new Date("2026-08-31T12:00:00"), 1).toISOString().slice(0, 10), "2026-09-14");
 });
 
-test("Term Overview aggregates one year-level position while retaining distinct outcome counts", () => {
+test("Term Overview displays the recorded Unit and Lesson without progress diagnostics", () => {
   let planner = withCalendar();
   planner = materializeTeachingSessionsForDate(planner, new Date("2026-09-02T12:00:00"));
   const fiveE = planner.teachingSessions.find((session) => session.classId === "5e");
@@ -61,24 +61,26 @@ test("Term Overview aggregates one year-level position while retaining distinct 
   planner = recordTeachingSessionOutcome(planner, fiveC.id, "partial", "Half taught");
   const week = deriveTermOverview(planner, "term-3")[0];
   const yearFive = week.cells.find((cell) => cell.yearLevelId === "year-5");
-  assert.equal(yearFive.items.length, 1);
-  assert.equal(yearFive.items[0].totalClassCount, 2);
-  assert.deepEqual(yearFive.items[0].outcomes, [{ outcome: "completed", count: 1 }, { outcome: "partial", count: 1 }]);
+  assert.equal(yearFive.kind, "lesson");
+  assert.equal(yearFive.unitTitle, fiveE.plannedUnitTitle);
+  assert.equal(yearFive.lessonTitle, fiveE.plannedLessonTitle);
+  assert.equal("items" in yearFive, false);
 });
 
 test("Term Overview uses the majority Unit and Lesson when classes in one year level diverge", () => {
-  const planner = withCalendar();
-  const fiveE = planner.classProgress["5e"];
-  const yearFiveUnit = planner.units.find((unit) => unit.id === fiveE.unitId);
-  planner.classes.push({ id: "5x", name: "5X", yearLevelId: "year-5" });
-  planner.classProgress["5x"] = { ...fiveE, classId: "5x" };
-  planner.classProgress["5c"] = { ...planner.classProgress["5c"], lessonId: yearFiveUnit.lessons.find((lesson) => lesson.id !== fiveE.lessonId).id };
-  const cell = deriveTermOverview(planner, "term-3")[0].cells.find((item) => item.yearLevelId === "year-5");
+  let planner = withCalendar();
+  planner.classProgress["4e"] = { ...planner.classProgress["4e"], lessonId: "weather-lesson-2" };
+  planner = materializeTeachingSessionsForDate(planner, new Date("2026-09-01T12:00:00"));
+  planner = materializeTeachingSessionsForDate(planner, new Date("2026-09-03T12:00:00"));
+  for (const classId of ["4c", "4b", "4e"]) {
+    const session = planner.teachingSessions.find((item) => item.classId === classId);
+    planner = recordTeachingSessionOutcome(planner, session.id, "completed");
+  }
+  const cell = deriveTermOverview(planner, "term-3")[0].cells.find((item) => item.yearLevelId === "year-4");
   assert.equal(cell.divergent, true);
-  assert.equal(cell.items.length, 1);
-  assert.equal(cell.items[0].lessonId, fiveE.lessonId);
-  assert.equal(cell.items[0].supportingClassCount, 2);
-  assert.equal(cell.items[0].totalClassCount, 3);
+  assert.equal(cell.kind, "lesson");
+  assert.equal(cell.lessonTitle, "Seasons");
+  assert.equal(cell.differentClassCount, 1);
 });
 
 test("Program-owned Unit metadata and Mandarin vocabulary references survive backup restore", () => {

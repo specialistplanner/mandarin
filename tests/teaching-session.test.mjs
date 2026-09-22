@@ -143,7 +143,7 @@ test("manual correction creates a new progress baseline without erasing history"
   assert.equal(corrected.classProgress["5e"].lessonId, "nationalities-lesson-3");
   assert.equal(corrected.progressBaselines["5e"].lessonId, "nationalities-lesson-3");
   assert.equal(corrected.teachingSessions.find((item) => item.id === id).outcome, "completed");
-  assert.equal(corrected.teachingSessions.find((item) => item.id === id).affectsProgress, false);
+  assert.deepEqual(corrected.teachingSessions, completed.teachingSessions);
 });
 
 test("4E Camp is preserved end-to-end without advancing progress", () => {
