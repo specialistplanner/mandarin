@@ -6,7 +6,7 @@ export const UNIT_LIBRARY_INDEX_URL = `${UNIT_LIBRARY_BASE_URL}/unit-library-ind
 export const UNIT_LIBRARY_LIVE_INDEX_URL = "https://australia-southeast1-the-mandarin-room.cloudfunctions.net/unitLibraryIndex";
 
 export type UnitLibraryLesson = { id: string; title: string; url: string };
-export type UnitLibraryUnit = { id: string; yearLevel: number; title: string; url: string; lessons: UnitLibraryLesson[] };
+export type UnitLibraryUnit = { id: string; yearLevel: number; title: string; chineseTitle?: string; url: string; lessons: UnitLibraryLesson[] };
 export type UnitLibraryIndex = { schemaVersion: 1; provider: typeof UNIT_LIBRARY_PROVIDER; generatedAt: string; units: UnitLibraryUnit[] };
 
 export function unitLibraryDeepLink(unitId: string, lessonId?: string): string {
@@ -48,7 +48,8 @@ export function parseUnitLibraryIndex(value: unknown): UnitLibraryIndex {
       return { id: lesson.id, title: lesson.title, url: lesson.url };
     });
     if (typeof unit.url !== "string" || !unit.url.startsWith("https://")) throw new Error("Unit Library Unit URL is invalid.");
-    return { id: unit.id, yearLevel: Number(unit.yearLevel), title: unit.title, url: unit.url, lessons };
+    const chineseTitle = typeof unit.chineseTitle === "string" && unit.chineseTitle.trim() ? unit.chineseTitle.trim() : undefined;
+    return { id: unit.id, yearLevel: Number(unit.yearLevel), title: unit.title, chineseTitle, url: unit.url, lessons };
   });
   return { schemaVersion: 1, provider: UNIT_LIBRARY_PROVIDER, generatedAt: candidate.generatedAt, units };
 }

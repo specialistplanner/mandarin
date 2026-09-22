@@ -57,6 +57,23 @@ test("live synchronization uses the read-only Unit Library backend", () => {
   assert.equal(UNIT_LIBRARY_LIVE_INDEX_URL, "https://australia-southeast1-the-mandarin-room.cloudfunctions.net/unitLibraryIndex");
 });
 
+test("the public index accepts an optional Chinese display title", () => {
+  const parsed = parseUnitLibraryIndex({
+    schemaVersion: 1,
+    provider: UNIT_LIBRARY_PROVIDER,
+    generatedAt: "2026-09-22T00:00:00.000Z",
+    units: [{
+      id: "library-family",
+      yearLevel: 2,
+      title: "Family",
+      chineseTitle: " 家庭 ",
+      url: "https://themandarinroom.github.io/units/view.html?unit=library-family",
+      lessons: [],
+    }],
+  });
+  assert.equal(parsed.units[0].chineseTitle, "家庭");
+});
+
 test("live synchronization falls back to the published snapshot without losing access", async () => {
   const originalFetch = globalThis.fetch;
   const requested = [];
