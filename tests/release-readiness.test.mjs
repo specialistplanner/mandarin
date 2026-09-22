@@ -88,6 +88,12 @@ test("the temporary v0.7 Pages staging build is isolated from production", async
   assert.equal(packageJson.scripts["build:pages:staging"], "vite build --mode staging --config vite.github-pages-staging.config.ts");
 });
 
+test("the GitHub Pages entry advertises the current v0.7.1 release", async () => {
+  const entry = await readFile(new URL("../github-pages/index.html", import.meta.url), "utf8");
+  assert.match(entry, /Specialist Planner v0\.7\.1 — Progress Lifecycle &amp; Term Overview/);
+  assert.doesNotMatch(entry, /Specialist Planner v0\.7\.0/);
+});
+
 test("authoritative imports mark every one-time migration as already handled", () => {
   const memory = new Map();
   const storage = { setItem: (key, value) => memory.set(key, value) };
