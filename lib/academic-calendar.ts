@@ -1,6 +1,12 @@
 import { localDateKey, type NonTeachingPeriod, type PlannerData, type TeachingSessionOutcome, type Term } from "./domain.ts";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const SHORT_MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+export function formatTermDate(value: string): string {
+  const [, month, day] = value.split("-").map(Number);
+  return `${day} ${SHORT_MONTH_NAMES[month - 1]}`;
+}
 
 function atNoon(value: string | Date): Date {
   return typeof value === "string" ? new Date(`${value}T12:00:00`) : new Date(value.getFullYear(), value.getMonth(), value.getDate(), 12);
@@ -67,6 +73,9 @@ export type TermOverviewClassItem = {
   lessonId?: string;
   lessonTitle?: string;
   outcome: TeachingSessionOutcome | "scheduled" | "none";
+  supportingClassCount: number;
+  totalClassCount: number;
+  outcomes: { outcome: TeachingSessionOutcome | "scheduled" | "none"; count: number }[];
 };
 
 export type TermOverviewCell = {
@@ -75,6 +84,8 @@ export type TermOverviewCell = {
   items: TermOverviewClassItem[];
   divergent: boolean;
 };
+
+type TermOverviewClassDetail = Omit<TermOverviewClassItem, "supportingClassCount" | "totalClassCount" | "outcomes">;
 
 export type TermOverviewRow = {
   weekNumber: number;
@@ -93,7 +104,7 @@ export function deriveTermOverview(planner: PlannerData, termId: string): TermOv
     const endDate = localDateKey(end);
     const cells = planner.yearLevels.map((yearLevel) => {
       const classes = planner.classes.filter((item) => item.yearLevelId === yearLevel.id);
-      const items = classes.map<TermOverviewClassItem>((specialistClass) => {
+      const items = classes.map<TermOverviewClassDetail>((specialistClass) => {
         const recorded = planner.teachingSessions
           .filter((session) => session.classId === specialistClass.id && session.date >= startDate && session.date <= endDate && session.outcome !== "planned")
           .sort((a, b) => b.date.localeCompare(a.date) || b.updatedAt.localeCompare(a.updatedAt))[0];
@@ -126,8 +137,31 @@ export function deriveTermOverview(planner: PlannerData, termId: string): TermOv
           outcome: hasScheduledOccurrence ? "scheduled" : "none",
         };
       });
-      const signatures = new Set(items.map((item) => `${item.unitId ?? ""}:${item.lessonId ?? ""}:${item.outcome}`));
-      return { yearLevelId: yearLevel.id, weekNumber: index + 1, items, divergent: signatures.size > 1 };
+      const progressGroups = new Map<string, TermOverviewClassDetail[]>();
+      for (const item of items) {
+        const signature = `${item.unitId ?? ""}:${item.lessonId ?? ""}`;
+        progressGroups.set(signature, [...(progressGroups.get(signature) ?? []), item]);
+      }
+      const referenceSignature = `${yearLevel.currentUnitId ?? ""}:${yearLevel.expectedLessonId ?? ""}`;
+      const majorityGroup = [...progressGroups.entries()].sort(([leftKey, left], [rightKey, right]) =>
+        right.length - left.length
+        || Number(rightKey === referenceSignature) - Number(leftKey === referenceSignature)
+        || leftKey.localeCompare(rightKey)
+      )[0]?.[1] ?? [];
+      const outcomeCounts = new Map<TermOverviewClassDetail["outcome"], number>();
+      for (const item of items) outcomeCounts.set(item.outcome, (outcomeCounts.get(item.outcome) ?? 0) + 1);
+      const majorityOutcome = [...outcomeCounts.entries()].sort(([leftOutcome, left], [rightOutcome, right]) => right - left || leftOutcome.localeCompare(rightOutcome))[0]?.[0] ?? "none";
+      const representative = [...majorityGroup].sort((a, b) => a.className.localeCompare(b.className))[0];
+      const yearItem = representative ? [{
+        ...representative,
+        classId: yearLevel.id,
+        className: yearLevel.label,
+        outcome: majorityOutcome,
+        supportingClassCount: majorityGroup.length,
+        totalClassCount: items.length,
+        outcomes: [...outcomeCounts.entries()].map(([outcome, count]) => ({ outcome, count })).sort((a, b) => b.count - a.count || a.outcome.localeCompare(b.outcome)),
+      }] : [];
+      return { yearLevelId: yearLevel.id, weekNumber: index + 1, items: yearItem, divergent: progressGroups.size > 1 };
     });
     return { weekNumber: index + 1, startDate, endDate, cells };
   });

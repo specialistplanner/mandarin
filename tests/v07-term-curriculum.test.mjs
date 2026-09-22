@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { deriveTermOverview, shiftConfiguredTeachingWeek, teachingWeekStarts } from "../lib/academic-calendar.ts";
+import { deriveTermOverview, formatTermDate, shiftConfiguredTeachingWeek, teachingWeekStarts } from "../lib/academic-calendar.ts";
 import { materializeTeachingSessionsForDate, recordTeachingSessionOutcome, updateLessonMetadata, updateUnitMetadata } from "../lib/domain.ts";
 import { freshSamplePlanner } from "../lib/sample-data.ts";
 import { exportPlannerData, importPlannerData, migrateV9PlannerData } from "../lib/storage.ts";
@@ -12,6 +12,11 @@ function withCalendar() {
   planner.nonTeachingPeriods = [];
   return planner;
 }
+
+test("Term Overview uses an unambiguous Australian written date format", () => {
+  assert.equal(formatTermDate("2026-09-25"), "25 Sep");
+  assert.equal(formatTermDate("2026-10-01"), "1 Oct");
+});
 
 test("v0.6 schema 9 migrates idempotently without changing stable curriculum or progress IDs", () => {
   const original = freshSamplePlanner();
@@ -47,7 +52,7 @@ test("teaching-week navigation skips a fully non-teaching week", () => {
   assert.equal(shiftConfiguredTeachingWeek(planner, new Date("2026-08-31T12:00:00"), 1).toISOString().slice(0, 10), "2026-09-14");
 });
 
-test("Term Overview derives class divergence and distinct outcomes from Teaching Sessions", () => {
+test("Term Overview aggregates one year-level position while retaining distinct outcome counts", () => {
   let planner = withCalendar();
   planner = materializeTeachingSessionsForDate(planner, new Date("2026-09-02T12:00:00"));
   const fiveE = planner.teachingSessions.find((session) => session.classId === "5e");
@@ -56,8 +61,24 @@ test("Term Overview derives class divergence and distinct outcomes from Teaching
   planner = recordTeachingSessionOutcome(planner, fiveC.id, "partial", "Half taught");
   const week = deriveTermOverview(planner, "term-3")[0];
   const yearFive = week.cells.find((cell) => cell.yearLevelId === "year-5");
-  assert.equal(yearFive.divergent, true);
-  assert.deepEqual(yearFive.items.map((item) => item.outcome).sort(), ["completed", "partial"]);
+  assert.equal(yearFive.items.length, 1);
+  assert.equal(yearFive.items[0].totalClassCount, 2);
+  assert.deepEqual(yearFive.items[0].outcomes, [{ outcome: "completed", count: 1 }, { outcome: "partial", count: 1 }]);
+});
+
+test("Term Overview uses the majority Unit and Lesson when classes in one year level diverge", () => {
+  const planner = withCalendar();
+  const fiveE = planner.classProgress["5e"];
+  const yearFiveUnit = planner.units.find((unit) => unit.id === fiveE.unitId);
+  planner.classes.push({ id: "5x", name: "5X", yearLevelId: "year-5" });
+  planner.classProgress["5x"] = { ...fiveE, classId: "5x" };
+  planner.classProgress["5c"] = { ...planner.classProgress["5c"], lessonId: yearFiveUnit.lessons.find((lesson) => lesson.id !== fiveE.lessonId).id };
+  const cell = deriveTermOverview(planner, "term-3")[0].cells.find((item) => item.yearLevelId === "year-5");
+  assert.equal(cell.divergent, true);
+  assert.equal(cell.items.length, 1);
+  assert.equal(cell.items[0].lessonId, fiveE.lessonId);
+  assert.equal(cell.items[0].supportingClassCount, 2);
+  assert.equal(cell.items[0].totalClassCount, 3);
 });
 
 test("Program-owned Unit metadata and Mandarin vocabulary references survive backup restore", () => {
@@ -75,4 +96,3 @@ test("Program-owned Unit metadata and Mandarin vocabulary references survive bac
   assert.equal(restored.units[0].lessons[0].vocabularySetId, "prep-greetings");
   assert.equal(restored.units[0].resources[0].url, "https://example.edu/slides");
 });
-

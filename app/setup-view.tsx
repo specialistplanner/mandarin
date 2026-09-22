@@ -50,7 +50,7 @@ import { findLinkedUnit, lessonReference, unitReference, UNIT_LIBRARY_PROVIDER }
 import { ResourceLinkAction } from "./resource-link";
 import type { UnitLibraryState } from "./use-unit-library";
 
-type SetupSection = "program" | "cohorts" | "timetable" | "calendar" | "holidays" | "notes" | "data" | "account";
+type SetupSection = "program" | "cohorts" | "library" | "timetable" | "calendar" | "holidays" | "notes" | "data" | "account";
 const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const outcomeLabels = { planned: "Planned", completed: "Completed", partial: "Partial", "not-taught": "Not taught" } as const;
 const classColourOptions = Object.entries(CLASS_COLOUR_PRESETS);
@@ -97,6 +97,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
   onImportBackup?: (planner: PlannerData) => Promise<void>;
 }) {
   const [section, setSection] = useState<SetupSection>(initialSection);
+  const libraryOnly = initialSection === "library";
   const [newYearLabel, setNewYearLabel] = useState("");
   const [newClassNames, setNewClassNames] = useState<Record<string, string>>({});
   const [newUnitNames, setNewUnitNames] = useState<Record<string, string>>({});
@@ -304,26 +305,26 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
 
   return (
     <main className="setup-main" id="top">
-      <section className="setup-hero">
+      <section className={`setup-hero ${libraryOnly ? "unit-library-hero" : ""}`}>
         <div>
-          <p className="eyebrow">Planner settings</p>
-          <h1>Set up your teaching week.</h1>
-          <p>{persistenceMode === "cloud" ? "This Program and its Unit Library sync to your private cloud workspace." : "Everything here is saved only in this browser."} Changes appear in Weekly View and Term Overview straight away.</p>
+          <p className="eyebrow">{libraryOnly ? "Program-owned curriculum" : "Planner settings"}</p>
+          <h1>{libraryOnly ? "Unit Library" : "Set up your teaching week."}</h1>
+          <p>{libraryOnly ? "Create and maintain the Units, Lessons, curriculum metadata and teaching resources owned by this Program." : <>{persistenceMode === "cloud" ? "This Program and its Unit Library sync to your private cloud workspace." : "Everything here is saved only in this browser."} Changes appear in Weekly View and Term Overview straight away.</>}</p>
         </div>
-        <button className="primary-button" type="button" onClick={onBack}>Return to Weekly View</button>
+        {!libraryOnly && <button className="primary-button" type="button" onClick={onBack}>Return to Weekly View</button>}
       </section>
 
-      <div className="setup-layout">
-        <aside className="setup-menu" aria-label="Setup sections">
+      <div className={`setup-layout ${libraryOnly ? "library-only-layout" : ""}`}>
+        {!libraryOnly && <aside className="setup-menu" aria-label="Setup sections">
           <div className="setup-subject-card">
             <span>Active subject</span>
             <input aria-label="Active subject name" value={activeSubject.name} onChange={(event) => onChange(touchPlanner({ ...planner, subjects: planner.subjects.map((item) => item.id === activeSubject.id ? { ...item, name: event.target.value } : item) }))} />
             <small>{persistenceMode === "cloud" ? "Program-owned Unit Library" : "Single-subject local mode"}</small>
           </div>
-          {([['program', 'Program'], ['cohorts', 'Classes & Unit Library'], ['timetable', 'Timetable'], ['calendar', 'School Year & Terms'], ['holidays', 'Holidays / non-teaching'], ['notes', `Notes (${planner.trialNotes.length})`], ['data', 'Backup & Restore'], ['account', 'Account & cloud']] as [SetupSection, string][]).map(([id, label]) => (
+          {([['program', 'Program'], ['cohorts', 'Classes'], ['timetable', 'Timetable'], ['calendar', 'School Year & Terms'], ['holidays', 'Holidays / non-teaching'], ['notes', `Notes (${planner.trialNotes.length})`], ['data', 'Backup & Restore'], ['account', 'Account & cloud']] as [SetupSection, string][]).map(([id, label]) => (
             <button type="button" key={id} className={section === id ? "active" : ""} onClick={() => setSection(id)}>{label}<span>→</span></button>
           ))}
-        </aside>
+        </aside>}
 
         <section className="setup-content">
           {message && <div className="setup-message" role="status">{message}<button type="button" onClick={() => setMessage("")}>×</button></div>}
@@ -346,40 +347,42 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
             <div className="calendar-list">{planner.nonTeachingPeriods.map((period) => <article className="calendar-card" key={period.id}><div><strong>{period.name}</strong><span>{period.type.replaceAll("_", " ")} · {period.startDate} – {period.endDate}</span></div><button className="text-button danger" type="button" onClick={() => apply(() => deleteNonTeachingPeriod(planner, period.id))}>Remove</button></article>)}</div>
           </>}
 
-          {section === "cohorts" && <>
+          {(section === "cohorts" || section === "library") && <>
             <div className="setup-section-title">
-              <div><p className="section-kicker">Program-owned Unit Library</p><h2>Year levels, classes & Units</h2><p>This Program owns its Units and Lessons. Weekly View and Term Overview resolve their stable IDs while teaching snapshots remain readable.</p></div>
+              {section === "library"
+                ? <div><p className="section-kicker">Program-owned Unit Library</p><h2>Units &amp; Lessons</h2><p>Edit curriculum content directly here. Weekly View and Term Overview resolve these stable Unit and Lesson IDs.</p></div>
+                : <div><p className="section-kicker">Class setup</p><h2>Year levels &amp; classes</h2><p>Manage class names and recognition colours. Unit and Lesson content now lives in the Unit Library tab.</p></div>}
             </div>
-            <div className="add-row top-add-row">
+            {section === "cohorts" && <div className="add-row top-add-row">
               <input value={newYearLabel} onChange={(event) => setNewYearLabel(event.target.value)} placeholder="New year level, e.g. Year 4" onKeyDown={(event) => event.key === "Enter" && addYearLevel()} />
               <button className="secondary-button" type="button" onClick={addYearLevel}>Add year level</button>
-            </div>
+            </div>}
 
             {!planner.yearLevels.length && <div className="setup-empty"><strong>Start with your first year level</strong><p>Add Prep, Year 1, Grade 4 East—or whatever naming your school uses.</p></div>}
-            {planner.yearLevels.length > 0 && !planner.units.length && <div className="setup-empty"><strong>No Units yet</strong><p>Add the teaching sequences you use with your classes. Open a year level below, then choose + New Unit.</p></div>}
+            {section === "library" && planner.yearLevels.length > 0 && !planner.units.length && <div className="setup-empty"><strong>No Units yet</strong><p>Open a year level below, then create its first Unit.</p></div>}
 
             <div className="cohort-editor-list">
               {planner.yearLevels.map((level) => {
                 const cohort = planner.classes.filter((item) => item.yearLevelId === level.id);
                 const levelUnits = planner.units.filter((unit) => unitAppliesToYearLevel(unit, level.id));
                 const currentUnit = levelUnits.find((unit) => unit.id === level.currentUnitId);
-                return <details className="cohort-editor" key={level.id}>
+                return <details className="cohort-editor" open={section === "library" ? true : undefined} key={level.id}>
                   <summary className="cohort-editor-summary">
                     <span className="year-badge">{level.shortLabel}</span>
                     <span className="cohort-summary-name">{level.label}</span>
-                    <span className="cohort-summary-meta">{cohort.length} {cohort.length === 1 ? "class" : "classes"}</span>
-                    <span className="cohort-summary-meta">{currentUnit?.title ?? "No reference unit"}</span>
+                    <span className="cohort-summary-meta">{section === "cohorts" ? `${cohort.length} ${cohort.length === 1 ? "class" : "classes"}` : `${levelUnits.length} ${levelUnits.length === 1 ? "Unit" : "Units"}`}</span>
+                    <span className="cohort-summary-meta">{section === "library" ? currentUnit?.title ?? "No reference Unit" : "Class setup"}</span>
                     <span className="cohort-summary-chevron" aria-hidden="true">⌄</span>
                   </summary>
-                  <div className="cohort-editor-head">
+                  {section === "cohorts" && <div className="cohort-editor-head">
                     <span className="year-badge">{level.shortLabel}</span>
                     <label><span>Year level name</span><input value={level.label} onChange={(event) => onChange(touchPlanner({ ...planner, yearLevels: planner.yearLevels.map((item) => item.id === level.id ? { ...item, label: event.target.value } : item) }))} /></label>
                     <label className="short-label"><span>Short</span><input maxLength={2} value={level.shortLabel} onChange={(event) => onChange(touchPlanner({ ...planner, yearLevels: planner.yearLevels.map((item) => item.id === level.id ? { ...item, shortLabel: event.target.value } : item) }))} /></label>
                     <button className="text-button danger" type="button" onClick={() => removeYearLevel(level.id)}>Remove year level</button>
-                  </div>
+                  </div>}
 
-                  <div className="cohort-editor-grid">
-                    <div className="editor-panel">
+                  <div className={`cohort-editor-grid ${section === "library" ? "library-editor-grid" : "classes-editor-grid"}`}>
+                    {section === "cohorts" && <div className="editor-panel">
                       <div className="editor-panel-title"><div><span>Classes</span><strong>{cohort.length} configured</strong></div></div>
                       <div className="editable-list">
                         {cohort.map((item) => {
@@ -392,7 +395,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
                               {levelUnits.map((unit) => <option value={unit.id} key={unit.id}>{unit.title}</option>)}
                             </select><select aria-label={`${item.name} next lesson`} value={progress?.lessonId ?? classUnit.lessons[0].id} onChange={(event) => apply(() => setClassLesson(planner, item.id, event.target.value))}>
                               {classUnit.lessons.map((lesson, index) => <option value={lesson.id} key={lesson.id}>L{index + 1} · {lesson.title}</option>)}
-                            </select></> : <span className="needs-unit">Add a unit first</span>}
+                            </select></> : <span className="needs-unit">Add a Unit in Unit Library</span>}
                             <button className="icon-button danger" type="button" onClick={() => removeClass(item.id, item.name)} aria-label={`Remove ${item.name}`}>×</button>
                             <fieldset className="class-colour-picker">
                               <legend>Card colour <small>optional</small></legend>
@@ -406,9 +409,9 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
                         <input value={newClassNames[level.id] ?? ""} onChange={(event) => setNewClassNames((current) => ({ ...current, [level.id]: event.target.value }))} placeholder="Class name" onKeyDown={(event) => event.key === "Enter" && addClass(level.id)} />
                         <button type="button" onClick={() => addClass(level.id)}>Add</button>
                       </div>
-                    </div>
+                    </div>}
 
-                    <div className="editor-panel unit-editor-panel">
+                    {section === "library" && <div className="editor-panel unit-editor-panel">
                       <div className="editor-panel-title unit-switcher">
                         <div><span>Cohort reference unit</span>{currentUnit && <strong>{currentUnit.title}</strong>}</div>
                         {levelUnits.length > 0 && <select value={currentUnit?.id ?? ""} onChange={(event) => switchUnit(level.id, event.target.value)} aria-label={`${level.label} cohort reference unit`}>
@@ -491,7 +494,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
                           apply(() => deleteUnitRecord(setCurrentUnit(planner, level.id, other.id), currentUnit.id));
                         }}>Replace current</button>}
                       </div>
-                    </div>
+                    </div>}
                   </div>
                 </details>;
               })}

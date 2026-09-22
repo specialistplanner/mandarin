@@ -413,6 +413,8 @@ footer button { border: 0; padding: 0; background: transparent; color: var(--for
 .setup-hero h1 { font-size: clamp(36px, 4vw, 52px); margin-bottom: 10px; }
 .setup-hero > div > p:last-child { color: var(--muted); margin: 0; }
 .setup-layout { display: grid; grid-template-columns: 235px minmax(0, 1fr); gap: 22px; align-items: start; }
+.setup-layout.library-only-layout { grid-template-columns: minmax(0, 1fr); }
+.unit-library-hero { align-items: end; }
 .setup-menu { position: sticky; top: 92px; background: var(--forest-dark); border-radius: 18px; padding: 10px; display: flex; flex-direction: column; gap: 3px; }
 .setup-menu > button { min-height: 46px; border: 0; border-radius: 10px; background: transparent; color: #c0d2ca; padding: 0 11px; display: flex; align-items: center; justify-content: space-between; text-align: left; cursor: pointer; font-size: 12px; font-weight: 700; }
 .setup-menu > button.active { background: rgba(255,255,255,.12); color: white; }
@@ -453,6 +455,7 @@ textarea { padding: 11px; resize: vertical; }
 .cohort-editor-head input { height: 39px; }
 .cohort-editor-head .text-button { justify-self: end; align-self: center; }
 .cohort-editor-grid { display: grid; grid-template-columns: minmax(360px, .9fr) minmax(440px, 1.5fr); }
+.cohort-editor-grid.library-editor-grid, .cohort-editor-grid.classes-editor-grid { grid-template-columns: minmax(0, 1fr); }
 .editor-panel { padding: 16px; min-width: 0; }
 .editor-panel + .editor-panel { border-left: 1px solid var(--line); }
 .editor-panel-title { display: flex; justify-content: space-between; align-items: center; min-height: 42px; margin-bottom: 11px; }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import { deriveTermOverview } from "@/lib/academic-calendar";
+import { deriveTermOverview, formatTermDate } from "@/lib/academic-calendar";
 import type { PlannerData } from "@/lib/domain";
 
 const outcomeLabel = {
@@ -12,7 +12,6 @@ const outcomeLabel = {
   scheduled: "Scheduled",
   none: "—",
 } as const;
-
 export function TermOverview({ planner, onOpenSettings, progressView }: { planner: PlannerData; onOpenSettings: () => void; progressView: ReactNode }) {
   const [section, setSection] = useState<"overview" | "progress">("overview");
   const sortedYears = useMemo(() => [...planner.schoolYears].sort((a, b) => b.startDate.localeCompare(a.startDate)), [planner.schoolYears]);
@@ -33,6 +32,6 @@ export function TermOverview({ planner, onOpenSettings, progressView }: { planne
   return <main className="term-overview-main" id="top">
     {sectionTabs}
     <section className="term-overview-hero"><div><p className="eyebrow">Term &amp; Curriculum Workspace</p><h1>Term Overview</h1><p>One view derived from the timetable, Unit Library, Teaching Sessions and current Progress.</p></div><div className="term-overview-selectors"><label><span>School year</span><select value={schoolYearId} onChange={(event) => { setSchoolYearId(event.target.value); setTermId(""); }}>{sortedYears.map((year) => <option key={year.id} value={year.id}>{year.label}</option>)}</select></label><label><span>Term</span><select value={selectedTermId} onChange={(event) => setTermId(event.target.value)}>{availableTerms.map((term) => <option key={term.id} value={term.id}>{term.name}</option>)}</select></label></div></section>
-    {!availableTerms.length ? <section className="term-overview-empty"><h2>No Terms in this school year</h2><button className="primary-button" type="button" onClick={onOpenSettings}>Add a Term</button></section> : <div className="term-overview-scroll"><table className="term-matrix"><thead><tr><th>Teaching week</th>{planner.yearLevels.map((level) => <th key={level.id}>{level.label}</th>)}</tr></thead><tbody>{rows.map((row) => <tr key={row.startDate}><th><strong>Week {row.weekNumber}</strong><small>{row.startDate.slice(5)} – {row.endDate.slice(5)}</small></th>{row.cells.map((cell) => <td className={cell.divergent ? "is-divergent" : ""} key={cell.yearLevelId}>{cell.items.length ? <div className="term-cell-items">{cell.divergent && <span className="term-divergence-label">Classes differ</span>}{cell.items.map((item) => <div className={`term-class-item outcome-${item.outcome}`} key={item.classId}><strong>{item.className}</strong><span>{item.unitTitle ?? "No Unit"}{item.lessonTitle ? ` · ${item.lessonTitle}` : ""}</span><small>{outcomeLabel[item.outcome]}</small></div>)}</div> : <span className="term-cell-empty">No classes</span>}</td>)}</tr>)}</tbody></table></div>}
+    {!availableTerms.length ? <section className="term-overview-empty"><h2>No Terms in this school year</h2><button className="primary-button" type="button" onClick={onOpenSettings}>Add a Term</button></section> : <div className="term-overview-scroll"><table className="term-matrix"><thead><tr><th>Teaching week</th>{planner.yearLevels.map((level) => <th key={level.id}>{level.label}</th>)}</tr></thead><tbody>{rows.map((row) => <tr key={row.startDate}><th><strong>Week {row.weekNumber}</strong><small>{formatTermDate(row.startDate)} – {formatTermDate(row.endDate)}</small></th>{row.cells.map((cell) => <td className={cell.divergent ? "is-divergent" : ""} key={cell.yearLevelId}>{cell.items.length ? <div className="term-cell-items">{cell.divergent && <span className="term-divergence-label">Majority position · {cell.items[0].supportingClassCount} of {cell.items[0].totalClassCount} classes</span>}{cell.items.map((item) => <div className={`term-class-item outcome-${item.outcome}`} key={item.classId}><strong>{item.unitTitle ?? "No Unit"}</strong><span>{item.lessonTitle ?? "No lesson position"}</span><small>{item.outcomes.map(({ outcome, count }) => `${count} ${outcomeLabel[outcome]}`).join(" · ")}</small></div>)}</div> : <span className="term-cell-empty">No classes</span>}</td>)}</tr>)}</tbody></table></div>}
   </main>;
 }
