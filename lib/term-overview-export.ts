@@ -52,8 +52,8 @@ function worksheet(dataset: TermOverviewDataset): string {
     <row r="4" ht="30" customHeight="1">${header.map((value, index) => inlineCell(`${columnName(index)}4`, value, 2)).join("")}</row>
     ${rows}
   </sheetData>
-  <mergeCells count="2"><mergeCell ref="A1:${lastColumn}1"/><mergeCell ref="A2:${lastColumn}2"/></mergeCells>
   <autoFilter ref="A4:${lastColumn}${Math.max(4, dataset.rows.length + 4)}"/>
+  <mergeCells count="2"><mergeCell ref="A1:${lastColumn}1"/><mergeCell ref="A2:${lastColumn}2"/></mergeCells>
   <pageMargins left="0.25" right="0.25" top="0.5" bottom="0.5" header="0.2" footer="0.2"/>
   <pageSetup orientation="landscape" fitToWidth="1" fitToHeight="0"/>
 </worksheet>`;

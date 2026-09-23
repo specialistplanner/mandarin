@@ -185,6 +185,10 @@ test("Excel is a valid XLSX snapshot of the exact screen dataset", () => {
   assert.match(sheet, /Year 6/);
   assert.match(sheet, /Athletics Carnival/);
   assert.match(sheet, /state="frozen"/);
+  assert.ok(
+    sheet.indexOf("<autoFilter") < sheet.indexOf("<mergeCells"),
+    "worksheet child elements must follow Excel's OOXML schema order",
+  );
   assert.doesNotMatch(sheet, /plannedUnitId|mutationId|ownerUid|@/);
   const screenValue = termOverviewCellText(dataset.rows[0].cells.find((item) => item.yearLevelId === "year-4"));
   assert.ok(sheet.includes(screenValue));
