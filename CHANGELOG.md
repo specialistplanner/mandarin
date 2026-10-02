@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.7.1 — staging fixes
+
+- Made live Mandarin Unit Library units selectable directly from each matching year-level class dropdown.
+- Materialise a selected live unit and its lessons into the private Program exactly once, preserving Program-owned progress authority and stable external resource references.
+- Keep unselected external units read-only and prevent repeated selections from creating duplicate Program units.
+
 ## v0.7.0 — staging candidate (2026-09-21)
 
 - Added an explicit Program-owned academic calendar with School Years, Terms and editable non-teaching periods.

@@ -10,9 +10,11 @@ import {
   findLinkedLesson,
   findLinkedUnit,
   lessonReference,
+  materializeUnitLibraryUnit,
   parseUnitLibraryIndex,
   referenceDeepLink,
   resolveLinkedLessonReference,
+  unitLibraryYearLevel,
   unitLibraryDeepLink,
   unitReference,
 } from "../lib/unit-library.ts";
@@ -72,6 +74,46 @@ test("the public index accepts an optional Chinese display title", () => {
     }],
   });
   assert.equal(parsed.units[0].chineseTitle, "家庭");
+});
+
+test("Planner year levels map to the live Unit Library year filter", () => {
+  assert.equal(unitLibraryYearLevel({ label: "Prep", shortLabel: "P" }), 0);
+  assert.equal(unitLibraryYearLevel({ label: "Year 6", shortLabel: "6" }), 6);
+  assert.equal(unitLibraryYearLevel({ label: "Senior Mandarin", shortLabel: "SM" }), null);
+});
+
+test("a live Unit Library unit is materialized once when a class first selects it", () => {
+  const family = parseUnitLibraryIndex({
+    schemaVersion: 1,
+    provider: UNIT_LIBRARY_PROVIDER,
+    generatedAt: "2026-10-02T06:26:09.017Z",
+    units: [{
+      id: "year-6-family-ii",
+      yearLevel: 6,
+      title: "Family II",
+      url: "https://themandarinroom.github.io/units/view.html?unit=year-6-family-ii",
+      lessons: [
+        { id: "family-ii-1", title: "My family has five people.", url: "https://themandarinroom.github.io/units/view.html?unit=year-6-family-ii&lesson=family-ii-1" },
+        { id: "family-ii-2", title: "I have two older brothers.", url: "https://themandarinroom.github.io/units/view.html?unit=year-6-family-ii&lesson=family-ii-2" },
+      ],
+    }],
+  }).units[0];
+  let sequence = 0;
+  const createId = (prefix) => `${prefix}-imported-${++sequence}`;
+  const before = freshSamplePlanner();
+  const first = materializeUnitLibraryUnit(before, "year-6", family, createId);
+  const imported = first.planner.units.find((unit) => unit.id === first.unitId);
+
+  assert.equal(first.created, true);
+  assert.equal(first.planner.units.length, before.units.length + 1);
+  assert.equal(imported.title, "Family II");
+  assert.equal(imported.externalResourceRef.resourceId, "year-6-family-ii");
+  assert.deepEqual(imported.lessons.map((lesson) => lesson.externalResourceRef.resourceId), ["family-ii-1", "family-ii-2"]);
+
+  const second = materializeUnitLibraryUnit(first.planner, "year-6", family, createId);
+  assert.equal(second.created, false);
+  assert.equal(second.unitId, first.unitId);
+  assert.equal(second.planner.units.length, first.planner.units.length);
 });
 
 test("live synchronization falls back to the published snapshot without losing access", async () => {

@@ -1,4 +1,13 @@
-import type { ExternalResourceRef } from "./domain.ts";
+import {
+  createUnitRecord,
+  setUnitYearLevels,
+  unitAppliesToYearLevel,
+  unitYearLevelIds,
+  type ExternalResourceRef,
+  type PlannerData,
+  type Unit,
+  type YearLevel,
+} from "./domain.ts";
 
 export const UNIT_LIBRARY_PROVIDER = "the-mandarin-room-unit-library";
 export const UNIT_LIBRARY_BASE_URL = "https://themandarinroom.github.io/units";
@@ -55,6 +64,61 @@ export function parseUnitLibraryIndex(value: unknown): UnitLibraryIndex {
 }
 
 export type UnitLibraryIndexSource = "live" | "snapshot";
+
+export function unitLibraryYearLevel(level: Pick<YearLevel, "label" | "shortLabel">): number | null {
+  const label = level.label.trim();
+  const shortLabel = level.shortLabel.trim();
+  if (/^(prep|foundation)$/i.test(label) || /^(p|f)$/i.test(shortLabel)) return 0;
+  const match = label.match(/(?:year|grade)\s*(\d+)/i) ?? shortLabel.match(/^(\d+)$/);
+  if (!match) return null;
+  const value = Number(match[1]);
+  return Number.isInteger(value) && value >= 0 && value <= 6 ? value : null;
+}
+
+export function findProgramUnitForLibraryUnit(planner: PlannerData, libraryUnitId: string): Unit | undefined {
+  return planner.units.find((unit) =>
+    unit.externalResourceRef?.provider === UNIT_LIBRARY_PROVIDER
+    && unit.externalResourceRef.resourceType === "unit"
+    && unit.externalResourceRef.resourceId === libraryUnitId,
+  );
+}
+
+export function materializeUnitLibraryUnit(
+  planner: PlannerData,
+  yearLevelId: string,
+  libraryUnit: UnitLibraryUnit,
+  createId: (prefix: "unit" | "lesson") => string,
+): { planner: PlannerData; unitId: string; firstLessonId: string; created: boolean } {
+  const level = planner.yearLevels.find((candidate) => candidate.id === yearLevelId);
+  if (!level) throw new Error("Choose a valid year level.");
+  if (unitLibraryYearLevel(level) !== libraryUnit.yearLevel) throw new Error("Choose a Unit Library unit for this year level.");
+  if (!libraryUnit.lessons.length) throw new Error("This Unit Library unit has no lessons yet.");
+
+  const existing = findProgramUnitForLibraryUnit(planner, libraryUnit.id);
+  if (existing) {
+    const next = unitAppliesToYearLevel(existing, yearLevelId)
+      ? planner
+      : setUnitYearLevels(planner, existing.id, [...unitYearLevelIds(existing), yearLevelId]);
+    return { planner: next, unitId: existing.id, firstLessonId: existing.lessons[0].id, created: false };
+  }
+
+  const unitId = createId("unit");
+  const createdUnit: Unit = {
+    id: unitId,
+    yearLevelId,
+    yearLevelIds: [yearLevelId],
+    title: libraryUnit.title,
+    lessons: libraryUnit.lessons.map((lesson, index) => ({
+      id: createId("lesson"),
+      title: lesson.title,
+      sequence: index + 1,
+      externalResourceRef: lessonReference(libraryUnit, lesson),
+    })),
+    externalResourceRef: unitReference(libraryUnit),
+  };
+  const next = createUnitRecord(planner, createdUnit, false);
+  return { planner: next, unitId, firstLessonId: createdUnit.lessons[0].id, created: true };
+}
 
 export async function fetchUnitLibraryIndexWithSource(signal?: AbortSignal): Promise<{ index: UnitLibraryIndex; source: UnitLibraryIndexSource }> {
   let lastError: unknown;
