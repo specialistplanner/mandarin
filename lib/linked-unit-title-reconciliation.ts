@@ -90,6 +90,7 @@ function titleDecision(args: {
   currentValue: string;
   externalValue: string;
   mode: LinkedTitleReconciliationMode;
+  bootstrapApproved: boolean;
 }): {
   difference?: LinkedTitleDifference;
   conflict?: LinkedTitleConflict;
@@ -97,7 +98,7 @@ function titleDecision(args: {
   unchanged?: { target: "unit" | "lesson"; spId: string; externalId: string; value: string };
   shouldApply: boolean;
 } {
-  const { target, spId, reference, currentValue, externalValue, mode } = args;
+  const { target, spId, reference, currentValue, externalValue, mode, bootstrapApproved } = args;
   const lastSynced = reference.lastSyncedTitle;
   const externalId = reference.resourceId;
 
@@ -107,7 +108,7 @@ function titleDecision(args: {
       return {
         baseline,
         unchanged: { target, spId, externalId, value: currentValue },
-        shouldApply: mode === "approved-bootstrap",
+        shouldApply: mode === "approved-bootstrap" && bootstrapApproved,
       };
     }
     return {
@@ -120,9 +121,9 @@ function titleDecision(args: {
         oldValue: currentValue,
         newValue: externalValue,
         classification: "bootstrap",
-        wouldApply: mode === "approved-bootstrap",
+        wouldApply: mode === "approved-bootstrap" && bootstrapApproved,
       },
-      shouldApply: mode === "approved-bootstrap",
+      shouldApply: mode === "approved-bootstrap" && bootstrapApproved,
     };
   }
 
@@ -172,7 +173,12 @@ function externalLessonLocations(index: UnitLibraryIndex): Map<string, UnitLibra
 export function reconcileLinkedUnitTitles(
   planner: PlannerData,
   index: UnitLibraryIndex | null,
-  options: { mode: LinkedTitleReconciliationMode; sourceAvailable: boolean },
+  options: {
+    mode: LinkedTitleReconciliationMode;
+    sourceAvailable: boolean;
+    /** Exact `unit:<resourceId>` / `lesson:<resourceId>` bootstrap approvals. */
+    approvedBootstrapKeys?: readonly string[];
+  },
 ): LinkedTitleReconciliationResult {
   const linkedUnits = planner.units.filter(linkedUnit);
   const emptyReport: LinkedTitleReconciliationReport = {
@@ -185,6 +191,7 @@ export function reconcileLinkedUnitTitles(
   if (!options.sourceAvailable || !index) return { planner, changed: false, report: emptyReport };
 
   const lessonLocations = externalLessonLocations(index);
+  const approvedBootstrapKeys = new Set(options.approvedBootstrapKeys ?? []);
   const reports: LinkedUnitReconciliationReport[] = [];
   let anyChange = false;
   const nextUnits = planner.units.map((unit) => {
@@ -288,6 +295,7 @@ export function reconcileLinkedUnitTitles(
       currentValue: unit.title,
       externalValue: externalUnit.title,
       mode: options.mode,
+      bootstrapApproved: approvedBootstrapKeys.has(`unit:${unitRef.resourceId}`),
     });
     if (unitDecision.difference) report.titleDifferences.push(unitDecision.difference);
     if (unitDecision.conflict) report.titleConflicts.push(unitDecision.conflict);
@@ -306,6 +314,7 @@ export function reconcileLinkedUnitTitles(
         currentValue: lesson.title,
         externalValue: externalLesson.title,
         mode: options.mode,
+        bootstrapApproved: approvedBootstrapKeys.has(`lesson:${reference.resourceId}`),
       });
       if (decision.difference) report.titleDifferences.push(decision.difference);
       if (decision.conflict) report.titleConflicts.push(decision.conflict);

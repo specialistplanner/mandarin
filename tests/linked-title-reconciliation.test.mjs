@@ -204,10 +204,32 @@ test("bootstrap differences are dry-run-only until explicitly approved", () => {
   assert.equal(automatic.changed, false);
   assert.equal(automatic.planner.units.find((candidate) => candidate.id === unitId).lessons[0].title, OLD_HEADING);
 
-  const approved = reconcileLinkedUnitTitles(planner, nextIndex, { mode: "approved-bootstrap", sourceAvailable: true });
+  const approved = reconcileLinkedUnitTitles(planner, nextIndex, {
+    mode: "approved-bootstrap",
+    sourceAvailable: true,
+    approvedBootstrapKeys: [
+      "unit:year-6-family-ii",
+      "lesson:lesson-1790909455090",
+      "lesson:lesson-1790920751476",
+    ],
+  });
   assert.equal(approved.changed, true);
   assert.equal(approved.planner.units.find((candidate) => candidate.id === unitId).lessons[0].title, NEW_HEADING);
   assert.equal(approved.planner.units.find((candidate) => candidate.id === unitId).lessons[0].externalResourceRef.lastSyncedTitle, NEW_HEADING);
+});
+
+test("approved bootstrap allowlist leaves an unapproved difference unresolved", () => {
+  const { planner, unitId } = familyPlanner({ bootstrap: true });
+  const result = reconcileLinkedUnitTitles(planner, familyIndex({ unitTitle: "Family, part two", firstTitle: NEW_HEADING }), {
+    mode: "approved-bootstrap",
+    sourceAvailable: true,
+    approvedBootstrapKeys: ["lesson:lesson-1790909455090", "lesson:lesson-1790920751476"],
+  });
+  const unit = result.planner.units.find((candidate) => candidate.id === unitId);
+  assert.equal(unit.title, "Family II");
+  assert.equal(unit.externalResourceRef.lastSyncedTitle, undefined);
+  assert.equal(unit.lessons[0].title, NEW_HEADING);
+  assert.equal(unit.lessons[0].externalResourceRef.lastSyncedTitle, NEW_HEADING);
 });
 
 test("JSON backup round-trip preserves reconciled titles, stable IDs, and last-synced titles", () => {
