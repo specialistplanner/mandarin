@@ -25,11 +25,11 @@ export function unitLibraryDeepLink(unitId: string, lessonId?: string): string {
 }
 
 export function unitReference(unit: UnitLibraryUnit): ExternalResourceRef {
-  return { provider: UNIT_LIBRARY_PROVIDER, resourceType: "unit", resourceId: unit.id, label: unit.title, url: unit.url };
+  return { provider: UNIT_LIBRARY_PROVIDER, resourceType: "unit", resourceId: unit.id, label: unit.title, lastSyncedTitle: unit.title, url: unit.url };
 }
 
 export function lessonReference(unit: UnitLibraryUnit, lesson: UnitLibraryLesson): ExternalResourceRef {
-  return { provider: UNIT_LIBRARY_PROVIDER, resourceType: "lesson", resourceId: lesson.id, parentResourceId: unit.id, label: lesson.title, url: lesson.url };
+  return { provider: UNIT_LIBRARY_PROVIDER, resourceType: "lesson", resourceId: lesson.id, parentResourceId: unit.id, label: lesson.title, lastSyncedTitle: lesson.title, url: lesson.url };
 }
 
 export function referenceDeepLink(reference: ExternalResourceRef): string | null {

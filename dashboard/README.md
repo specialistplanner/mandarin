@@ -17,9 +17,17 @@ The Library publishes `unit-library-index.json`, generated from an authorised so
 
 ## Reference model
 
-`Unit.externalResourceRef` and `Lesson.externalResourceRef` are optional. Both store `provider`, `resourceType`, `resourceId`, an optional label and canonical URL; a Lesson additionally stores `parentResourceId`. A linked Lesson must belong to the Unit referenced by its local parent. Local IDs, titles and lesson sequences remain authoritative for Planner progress.
+`Unit.externalResourceRef` and `Lesson.externalResourceRef` are optional. Both store `provider`, `resourceType`, `resourceId`, an optional label and canonical URL; a Lesson additionally stores `parentResourceId`. A linked Lesson must belong to the Unit referenced by its local parent. Local IDs and lesson sequences remain authoritative for Planner progress; the transitional rule for current linked display titles is documented below.
 
 Changing or removing a Unit reference clears only incompatible Lesson references. It does not alter `classProgress`, `progressBaselines`, `progressCheckpoints`, `TeachingSession` history, timetable data, colours or Notes. No title-based matching or inferred mapping occurs.
+
+### v0.7.1 transitional title reconciliation
+
+`lib/linked-unit-title-reconciliation.ts` is the single compatibility boundary for linked TMR title changes. It matches only the stable `externalResourceRef.resourceId` identities already stored on an SP Unit and, independently, on each SP Lesson. It never matches by title, sequence, Lesson number or array position.
+
+The optional `externalResourceRef.lastSyncedTitle` records the most recent external title deliberately accepted by Planner. Existing records without that field are bootstrap differences and remain read-only until their dry-run diff is owner-approved. After a baseline exists, automatic refresh may accept a changed external title only while the current SP title still equals that baseline; a teacher-edited title is retained and reported as a conflict.
+
+This logic changes only current linked Unit/Lesson titles plus their link label, canonical URL and last-synced title. It never replaces SP IDs or Lesson arrays and never changes progress, baselines, checkpoints, Teaching Sessions, timetable history, ownership, notes or planning metadata. Structural changes are detection-only. Historical Teaching Session title snapshots remain immutable. Live-source failure is a no-op, and the published snapshot is not treated as authoritative reconciliation evidence.
 
 ## Teacher workflows
 

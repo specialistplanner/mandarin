@@ -476,7 +476,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
                           <div>
                             <span>Linked resource</span>
                             {currentUnit.externalResourceRef?.provider === UNIT_LIBRARY_PROVIDER
-                              ? <><strong>{findLinkedUnit(unitLibrary.index, currentUnit.externalResourceRef)?.title ?? currentUnit.externalResourceRef.label ?? currentUnit.externalResourceRef.resourceId}</strong><small>Optional linked Mandarin teaching resource.</small></>
+                              ? <><strong>{currentUnit.title}</strong><small>Optional linked Mandarin teaching resource.</small></>
                               : <><strong>Program Unit only</strong><small>External resource linking is optional.</small></>}
                           </div>
                           {currentUnit.externalResourceRef?.provider === UNIT_LIBRARY_PROVIDER && <ResourceLinkAction reference={currentUnit.externalResourceRef} library={unitLibrary} onRelink={() => setLinkingUnitId(currentUnit.id)} />}

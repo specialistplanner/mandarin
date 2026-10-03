@@ -137,6 +137,7 @@ function externalResourceRef(value: unknown, resourceType: "unit" | "lesson") {
     resourceId: string(value.resourceId, "External resource ID"),
     parentResourceId,
     label: optionalString(value.label, "External resource label"),
+    lastSyncedTitle: optionalString(value.lastSyncedTitle, "External resource last synced title"),
     url,
   };
 }

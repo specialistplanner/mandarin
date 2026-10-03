@@ -17,6 +17,7 @@ import {
 } from "@/lib/domain";
 import { createBlankPlanner, freshSamplePlanner, samplePlanner } from "@/lib/sample-data";
 import { importPlannerData, loadPlanner, persistPlanner, STORAGE_KEY } from "@/lib/storage";
+import { reconcileLinkedUnitTitles, type LinkedTitleReconciliationReport } from "@/lib/linked-unit-title-reconciliation";
 import { applyLiveTrialWeekReset, LIVE_TRIAL_WEEK_RESET_KEY } from "@/lib/live-trial-week-reset";
 import { GENERALIST_COVER_MIGRATION_KEY, migrateClassCoverToGeneralistTeaching } from "@/lib/generalist-cover-migration";
 import { markOneTimeMigrationsApplied, SESSION_ONE_LABEL_MIGRATION_KEY } from "@/lib/migration-markers";
@@ -104,9 +105,29 @@ export function DashboardApp({ cloud }: { cloud?: CloudWorkspaceControls } = {})
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [quickNote, setQuickNote] = useState<{ classId?: string; context: string } | null>(null);
   const [quickNoteText, setQuickNoteText] = useState("");
+  const plannerRef = useRef<PlannerData | null>(planner);
+  const cloudRef = useRef(cloud);
+  const linkedTitleReconciliationRef = useRef<LinkedTitleReconciliationReport | null>(null);
   const activeProgramName = planner?.subjects.find((subject) => subject.id === planner.activeSubjectId)?.name ?? "";
   const hasMandarinLibraryLinks = planner?.units.some((unit) => unit.externalResourceRef?.provider === UNIT_LIBRARY_PROVIDER) ?? false;
   const unitLibrary = useUnitLibrary(/mandarin/i.test(activeProgramName) || hasMandarinLibraryLinks);
+
+  useEffect(() => {
+    plannerRef.current = planner;
+    cloudRef.current = cloud;
+  }, [cloud, planner]);
+
+  useEffect(() => {
+    const current = plannerRef.current;
+    const sourceAvailable = unitLibrary.status === "ready" && unitLibrary.source === "live" && Boolean(unitLibrary.index);
+    if (!current || !unitLibrary.syncedAt) return;
+    const result = reconcileLinkedUnitTitles(current, unitLibrary.index, { mode: "automatic", sourceAvailable });
+    linkedTitleReconciliationRef.current = result.report;
+    if (!result.changed) return;
+    plannerRef.current = result.planner;
+    setPlannerState(result.planner);
+    cloudRef.current?.onPlannerChange(result.planner);
+  }, [unitLibrary.index, unitLibrary.source, unitLibrary.status, unitLibrary.syncedAt]);
 
   function setPlanner(next: PlannerData) {
     setPlannerState(next);

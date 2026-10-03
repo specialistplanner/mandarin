@@ -20,6 +20,12 @@ export type ExternalResourceRef = {
   resourceId: string;
   parentResourceId?: string;
   label?: string;
+  /**
+   * Transitional compatibility metadata for linked TMR titles. This is the
+   * last external title that Specialist Planner deliberately accepted. It is
+   * optional so existing backups and Program documents remain valid.
+   */
+  lastSyncedTitle?: string;
   url?: string;
 };
 
