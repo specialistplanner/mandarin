@@ -131,6 +131,8 @@ ruleTest("Program writes reload across clients, retry idempotently and reject st
 
   const replayed = await saveProgram(owner, { uid: "teacher-a", programId: "program-sync", expectedRevision: 1, planner: changedPlanner, mutationId: "save-sync" });
   assert.equal(replayed.revision, 2);
+  const staleNoOp = await saveProgram(owner, { uid: "teacher-a", programId: "program-sync", expectedRevision: 1, planner: changedPlanner, mutationId: "save-identical-from-stale-client" });
+  assert.equal(staleNoOp.revision, 2);
   await assert.rejects(() => saveProgram(owner, { uid: "teacher-a", programId: "program-sync", expectedRevision: 1, planner: initialPlanner, mutationId: "stale-sync" }), ProgramConflictError);
 
   const reloaded = await loadProgram(owner, "teacher-a", "program-sync");

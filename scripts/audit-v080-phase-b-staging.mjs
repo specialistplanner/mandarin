@@ -14,12 +14,14 @@ const { configstore } = require("/opt/homebrew/lib/node_modules/firebase-tools/l
 const PROJECT_ID = "specialist-planner-staging";
 const PROGRAM_ID = "program-ff3c47db-26e6-4e64-8236-976cbcee9b91";
 const ACCEPTED_PHASE_A_REVISION = 90;
-const PHASE_B_BASELINE_REVISION = 93;
+const PHASE_B_CONTENT_BASELINE_REVISION = 93;
+const PHASE_B_VERIFICATION_REVISION = 95;
 const EXPECTED_PLANNER_HASH = "5775216282071328573b37d44db1f4ef8c31bb0662a83e366bb4205daf59cf38";
 const EXPECTED_PROTECTED_HASH = "6d9ce582de4be40cb130a227c46287638691900c3df1c374253c1990d390f291";
 const EXPECTED_TEACHING_HASH = "de69086ad8fc3d204c3fc84447f64d15416bd4f197d16877cae2e50d3f68be60";
 const PROGRAM_URL = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/programs/${PROGRAM_ID}`;
 const PHASE_A_BACKUP = new URL("../backups/specialist-planner-backup-staging-pre-v080-authority-cutover-2026-10-04-rev-89.json", import.meta.url);
+const diagnosticMode = process.argv.includes("--diagnose");
 
 function decode(value) {
   if (!value || typeof value !== "object") return value;
@@ -107,10 +109,12 @@ const phaseABackup = importPlannerData(await readFile(PHASE_A_BACKUP, "utf8"));
 const phaseAPlanner = applyV080AuthorityCutover(phaseABackup, "2026-10-04T03:25:04.307970Z").planner;
 const changesSinceRevision90 = differences(phaseAPlanner, program.data);
 
-assert.equal(program.revision, PHASE_B_BASELINE_REVISION, "Staging Program revision changed after the Phase B baseline audit.");
-assert.equal(hash(program.data), EXPECTED_PLANNER_HASH, "Staging Planner data changed after the Phase B baseline audit.");
-assert.equal(protectedHash, EXPECTED_PROTECTED_HASH, "Protected staging state changed after the Phase B baseline audit.");
-assert.equal(teachingHash, EXPECTED_TEACHING_HASH, "Historical Teaching Session snapshots changed.");
+if (!diagnosticMode) {
+  assert.equal(program.revision, PHASE_B_VERIFICATION_REVISION, "Staging Program revision changed after the Phase B verification baseline.");
+  assert.equal(hash(program.data), EXPECTED_PLANNER_HASH, "Staging Planner data changed after the Phase B baseline audit.");
+  assert.equal(protectedHash, EXPECTED_PROTECTED_HASH, "Protected staging state changed after the Phase B baseline audit.");
+  assert.equal(teachingHash, EXPECTED_TEACHING_HASH, "Historical Teaching Session snapshots changed.");
+}
 assert.deepEqual(family.lessonIds, [
   "lesson-c7991263-82ec-466e-b454-952da0f71048",
   "lesson-c913759e-a856-495e-adf7-936152feac06",
@@ -131,8 +135,10 @@ console.log(JSON.stringify({
   projectId: PROJECT_ID,
   programId: PROGRAM_ID,
   revision: program.revision,
+  lastMutationId: program.lastMutationId,
   acceptedPhaseARevision: ACCEPTED_PHASE_A_REVISION,
-  phaseBBaselineRevision: PHASE_B_BASELINE_REVISION,
+  phaseBContentBaselineRevision: PHASE_B_CONTENT_BASELINE_REVISION,
+  phaseBVerificationRevision: PHASE_B_VERIFICATION_REVISION,
   firestoreUpdateTime: raw.updateTime,
   plannerCanonicalHash: hash(program.data),
   protectedStateCanonicalHash: protectedHash,

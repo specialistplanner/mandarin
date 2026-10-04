@@ -31,6 +31,19 @@ export class ProgramAccessError extends Error {
   }
 }
 
+function canonicalJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    return `{${Object.keys(record).sort().filter((key) => record[key] !== undefined).map((key) => `${JSON.stringify(key)}:${canonicalJson(record[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value) ?? "null";
+}
+
+export function plannerDataEqual(left: PlannerData, right: PlannerData): boolean {
+  return canonicalJson(clonePlanner(left)) === canonicalJson(clonePlanner(right));
+}
+
 export function mutationId(prefix = "mutation"): string {
   return `${prefix}-${crypto.randomUUID()}`;
 }
@@ -110,9 +123,14 @@ export async function saveProgram(db: Firestore, input: {
   await runTransaction(db, async (transaction) => {
     const snapshot = await transaction.get(reference);
     if (!snapshot.exists()) throw new Error("Program not found.");
-    const current = validateCloudProgram(snapshot.data());
+    const raw = snapshot.data();
+    const current = validateCloudProgram(raw);
     if (!programBelongsTo(current, input.uid)) throw new ProgramAccessError();
     if (current.lastMutationId === input.mutationId) return;
+    // A stale browser may retry a save after the same content has already reached
+    // the cloud through another mutation. Treat that as success without revision
+    // churn. Schema upgrades still write once so the stored schema marker advances.
+    if (raw.plannerSchemaVersion === PLANNER_SCHEMA_VERSION && plannerDataEqual(current.data, input.planner)) return;
     if (current.revision !== input.expectedRevision) throw new ProgramConflictError(current);
     transaction.update(reference, {
       data: clonePlanner(input.planner),

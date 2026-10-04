@@ -12,6 +12,7 @@ import {
 import { buildProgramUnitLibraryColumns } from "../lib/program-unit-library.ts";
 import { freshSamplePlanner } from "../lib/sample-data.ts";
 import { exportPlannerData, importPlannerData } from "../lib/storage.ts";
+import { plannerDataEqual } from "../firebase/program-store.ts";
 
 function operationalState(planner) {
   return JSON.stringify({
@@ -103,4 +104,11 @@ test("Phase B Unit Library is native, compact and has no TMR authoring/read-thro
   assert.match(dashboard, /view === "units" \? <ProgramUnitLibrary/);
   assert.doesNotMatch(dashboard, /view === "units" && isMandarinProgram/);
   assert.doesNotMatch(settings, /Unit Library · live|materializeUnitLibraryUnit/);
+});
+
+test("cloud save comparison recognises canonical no-op Planner data without revision churn", () => {
+  const planner = freshSamplePlanner();
+  const reordered = Object.fromEntries(Object.entries(planner).reverse());
+  assert.equal(plannerDataEqual(planner, reordered), true);
+  assert.equal(plannerDataEqual(planner, { ...planner, updatedAt: "2099-01-01T00:00:00.000Z" }), false);
 });
