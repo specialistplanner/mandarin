@@ -48,10 +48,7 @@ import { markOneTimeMigrationsApplied } from "@/lib/migration-markers";
 import { exportPlannerData, importPlannerData } from "@/lib/storage";
 import {
   findLinkedUnit,
-  findProgramUnitForLibraryUnit,
   lessonReference,
-  materializeUnitLibraryUnit,
-  unitLibraryYearLevel,
   unitReference,
   UNIT_LIBRARY_PROVIDER,
 } from "@/lib/unit-library";
@@ -178,18 +175,9 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
     const localUnit = planner.units.find((unit) => unit.id === selection && unitAppliesToYearLevel(unit, yearLevelId));
     if (localUnit) {
       apply(() => setClassPosition(planner, classId, localUnit.id, localUnit.lessons[0].id));
-      return;
+    } else {
+      setMessage("Choose a Unit owned by this Program.");
     }
-
-    const libraryPrefix = "unit-library:";
-    if (!selection.startsWith(libraryPrefix)) return;
-    const libraryUnitId = selection.slice(libraryPrefix.length);
-    const libraryUnit = unitLibrary.index?.units.find((unit) => unit.id === libraryUnitId);
-    if (!libraryUnit) return setMessage("That Unit Library unit is no longer available. Refresh and try again.");
-    apply(() => {
-      const imported = materializeUnitLibraryUnit(planner, yearLevelId, libraryUnit, makeId);
-      return setClassPosition(imported.planner, classId, imported.unitId, imported.firstLessonId);
-    });
   }
 
   function addLesson(unitId: string) {
@@ -391,10 +379,6 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
               {planner.yearLevels.map((level) => {
                 const cohort = planner.classes.filter((item) => item.yearLevelId === level.id);
                 const levelUnits = planner.units.filter((unit) => unitAppliesToYearLevel(unit, level.id));
-                const libraryYear = unitLibraryYearLevel(level);
-                const liveLevelUnits = libraryYear === null ? [] : (unitLibrary.index?.units ?? []).filter((unit) =>
-                  unit.yearLevel === libraryYear && !findProgramUnitForLibraryUnit(planner, unit.id),
-                );
                 const currentUnit = levelUnits.find((unit) => unit.id === level.currentUnitId);
                 return <details className="cohort-editor" open={section === "library" ? true : undefined} key={level.id}>
                   <summary className="cohort-editor-summary">
@@ -421,14 +405,9 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
                           const selectedColour = planner.classColours[item.id];
                           return <div className={`editable-class ${selectedColour ? "has-class-colour" : ""}`} style={classColourStyle(selectedColour)} key={item.id}>
                             <input aria-label={`${item.name} class name`} value={item.name} onChange={(event) => apply(() => renameClassRecord(planner, item.id, event.target.value))} />
-                            {(classUnit || liveLevelUnits.length > 0) ? <><select aria-label={`${item.name} current unit`} value={classUnit?.id ?? ""} onChange={(event) => selectClassUnit(item.id, level.id, event.target.value)}>
+                            {(classUnit || levelUnits.length > 0) ? <><select aria-label={`${item.name} current unit`} value={classUnit?.id ?? ""} onChange={(event) => selectClassUnit(item.id, level.id, event.target.value)}>
                               {!classUnit && <option value="" disabled>Choose a Unit</option>}
-                              <optgroup label="Current Program">
-                                {levelUnits.map((unit) => <option value={unit.id} key={unit.id}>{unit.title}</option>)}
-                              </optgroup>
-                              {liveLevelUnits.length > 0 && <optgroup label="Unit Library · live">
-                                {liveLevelUnits.map((unit) => <option value={`unit-library:${unit.id}`} key={`unit-library:${unit.id}`}>{unit.title}</option>)}
-                              </optgroup>}
+                              {levelUnits.map((unit) => <option value={unit.id} key={unit.id}>{unit.title}</option>)}
                             </select>{classUnit && <select aria-label={`${item.name} next lesson`} value={progress?.lessonId ?? classUnit.lessons[0].id} onChange={(event) => apply(() => setClassLesson(planner, item.id, event.target.value))}>
                               {classUnit.lessons.map((lesson, index) => <option value={lesson.id} key={lesson.id}>L{index + 1} · {lesson.title}</option>)}
                             </select>}</> : <span className="needs-unit">No Units available for this year level</span>}

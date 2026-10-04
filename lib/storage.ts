@@ -210,7 +210,9 @@ export function validatePlannerData(value: unknown): PlannerData {
     if (!yearLevelIds.includes(yearLevelId)) yearLevelIds.unshift(yearLevelId);
     return {
       id: string(item.id, "Unit ID"), yearLevelId, yearLevelIds,
-      title: string(item.title, "Unit title"), description: optionalString(item.description, "Unit description"), lessons,
+      title: string(item.title, "Unit title"),
+      secondaryTitle: optionalString(item.secondaryTitle, "Unit secondary title"),
+      description: optionalString(item.description, "Unit description"), lessons,
       teacherNotes: optionalString(item.teacherNotes, "Unit teacher notes"),
       resources: resources(item.resources, "Unit resource"),
       curriculumMetadata: curriculumMetadata(item.curriculumMetadata),

@@ -112,6 +112,8 @@ export type Unit = {
   yearLevelId: string;
   yearLevelIds?: string[];
   title: string;
+  /** Optional subject-neutral secondary title (for example, a Chinese title). */
+  secondaryTitle?: string;
   description?: string;
   teacherNotes?: string;
   resources?: ResourceLink[];
@@ -773,7 +775,7 @@ export function updateUnitDetails(
   });
 }
 
-export function updateUnitMetadata(planner: PlannerData, unitId: string, patch: Pick<Unit, "teacherNotes" | "resources" | "curriculumMetadata">): PlannerData {
+export function updateUnitMetadata(planner: PlannerData, unitId: string, patch: Pick<Unit, "secondaryTitle" | "teacherNotes" | "resources" | "curriculumMetadata">): PlannerData {
   if (!planner.units.some((unit) => unit.id === unitId)) throw new Error("Unit not found.");
   return touchPlanner({
     ...planner,
