@@ -1,0 +1,3781 @@
+{
+  "auditMetadata": {
+    "title": "Specialist Planner v0.7.1 — Read-only Legacy Unit/Lesson Reconciliation Audit",
+    "generatedAt": "2026-10-03T22:18:19.054Z",
+    "snapshotFetchedAt": "2026-10-03T11:03:46.710Z",
+    "readOnly": true,
+    "generatedMappingsApproved": false,
+    "dataOrCodeModified": false
+  },
+  "sources": {
+    "specialistPlanner": {
+      "projectId": "specialist-planner-staging",
+      "programId": "program-ff3c47db-26e6-4e64-8236-976cbcee9b91",
+      "source": "Firestore REST live document",
+      "revision": 79,
+      "documentUpdateTime": "2026-10-03T10:53:38.827463Z"
+    },
+    "theMandarinRoom": {
+      "projectId": "the-mandarin-room",
+      "collection": "units",
+      "source": "Firestore REST live collection",
+      "indexUrl": "https://australia-southeast1-the-mandarin-room.cloudfunctions.net/unitLibraryIndex",
+      "indexGeneratedAt": "2026-10-03T11:03:46.731Z",
+      "firestoreUnitDocuments": 14,
+      "liveIndexUnits": 14
+    },
+    "gitHistory": {
+      "repository": "specialistplanner/mandarin",
+      "inspectedReadOnly": true
+    }
+  },
+  "summary": {
+    "linkedUnits": 11,
+    "totalSpLessons": 43,
+    "totalTmrLessons": 48,
+    "existingStableLessonMappings": 12,
+    "legacySpLessonsWithoutStableMappings": 31,
+    "tmrLessonsWithoutStableSpMappings": 36,
+    "classificationCounts": {
+      "exactHighEvidenceCandidates": 14,
+      "likelyRenamedCandidates": 8,
+      "tmrOnly": 5,
+      "spOnly": 0,
+      "possibleSplit": 2,
+      "possibleMerge": 0,
+      "reorderCases": 5,
+      "materialContentChange": 0,
+      "unresolvedCases": 2
+    }
+  },
+  "provenanceTimeline": [
+    {
+      "date": "2026-08-23",
+      "commit": "fe744cb",
+      "finding": "Initial SP generation stored Program-owned Units/Lessons with stable SP IDs."
+    },
+    {
+      "date": "2026-08-23",
+      "commit": "d68ab6e",
+      "finding": "Setup directly supported adding, renaming, reordering and deleting Units and Lessons; new records used unit-/lesson- UUIDs."
+    },
+    {
+      "date": "2026-09-04",
+      "commit": "5832942",
+      "finding": "TMR references became optional. Selecting a Unit reference preserved local SP Lessons; Lesson references were separately optional."
+    },
+    {
+      "date": "2026-10-02",
+      "commit": "00ed290",
+      "finding": "Live Unit selection began materialising complete TMR Units with stable Lesson references."
+    }
+  ],
+  "provenanceConclusion": "The six 31-Lesson legacy Units are later Unit-linked SP-native records. Missing Lesson-level TMR IDs are historically expected, not proof of broken synchronization.",
+  "truthModel": {
+    "curriculumLibraryTruth": "Current TMR production Unit documents describe the present reusable curriculum/library sequence.",
+    "currentOperationalTruth": "SP revision 79 classProgress/year-level references describe where current classes are positioned, including active Family and Fruit legacy records.",
+    "historicalTeachingTruth": "SP Teaching Session snapshots remain immutable evidence of what was planned/taught under earlier SP-native sequences."
+  },
+  "units": [
+    {
+      "spUnit": {
+        "id": "hello-friends",
+        "title": "Numbers",
+        "createdAt": "2026-09-15T01:49:34.789Z",
+        "updatedAt": "2026-09-15T01:49:34.789Z",
+        "lessonCount": 7,
+        "lastSyncedTitle": null
+      },
+      "tmrUnit": {
+        "id": "prep-numbers",
+        "title": "Numbers 0-10 I",
+        "yearLevel": 0,
+        "lessonCount": 7
+      },
+      "unitTitleMatches": false,
+      "provenance": {
+        "classification": "later Unit-linked SP-native",
+        "evidence": [
+          "SP Unit ID hello-friends existed in the original 23 Aug Planner generation.",
+          "The direct SP Unit/Lesson editor pre-dated TMR integration.",
+          "The 4 Sep integration added optional Unit links without replacing local Lessons.",
+          "No SP Lesson has a TMR Lesson reference."
+        ]
+      },
+      "stableLessonMappings": [],
+      "stableLessonMappingCount": 0,
+      "unmappedSpLessonCount": 7,
+      "tmrLessonsWithoutStableSpMapping": 7,
+      "structuralDivergence": false,
+      "structuralDivergenceStatus": "not-detected",
+      "currentOperationalTruth": {
+        "currentClassIds": [],
+        "cohortReferenceYearLevelIds": []
+      },
+      "historicalTeachingTruth": {
+        "teachingSessionCount": 11,
+        "historicallyReferencedSpLessons": 4
+      },
+      "spLessons": [
+        {
+          "position": 1,
+          "id": "hello-friends-lesson-1",
+          "title": "Match and sequence",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        },
+        {
+          "position": 2,
+          "id": "hello-friends-lesson-2",
+          "title": "Pegs and play-dough numbers",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        },
+        {
+          "position": 3,
+          "id": "hello-friends-lesson-3",
+          "title": "Paper strip numbers I",
+          "description": "1-5",
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 2,
+            "historicalClassIds": [
+              "prep-e",
+              "prep-c"
+            ],
+            "historicalTitleSnapshots": [
+              "Paper strip numbers I"
+            ],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 4,
+          "id": "hello-friends-lesson-4",
+          "title": "Paper strip numbers II",
+          "description": "6-10",
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 5,
+            "historicalClassIds": [
+              "prep-b",
+              "prep-e",
+              "prep-c"
+            ],
+            "historicalTitleSnapshots": [
+              "Paper strip numbers II"
+            ],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 5,
+          "id": "hello-friends-lesson-5",
+          "title": "Writing Number 1",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 3,
+            "historicalClassIds": [
+              "prep-b",
+              "prep-e",
+              "prep-c"
+            ],
+            "historicalTitleSnapshots": [
+              "Writing Number 1"
+            ],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 6,
+          "id": "lesson-6e530491-1226-4369-8b08-27e50ef1ee2f",
+          "title": "Writing Number 2",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 1,
+            "historicalClassIds": [
+              "prep-b"
+            ],
+            "historicalTitleSnapshots": [
+              "Writing Number 2"
+            ],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 7,
+          "id": "lesson-059f5031-6eb6-4b34-b609-ab0f9cce0780",
+          "title": "Writing Number 3",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        }
+      ],
+      "tmrLessons": [
+        {
+          "position": 1,
+          "id": "lesson-1788496768908",
+          "title": "Introduction",
+          "learningIntention": "To say numbers 0-10 through a song.\nTo identify numbers in both character and Pinyin formats.",
+          "vocabularySetId": "prep-numbers",
+          "speakingPracticeId": null,
+          "notes": "Students learn to say Chinese numbers 0-10 through a number rap.\nThey learn to identify numbers in both character and pinyin formats through sequencing and matching activities.",
+          "resources": "https://www.youtube.com/watch?v=2eLP3FuuEVs",
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 2,
+          "id": "lesson-1788497218061",
+          "title": "Making Numbers I",
+          "learningIntention": "To construct numbers (in Chinese characters) with different materials.",
+          "vocabularySetId": "prep-numbers",
+          "speakingPracticeId": null,
+          "notes": "Students take turn to participate in two different activities:\n1. making numbers with playdough\n2. making numbers with pegs on pegboards",
+          "resources": "https://www.youtube.com/watch?v=2eLP3FuuEVs",
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 3,
+          "id": "lesson-1788497381558",
+          "title": "Making numbers II",
+          "learningIntention": "To construct numbers (in Chinese characters) with different materials.",
+          "vocabularySetId": "prep-numbers",
+          "speakingPracticeId": null,
+          "notes": "Students construct numbers 1-5 with paper strips using a template.\n\nEarly Finisher Enrichment:\n1. making 零(ling, 0).",
+          "resources": "https://www.youtube.com/watch?v=2eLP3FuuEVs",
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 4,
+          "id": "lesson-1788497549906",
+          "title": "Making numbers III",
+          "learningIntention": "To construct numbers (in Chinese characters) with different materials.",
+          "vocabularySetId": "prep-numbers",
+          "speakingPracticeId": null,
+          "notes": "Students construct numbers 6-10 with paper strips using a template.\n\nEarly Finisher Enrichment:\n1. making 你好(ni hao, hello).",
+          "resources": "https://www.youtube.com/watch?v=2eLP3FuuEVs",
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 5,
+          "id": "lesson-1788497735406",
+          "title": "Handwriting I",
+          "learningIntention": "To understand how to use a Chinese writing grid in a handwriting practice.",
+          "vocabularySetId": "prep-numbers",
+          "speakingPracticeId": null,
+          "notes": "Enrichment: Counting objects\nHandwriting: 一",
+          "resources": "https://www.youtube.com/watch?v=2eLP3FuuEVs",
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 6,
+          "id": "lesson-1788497916542",
+          "title": "Handwriting II",
+          "learningIntention": "To understand how to use a Chinese writing grid in a handwriting practice.",
+          "vocabularySetId": "prep-numbers",
+          "speakingPracticeId": null,
+          "notes": "Enrichment: Bingo\nHandwriting: 二",
+          "resources": "https://www.youtube.com/watch?v=2eLP3FuuEVs",
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 7,
+          "id": "lesson-1788497980608",
+          "title": "Handwriting III",
+          "learningIntention": "To understand how to use a Chinese writing grid in a handwriting practice.",
+          "vocabularySetId": "prep-numbers",
+          "speakingPracticeId": null,
+          "notes": "Enrichment: How many eyes do they have?\nHandwriting: 三",
+          "resources": "https://www.youtube.com/watch?v=2eLP3FuuEVs",
+          "mappingStatus": "candidate-only",
+          "classification": null
+        }
+      ],
+      "sideBySide": [
+        {
+          "spPosition": 1,
+          "spLessonId": "hello-friends-lesson-1",
+          "spTitle": "Match and sequence",
+          "tmrPosition": 1,
+          "tmrLessonId": "lesson-1788496768908",
+          "tmrTitle": "Introduction",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": 2,
+          "spLessonId": "hello-friends-lesson-2",
+          "spTitle": "Pegs and play-dough numbers",
+          "tmrPosition": 2,
+          "tmrLessonId": "lesson-1788497218061",
+          "tmrTitle": "Making Numbers I",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": 3,
+          "spLessonId": "hello-friends-lesson-3",
+          "spTitle": "Paper strip numbers I",
+          "tmrPosition": 3,
+          "tmrLessonId": "lesson-1788497381558",
+          "tmrTitle": "Making numbers II",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": 4,
+          "spLessonId": "hello-friends-lesson-4",
+          "spTitle": "Paper strip numbers II",
+          "tmrPosition": 4,
+          "tmrLessonId": "lesson-1788497549906",
+          "tmrTitle": "Making numbers III",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": 5,
+          "spLessonId": "hello-friends-lesson-5",
+          "spTitle": "Writing Number 1",
+          "tmrPosition": 5,
+          "tmrLessonId": "lesson-1788497735406",
+          "tmrTitle": "Handwriting I",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": 6,
+          "spLessonId": "lesson-6e530491-1226-4369-8b08-27e50ef1ee2f",
+          "spTitle": "Writing Number 2",
+          "tmrPosition": 6,
+          "tmrLessonId": "lesson-1788497916542",
+          "tmrTitle": "Handwriting II",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": 7,
+          "spLessonId": "lesson-059f5031-6eb6-4b34-b609-ab0f9cce0780",
+          "spTitle": "Writing Number 3",
+          "tmrPosition": 7,
+          "tmrLessonId": "lesson-1788497980608",
+          "tmrTitle": "Handwriting III",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        }
+      ],
+      "candidateRelationships": [
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "hello-friends-lesson-1",
+            "title": "Match and sequence"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788496768908",
+              "title": "Introduction"
+            }
+          ],
+          "classificationCode": "C",
+          "classification": "POSSIBLE SAME LESSON — OWNER REVIEW REQUIRED",
+          "confidence": "Moderate evidence",
+          "evidence": [
+            "TMR notes explicitly describe sequencing and matching numbers, matching the SP title concept.",
+            "Both occur at the start of the same Unit."
+          ],
+          "risk": "Different titles and SP has no learning-intention/resource metadata; position is not identity.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "hello-friends-lesson-2",
+            "title": "Pegs and play-dough numbers"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788497218061",
+              "title": "Making Numbers I"
+            }
+          ],
+          "classificationCode": "B",
+          "classification": "LIKELY RENAMED SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "TMR notes explicitly name playdough and pegs.",
+            "The distinctive activities match the SP title."
+          ],
+          "risk": "Needs explicit owner approval because the SP Lesson predates Lesson-level integration.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "hello-friends-lesson-3",
+            "title": "Paper strip numbers I"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788497381558",
+              "title": "Making numbers II"
+            }
+          ],
+          "classificationCode": "B",
+          "classification": "LIKELY RENAMED SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "SP description says 1–5.",
+            "TMR notes specify constructing 1–5 with paper strips."
+          ],
+          "risk": "Renamed title; no stable historic provenance ID.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "hello-friends-lesson-4",
+            "title": "Paper strip numbers II"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788497549906",
+              "title": "Making numbers III"
+            }
+          ],
+          "classificationCode": "B",
+          "classification": "LIKELY RENAMED SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "SP description says 6–10.",
+            "TMR notes specify constructing 6–10 with paper strips."
+          ],
+          "risk": "Renamed title; no stable historic provenance ID.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "hello-friends-lesson-5",
+            "title": "Writing Number 1"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788497735406",
+              "title": "Handwriting I"
+            }
+          ],
+          "classificationCode": "B",
+          "classification": "LIKELY RENAMED SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "SP title names writing Number 1.",
+            "TMR Handwriting I notes explicitly identify 一."
+          ],
+          "risk": "Renamed title; no stable historic provenance ID.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "lesson-6e530491-1226-4369-8b08-27e50ef1ee2f",
+            "title": "Writing Number 2"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788497916542",
+              "title": "Handwriting II"
+            }
+          ],
+          "classificationCode": "B",
+          "classification": "LIKELY RENAMED SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "SP title names writing Number 2.",
+            "TMR Handwriting II notes explicitly identify 二."
+          ],
+          "risk": "Renamed title; no stable historic provenance ID.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "lesson-059f5031-6eb6-4b34-b609-ab0f9cce0780",
+            "title": "Writing Number 3"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788497980608",
+              "title": "Handwriting III"
+            }
+          ],
+          "classificationCode": "B",
+          "classification": "LIKELY RENAMED SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "SP title names writing Number 3.",
+            "TMR Handwriting III notes explicitly identify 三."
+          ],
+          "risk": "Renamed title; no stable historic provenance ID.",
+          "ownerDecisionRequired": true
+        }
+      ],
+      "tmrOnlyLessons": [],
+      "likelyIssues": [
+        "Unit title divergence (Numbers vs Numbers 0-10 I).",
+        "Lesson titles evolved, but counts remain 7/7.",
+        "Four SP Lessons have Teaching Session dependencies."
+      ]
+    },
+    {
+      "spUnit": {
+        "id": "weather",
+        "title": "Australian States and Territories",
+        "createdAt": "2026-09-15T01:49:34.789Z",
+        "updatedAt": "2026-09-15T01:49:34.789Z",
+        "lessonCount": 6,
+        "lastSyncedTitle": "Australian States and Territories"
+      },
+      "tmrUnit": {
+        "id": "year-4-australia-states-and-territories",
+        "title": "Australian States and Territories",
+        "yearLevel": 4,
+        "lessonCount": 7
+      },
+      "unitTitleMatches": true,
+      "provenance": {
+        "classification": "later Unit-linked SP-native",
+        "evidence": [
+          "SP Unit ID weather existed in the original 23 Aug Planner generation.",
+          "Its curriculum was edited in the SP setup workflow before/independently of Lesson-level integration.",
+          "Unit linking preserved local Lessons; all six remain without TMR Lesson provenance IDs."
+        ]
+      },
+      "stableLessonMappings": [],
+      "stableLessonMappingCount": 0,
+      "unmappedSpLessonCount": 6,
+      "tmrLessonsWithoutStableSpMapping": 7,
+      "structuralDivergence": true,
+      "structuralDivergenceStatus": "present-or-suspected",
+      "currentOperationalTruth": {
+        "currentClassIds": [],
+        "cohortReferenceYearLevelIds": []
+      },
+      "historicalTeachingTruth": {
+        "teachingSessionCount": 11,
+        "historicallyReferencedSpLessons": 4
+      },
+      "spLessons": [
+        {
+          "position": 1,
+          "id": "weather-lesson-1",
+          "title": "States and territories",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        },
+        {
+          "position": 2,
+          "id": "weather-lesson-2",
+          "title": "I've been to...",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        },
+        {
+          "position": 3,
+          "id": "weather-lesson-3",
+          "title": "I want to go to...",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 3,
+            "historicalClassIds": [
+              "4e"
+            ],
+            "historicalTitleSnapshots": [
+              "I want to go to..."
+            ],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 4,
+          "id": "weather-lesson-4",
+          "title": "Have you been to ...?",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 4,
+            "historicalClassIds": [
+              "4c",
+              "4b"
+            ],
+            "historicalTitleSnapshots": [
+              "Have you been to ...?"
+            ],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 5,
+          "id": "weather-lesson-5",
+          "title": "Have you been to ...? II",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 2,
+            "historicalClassIds": [
+              "4c",
+              "4b"
+            ],
+            "historicalTitleSnapshots": [
+              "Have you been to ...? II"
+            ],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 6,
+          "id": "weather-lesson-6",
+          "title": "Review",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 2,
+            "historicalClassIds": [
+              "4c",
+              "4b"
+            ],
+            "historicalTitleSnapshots": [
+              "Review"
+            ],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        }
+      ],
+      "tmrLessons": [
+        {
+          "position": 1,
+          "id": "lesson-1788575330616",
+          "title": "Introduction",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 2,
+          "id": "lesson-1788575340300",
+          "title": "I have been to ....",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 3,
+          "id": "lesson-1788575354282",
+          "title": "I want to go to ....",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 4,
+          "id": "lesson-1788575366471",
+          "title": "Have you been to ...?",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 5,
+          "id": "lesson-1788575377025",
+          "title": "Do you want to go to ...?",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "none",
+          "classification": "TMR-ONLY LESSON"
+        },
+        {
+          "position": 6,
+          "id": "lesson-1788575393609",
+          "title": "I live in ....",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "none",
+          "classification": "TMR-ONLY LESSON"
+        },
+        {
+          "position": 7,
+          "id": "lesson-1788575431290",
+          "title": "Revision",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        }
+      ],
+      "sideBySide": [
+        {
+          "spPosition": 1,
+          "spLessonId": "weather-lesson-1",
+          "spTitle": "States and territories",
+          "tmrPosition": 1,
+          "tmrLessonId": "lesson-1788575330616",
+          "tmrTitle": "Introduction",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": 2,
+          "spLessonId": "weather-lesson-2",
+          "spTitle": "I've been to...",
+          "tmrPosition": 2,
+          "tmrLessonId": "lesson-1788575340300",
+          "tmrTitle": "I have been to ....",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": 3,
+          "spLessonId": "weather-lesson-3",
+          "spTitle": "I want to go to...",
+          "tmrPosition": 3,
+          "tmrLessonId": "lesson-1788575354282",
+          "tmrTitle": "I want to go to ....",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": 4,
+          "spLessonId": "weather-lesson-4",
+          "spTitle": "Have you been to ...?",
+          "tmrPosition": 4,
+          "tmrLessonId": "lesson-1788575366471",
+          "tmrTitle": "Have you been to ...?",
+          "observation": "Titles match, but position/title alone is not identity."
+        },
+        {
+          "spPosition": 5,
+          "spLessonId": "weather-lesson-5",
+          "spTitle": "Have you been to ...? II",
+          "tmrPosition": 5,
+          "tmrLessonId": "lesson-1788575377025",
+          "tmrTitle": "Do you want to go to ...?",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": 6,
+          "spLessonId": "weather-lesson-6",
+          "spTitle": "Review",
+          "tmrPosition": 6,
+          "tmrLessonId": "lesson-1788575393609",
+          "tmrTitle": "I live in ....",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": null,
+          "spLessonId": null,
+          "spTitle": null,
+          "tmrPosition": 7,
+          "tmrLessonId": "lesson-1788575431290",
+          "tmrTitle": "Revision",
+          "observation": "TMR-only at this position; inspect candidate/unmatched analysis."
+        }
+      ],
+      "candidateRelationships": [
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "weather-lesson-1",
+            "title": "States and territories"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788575330616",
+              "title": "Introduction"
+            }
+          ],
+          "classificationCode": "C",
+          "classification": "POSSIBLE SAME LESSON — OWNER REVIEW REQUIRED",
+          "confidence": "Weak evidence",
+          "evidence": [
+            "Both are introductory Lessons in the same Unit."
+          ],
+          "risk": "Generic title and no supporting SP metadata; position alone is insufficient.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "weather-lesson-2",
+            "title": "I've been to..."
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788575340300",
+              "title": "I have been to ...."
+            }
+          ],
+          "classificationCode": "B",
+          "classification": "LIKELY RENAMED SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "Titles are the same proposition with only contraction/punctuation variation.",
+            "Surrounding sequence is consistent."
+          ],
+          "risk": "No stable historic provenance ID.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "weather-lesson-3",
+            "title": "I want to go to..."
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788575354282",
+              "title": "I want to go to ...."
+            }
+          ],
+          "classificationCode": "A",
+          "classification": "EXACT / HIGH-CONFIDENCE SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "Distinctive titles match after punctuation normalization.",
+            "The preceding and following concepts are consistent."
+          ],
+          "risk": "No stable historic provenance ID.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "weather-lesson-4",
+            "title": "Have you been to ...?"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788575366471",
+              "title": "Have you been to ...?"
+            }
+          ],
+          "classificationCode": "A",
+          "classification": "EXACT / HIGH-CONFIDENCE SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "Distinctive titles match after punctuation normalization.",
+            "The surrounding sequence is consistent."
+          ],
+          "risk": "No stable historic provenance ID.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "weather-lesson-5",
+            "title": "Have you been to ...? II"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788575366471",
+              "title": "Have you been to ...?"
+            }
+          ],
+          "classificationCode": "F",
+          "classification": "POSSIBLE SPLIT",
+          "confidence": "Moderate evidence",
+          "evidence": [
+            "SP labels this as a second session of the same question represented by TMR Lesson 4.",
+            "SP Lessons 4 and 5 may be a two-session treatment of one TMR Lesson."
+          ],
+          "risk": "Could instead be an independently authored extension; owner curriculum decision required.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "weather-lesson-6",
+            "title": "Review"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788575431290",
+              "title": "Revision"
+            }
+          ],
+          "classificationCode": "H",
+          "classification": "MOVED / REORDERED",
+          "confidence": "High evidence",
+          "evidence": [
+            "Review and Revision express the same terminal function.",
+            "TMR has two intervening concepts, explaining the position shift."
+          ],
+          "risk": "Reorder/insertions mean numeric position cannot be used as identity.",
+          "ownerDecisionRequired": true
+        }
+      ],
+      "tmrOnlyLessons": [
+        {
+          "id": "lesson-1788575377025",
+          "title": "Do you want to go to ...?",
+          "mappingStatus": "none",
+          "classification": "TMR-ONLY LESSON"
+        },
+        {
+          "id": "lesson-1788575393609",
+          "title": "I live in ....",
+          "mappingStatus": "none",
+          "classification": "TMR-ONLY LESSON"
+        }
+      ],
+      "likelyIssues": [
+        "6 SP Lessons vs 7 TMR Lessons.",
+        "Possible repeated/split Have you been treatment.",
+        "TMR adds Do you want to go and I live in concepts.",
+        "Four SP Lessons have historical session dependencies."
+      ]
+    },
+    {
+      "spUnit": {
+        "id": "nationalities",
+        "title": "Countries",
+        "createdAt": "2026-09-15T01:49:34.789Z",
+        "updatedAt": "2026-09-15T01:49:34.789Z",
+        "lessonCount": 6,
+        "lastSyncedTitle": "Countries"
+      },
+      "tmrUnit": {
+        "id": "year-5-countries",
+        "title": "Countries",
+        "yearLevel": 5,
+        "lessonCount": 7
+      },
+      "unitTitleMatches": true,
+      "provenance": {
+        "classification": "later Unit-linked SP-native",
+        "evidence": [
+          "SP Unit ID nationalities existed in the original 23 Aug Planner generation.",
+          "The current Countries sequence differs from the original generic seed, demonstrating SP-side authoring.",
+          "Only a later Unit-level TMR reference exists; no Lesson references exist."
+        ]
+      },
+      "stableLessonMappings": [],
+      "stableLessonMappingCount": 0,
+      "unmappedSpLessonCount": 6,
+      "tmrLessonsWithoutStableSpMapping": 7,
+      "structuralDivergence": true,
+      "structuralDivergenceStatus": "present-or-suspected",
+      "currentOperationalTruth": {
+        "currentClassIds": [],
+        "cohortReferenceYearLevelIds": []
+      },
+      "historicalTeachingTruth": {
+        "teachingSessionCount": 6,
+        "historicallyReferencedSpLessons": 3
+      },
+      "spLessons": [
+        {
+          "position": 1,
+          "id": "nationalities-lesson-1",
+          "title": "Introduction",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        },
+        {
+          "position": 2,
+          "id": "nationalities-lesson-2",
+          "title": "Countries I",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 2,
+            "historicalClassIds": [
+              "5e",
+              "5c"
+            ],
+            "historicalTitleSnapshots": [
+              "Countries I"
+            ],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 3,
+          "id": "nationalities-lesson-3",
+          "title": "Where is China?",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 2,
+            "historicalClassIds": [
+              "5e",
+              "5c"
+            ],
+            "historicalTitleSnapshots": [
+              "Where is China?"
+            ],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 4,
+          "id": "nationalities-lesson-4",
+          "title": "Countries II",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 2,
+            "historicalClassIds": [
+              "5e",
+              "5c"
+            ],
+            "historicalTitleSnapshots": [
+              "Countries II"
+            ],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 5,
+          "id": "nationalities-lesson-5",
+          "title": "Countries III",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        },
+        {
+          "position": 6,
+          "id": "nationalities-lesson-6",
+          "title": "Review",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        }
+      ],
+      "tmrLessons": [
+        {
+          "position": 1,
+          "id": "lesson-1788328454984",
+          "title": "Introduction",
+          "learningIntention": "Students learn to name a group of countries through Dr. Zhou's Rhyme, The Country Name Song.",
+          "vocabularySetId": "year5-countries",
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 2,
+          "id": "lesson-1788574591953",
+          "title": "Countries I",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 3,
+          "id": "lesson-1788574619599",
+          "title": "Where is China I",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 4,
+          "id": "lesson-1788574651474",
+          "title": "Where is China II",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 5,
+          "id": "lesson-1788574672716",
+          "title": "Countries II",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 6,
+          "id": "lesson-1788574689167",
+          "title": "Countries III",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 7,
+          "id": "lesson-1788574700373",
+          "title": "Revision",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        }
+      ],
+      "sideBySide": [
+        {
+          "spPosition": 1,
+          "spLessonId": "nationalities-lesson-1",
+          "spTitle": "Introduction",
+          "tmrPosition": 1,
+          "tmrLessonId": "lesson-1788328454984",
+          "tmrTitle": "Introduction",
+          "observation": "Titles match, but position/title alone is not identity."
+        },
+        {
+          "spPosition": 2,
+          "spLessonId": "nationalities-lesson-2",
+          "spTitle": "Countries I",
+          "tmrPosition": 2,
+          "tmrLessonId": "lesson-1788574591953",
+          "tmrTitle": "Countries I",
+          "observation": "Titles match, but position/title alone is not identity."
+        },
+        {
+          "spPosition": 3,
+          "spLessonId": "nationalities-lesson-3",
+          "spTitle": "Where is China?",
+          "tmrPosition": 3,
+          "tmrLessonId": "lesson-1788574619599",
+          "tmrTitle": "Where is China I",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": 4,
+          "spLessonId": "nationalities-lesson-4",
+          "spTitle": "Countries II",
+          "tmrPosition": 4,
+          "tmrLessonId": "lesson-1788574651474",
+          "tmrTitle": "Where is China II",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": 5,
+          "spLessonId": "nationalities-lesson-5",
+          "spTitle": "Countries III",
+          "tmrPosition": 5,
+          "tmrLessonId": "lesson-1788574672716",
+          "tmrTitle": "Countries II",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": 6,
+          "spLessonId": "nationalities-lesson-6",
+          "spTitle": "Review",
+          "tmrPosition": 6,
+          "tmrLessonId": "lesson-1788574689167",
+          "tmrTitle": "Countries III",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": null,
+          "spLessonId": null,
+          "spTitle": null,
+          "tmrPosition": 7,
+          "tmrLessonId": "lesson-1788574700373",
+          "tmrTitle": "Revision",
+          "observation": "TMR-only at this position; inspect candidate/unmatched analysis."
+        }
+      ],
+      "candidateRelationships": [
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "nationalities-lesson-1",
+            "title": "Introduction"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788328454984",
+              "title": "Introduction"
+            }
+          ],
+          "classificationCode": "A",
+          "classification": "EXACT / HIGH-CONFIDENCE SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "Exact title in the same Unit.",
+            "It anchors the same surrounding Countries sequence."
+          ],
+          "risk": "SP lacks the TMR learning-intention metadata.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "nationalities-lesson-2",
+            "title": "Countries I"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788574591953",
+              "title": "Countries I"
+            }
+          ],
+          "classificationCode": "A",
+          "classification": "EXACT / HIGH-CONFIDENCE SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "Exact distinctive title.",
+            "The following Where is China concept is consistent."
+          ],
+          "risk": "No stable historic provenance ID.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "nationalities-lesson-3",
+            "title": "Where is China?"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788574619599",
+              "title": "Where is China I"
+            },
+            {
+              "id": "lesson-1788574651474",
+              "title": "Where is China II"
+            }
+          ],
+          "classificationCode": "F",
+          "classification": "POSSIBLE SPLIT",
+          "confidence": "Moderate evidence",
+          "evidence": [
+            "SP has one broad Where is China Lesson.",
+            "TMR now has Where is China I and II."
+          ],
+          "risk": "One SP Lesson may have been split into two TMR Lessons; owner must determine curriculum lineage.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "nationalities-lesson-4",
+            "title": "Countries II"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788574672716",
+              "title": "Countries II"
+            }
+          ],
+          "classificationCode": "H",
+          "classification": "MOVED / REORDERED",
+          "confidence": "High evidence",
+          "evidence": [
+            "Exact title.",
+            "The position moved after the apparent Where is China split."
+          ],
+          "risk": "Numeric position differs.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "nationalities-lesson-5",
+            "title": "Countries III"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788574689167",
+              "title": "Countries III"
+            }
+          ],
+          "classificationCode": "H",
+          "classification": "MOVED / REORDERED",
+          "confidence": "High evidence",
+          "evidence": [
+            "Exact title.",
+            "The sequence shift is consistent with an inserted/split Lesson."
+          ],
+          "risk": "Numeric position differs.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "nationalities-lesson-6",
+            "title": "Review"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788574700373",
+              "title": "Revision"
+            }
+          ],
+          "classificationCode": "H",
+          "classification": "MOVED / REORDERED",
+          "confidence": "High evidence",
+          "evidence": [
+            "Review and Revision have the same terminal function.",
+            "Both close the same Unit sequence."
+          ],
+          "risk": "Title is not exact and position differs.",
+          "ownerDecisionRequired": true
+        }
+      ],
+      "tmrOnlyLessons": [],
+      "likelyIssues": [
+        "6 SP Lessons vs 7 TMR Lessons.",
+        "Where is China appears as one SP Lesson but I/II in TMR.",
+        "Three SP Lessons have historical session dependencies."
+      ]
+    },
+    {
+      "spUnit": {
+        "id": "travel",
+        "title": "Chinese Names",
+        "createdAt": "2026-09-15T01:49:34.789Z",
+        "updatedAt": "2026-09-15T01:49:34.789Z",
+        "lessonCount": 5,
+        "lastSyncedTitle": "Chinese Names"
+      },
+      "tmrUnit": {
+        "id": "year-6-chinese-names",
+        "title": "Chinese Names",
+        "yearLevel": 6,
+        "lessonCount": 5
+      },
+      "unitTitleMatches": true,
+      "provenance": {
+        "classification": "later Unit-linked SP-native",
+        "evidence": [
+          "SP Unit ID travel existed in the original 23 Aug Planner generation.",
+          "Its current five-Lesson Chinese Names sequence was authored into that SP record.",
+          "The later Unit link did not create Lesson provenance references."
+        ]
+      },
+      "stableLessonMappings": [],
+      "stableLessonMappingCount": 0,
+      "unmappedSpLessonCount": 5,
+      "tmrLessonsWithoutStableSpMapping": 5,
+      "structuralDivergence": false,
+      "structuralDivergenceStatus": "not-detected",
+      "currentOperationalTruth": {
+        "currentClassIds": [],
+        "cohortReferenceYearLevelIds": []
+      },
+      "historicalTeachingTruth": {
+        "teachingSessionCount": 4,
+        "historicallyReferencedSpLessons": 1
+      },
+      "spLessons": [
+        {
+          "position": 1,
+          "id": "travel-lesson-1",
+          "title": "Typing Chinese characters",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        },
+        {
+          "position": 2,
+          "id": "travel-lesson-2",
+          "title": "Homophones",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        },
+        {
+          "position": 3,
+          "id": "travel-lesson-3",
+          "title": "My Chinese Name I",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        },
+        {
+          "position": 4,
+          "id": "travel-lesson-4",
+          "title": "My Chinese Name II",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        },
+        {
+          "position": 5,
+          "id": "travel-lesson-5",
+          "title": "Mini Self-introduction I",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 4,
+            "historicalClassIds": [
+              "6b",
+              "6d"
+            ],
+            "historicalTitleSnapshots": [
+              "Mini Self-introduction I"
+            ],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        }
+      ],
+      "tmrLessons": [
+        {
+          "position": 1,
+          "id": "lesson-1788082219655",
+          "title": "Typing Chinese characters",
+          "learningIntention": "We are learning to or revisiting how to type Chinese characters using the Pinyin input method.",
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": "Students learn to install and delete a keyboard on an iPad: Settings/General/Keyboards/Add a new keyboard/Chinese (Simplified)/Pinyin-QWERTY.\nStudents create a note in Notes on an iPad and type Chinese numbers, colours and countries, using the Pinyin input method.",
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 2,
+          "id": "lesson-1788082447113",
+          "title": "Homophones",
+          "learningIntention": "We are learning to understand homophones are words that sound the same but don't write the same or have the same definitions.\nHomophones make a common feature in the Chinese languages.",
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": "1. Students write the following homophones in their book: \nyi：一，伊，衣，医\n2. Students use an online dictionary to search the definition of each character and share their results and findings to the class.\n3. Students practise and reinforce their typing skills and use of an online dictionary with another group of homophones:\nsi: 四，丝，斯，死\n4. Students apply these skills and search the definition of characters used in their own Chinese names.",
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 3,
+          "id": "lesson-1788083010783",
+          "title": "My Chinese Name I",
+          "learningIntention": "We are reinforcing our Chinese character typing skills.\nWe are applying our typing skills when finding definition of characters used in our Chinese names.",
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": "Students share the definition of their Chinese names to their partner and class.\nStudents create a digital bookmark on Canva, including their Chinese name (characters & Pinyin) and definition.",
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 4,
+          "id": "lesson-1788084151755",
+          "title": "My Chinese Name II",
+          "learningIntention": "We are learning to ask each other names in a mini dialogue.",
+          "vocabularySetId": null,
+          "speakingPracticeId": "year3-what-s-your-name",
+          "notes": "Students listen to a song and revise asking each other names through singing practice.\nStudents apply the core and challenge practice to conduct mini dialogue with their partner.\nStudents write their Chinese and English names on 4 pieces of paper to make 4 small business cards. They walk around in the room to find 4 partners and conduct the mini dialogue and exchange business cards with each other.\nStudents continue to finalise their Chinese name bookmark and submit their task.",
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 5,
+          "id": "lesson-1788087277864",
+          "title": "Mini Self-introduction I",
+          "learningIntention": "We are learning to a mini self-introduction including our name, gender and birthday. ",
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": "Repeat the business card activity done in Lesson 4. \nStudents create a mini self-introduction including our name, gender and birthday. ",
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        }
+      ],
+      "sideBySide": [
+        {
+          "spPosition": 1,
+          "spLessonId": "travel-lesson-1",
+          "spTitle": "Typing Chinese characters",
+          "tmrPosition": 1,
+          "tmrLessonId": "lesson-1788082219655",
+          "tmrTitle": "Typing Chinese characters",
+          "observation": "Titles match, but position/title alone is not identity."
+        },
+        {
+          "spPosition": 2,
+          "spLessonId": "travel-lesson-2",
+          "spTitle": "Homophones",
+          "tmrPosition": 2,
+          "tmrLessonId": "lesson-1788082447113",
+          "tmrTitle": "Homophones",
+          "observation": "Titles match, but position/title alone is not identity."
+        },
+        {
+          "spPosition": 3,
+          "spLessonId": "travel-lesson-3",
+          "spTitle": "My Chinese Name I",
+          "tmrPosition": 3,
+          "tmrLessonId": "lesson-1788083010783",
+          "tmrTitle": "My Chinese Name I",
+          "observation": "Titles match, but position/title alone is not identity."
+        },
+        {
+          "spPosition": 4,
+          "spLessonId": "travel-lesson-4",
+          "spTitle": "My Chinese Name II",
+          "tmrPosition": 4,
+          "tmrLessonId": "lesson-1788084151755",
+          "tmrTitle": "My Chinese Name II",
+          "observation": "Titles match, but position/title alone is not identity."
+        },
+        {
+          "spPosition": 5,
+          "spLessonId": "travel-lesson-5",
+          "spTitle": "Mini Self-introduction I",
+          "tmrPosition": 5,
+          "tmrLessonId": "lesson-1788087277864",
+          "tmrTitle": "Mini Self-introduction I",
+          "observation": "Titles match, but position/title alone is not identity."
+        }
+      ],
+      "candidateRelationships": [
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "travel-lesson-1",
+            "title": "Typing Chinese characters"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788082219655",
+              "title": "Typing Chinese characters"
+            }
+          ],
+          "classificationCode": "A",
+          "classification": "EXACT / HIGH-CONFIDENCE SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "Exact distinctive title.",
+            "All five surrounding Unit titles align in the same sequence."
+          ],
+          "risk": "No stable historic provenance ID.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "travel-lesson-2",
+            "title": "Homophones"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788082447113",
+              "title": "Homophones"
+            }
+          ],
+          "classificationCode": "A",
+          "classification": "EXACT / HIGH-CONFIDENCE SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "Exact distinctive title.",
+            "Full Unit sequence alignment provides independent context."
+          ],
+          "risk": "No stable historic provenance ID.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "travel-lesson-3",
+            "title": "My Chinese Name I"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788083010783",
+              "title": "My Chinese Name I"
+            }
+          ],
+          "classificationCode": "A",
+          "classification": "EXACT / HIGH-CONFIDENCE SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "Exact distinctive title.",
+            "Full Unit sequence alignment provides independent context."
+          ],
+          "risk": "No stable historic provenance ID.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "travel-lesson-4",
+            "title": "My Chinese Name II"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788084151755",
+              "title": "My Chinese Name II"
+            }
+          ],
+          "classificationCode": "A",
+          "classification": "EXACT / HIGH-CONFIDENCE SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "Exact distinctive title.",
+            "Full Unit sequence alignment provides independent context."
+          ],
+          "risk": "No stable historic provenance ID.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "travel-lesson-5",
+            "title": "Mini Self-introduction I"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788087277864",
+              "title": "Mini Self-introduction I"
+            }
+          ],
+          "classificationCode": "A",
+          "classification": "EXACT / HIGH-CONFIDENCE SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "Exact distinctive title.",
+            "Full Unit sequence alignment provides independent context."
+          ],
+          "risk": "No stable historic provenance ID.",
+          "ownerDecisionRequired": true
+        }
+      ],
+      "tmrOnlyLessons": [],
+      "likelyIssues": [
+        "Five titles and sequence align, but provenance remains SP-native and unmapped.",
+        "Mini Self-introduction I has historical session dependencies."
+      ]
+    },
+    {
+      "spUnit": {
+        "id": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "title": "Family",
+        "createdAt": "2026-09-15T01:49:34.789Z",
+        "updatedAt": "2026-09-15T01:49:34.789Z",
+        "lessonCount": 4,
+        "lastSyncedTitle": "Family"
+      },
+      "tmrUnit": {
+        "id": "year-2-family",
+        "title": "Family",
+        "yearLevel": 2,
+        "lessonCount": 5
+      },
+      "unitTitleMatches": true,
+      "provenance": {
+        "classification": "later Unit-linked SP-native",
+        "evidence": [
+          "The UUID-shaped Unit and Lesson IDs match the former SP setup creation workflow.",
+          "The SP workflow generated unit-/lesson- UUIDs and allowed direct sequence editing.",
+          "A later Unit-level TMR link exists, but no Lesson was mapped."
+        ]
+      },
+      "stableLessonMappings": [],
+      "stableLessonMappingCount": 0,
+      "unmappedSpLessonCount": 4,
+      "tmrLessonsWithoutStableSpMapping": 5,
+      "structuralDivergence": true,
+      "structuralDivergenceStatus": "present-or-suspected",
+      "currentOperationalTruth": {
+        "currentClassIds": [
+          "2c",
+          "2a"
+        ],
+        "cohortReferenceYearLevelIds": [
+          "year-2"
+        ]
+      },
+      "historicalTeachingTruth": {
+        "teachingSessionCount": 4,
+        "historicallyReferencedSpLessons": 2
+      },
+      "spLessons": [
+        {
+          "position": 1,
+          "id": "lesson-c7991263-82ec-466e-b454-952da0f71048",
+          "title": "Introduction",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 1,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 2,
+            "historicalClassIds": [
+              "2c",
+              "2a"
+            ],
+            "historicalTitleSnapshots": [
+              "Introduction"
+            ],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 2,
+          "id": "lesson-c913759e-a856-495e-adf7-936152feac06",
+          "title": "Family Tree",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 2,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 2,
+            "progressCheckpointRefs": 2,
+            "teachingSessionRefs": 2,
+            "historicalClassIds": [
+              "2c",
+              "2a"
+            ],
+            "historicalTitleSnapshots": [
+              "Family Tree"
+            ],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 3,
+          "id": "lesson-93f2899f-5790-4fae-8cf0-58118aa32fcb",
+          "title": "My family has five people.",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        },
+        {
+          "position": 4,
+          "id": "lesson-8381da89-e8f2-40ef-8d92-e398c87911af",
+          "title": "I have ... (in my family).",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        }
+      ],
+      "tmrLessons": [
+        {
+          "position": 1,
+          "id": "lesson-1788760226079",
+          "title": "Introduction",
+          "learningIntention": "To name some key family words through a song.\nTo understand that all families are different.\nTo describe who I have in my family in English.",
+          "vocabularySetId": "year2-family",
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": "https://www.youtube.com/watch?v=K8D_2cU3O_U&list=RDK8D_2cU3O_U&start_radio=1",
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 2,
+          "id": "lesson-1788760345727",
+          "title": "Family Tree",
+          "learningIntention": "To create a family tree that shows who I have in my family.\nTo label my family members with Mandarin words (pinyin and characters).",
+          "vocabularySetId": "year2-family",
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": "https://www.youtube.com/watch?v=K8D_2cU3O_U&list=RDK8D_2cU3O_U&start_radio=1",
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 3,
+          "id": "lesson-1788761602623",
+          "title": "Family Tree II",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "none",
+          "classification": "TMR-ONLY LESSON"
+        },
+        {
+          "position": 4,
+          "id": "lesson-1788760440092",
+          "title": "My family has five people.",
+          "learningIntention": "To describe how many people I have in my family in Mandarin.",
+          "vocabularySetId": "year2-family",
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": "https://www.youtube.com/watch?v=K8D_2cU3O_U&list=RDK8D_2cU3O_U&start_radio=1",
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 5,
+          "id": "lesson-1788760525217",
+          "title": "My family has ....",
+          "learningIntention": "To describe who I have in my family in Mandarin.",
+          "vocabularySetId": "year2-family",
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": "https://www.youtube.com/watch?v=K8D_2cU3O_U&list=RDK8D_2cU3O_U&start_radio=1",
+          "mappingStatus": "candidate-only",
+          "classification": null
+        }
+      ],
+      "sideBySide": [
+        {
+          "spPosition": 1,
+          "spLessonId": "lesson-c7991263-82ec-466e-b454-952da0f71048",
+          "spTitle": "Introduction",
+          "tmrPosition": 1,
+          "tmrLessonId": "lesson-1788760226079",
+          "tmrTitle": "Introduction",
+          "observation": "Titles match, but position/title alone is not identity."
+        },
+        {
+          "spPosition": 2,
+          "spLessonId": "lesson-c913759e-a856-495e-adf7-936152feac06",
+          "spTitle": "Family Tree",
+          "tmrPosition": 2,
+          "tmrLessonId": "lesson-1788760345727",
+          "tmrTitle": "Family Tree",
+          "observation": "Titles match, but position/title alone is not identity."
+        },
+        {
+          "spPosition": 3,
+          "spLessonId": "lesson-93f2899f-5790-4fae-8cf0-58118aa32fcb",
+          "spTitle": "My family has five people.",
+          "tmrPosition": 3,
+          "tmrLessonId": "lesson-1788761602623",
+          "tmrTitle": "Family Tree II",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": 4,
+          "spLessonId": "lesson-8381da89-e8f2-40ef-8d92-e398c87911af",
+          "spTitle": "I have ... (in my family).",
+          "tmrPosition": 4,
+          "tmrLessonId": "lesson-1788760440092",
+          "tmrTitle": "My family has five people.",
+          "observation": "Titles/structure diverge at this position; position is not identity."
+        },
+        {
+          "spPosition": null,
+          "spLessonId": null,
+          "spTitle": null,
+          "tmrPosition": 5,
+          "tmrLessonId": "lesson-1788760525217",
+          "tmrTitle": "My family has ....",
+          "observation": "TMR-only at this position; inspect candidate/unmatched analysis."
+        }
+      ],
+      "candidateRelationships": [
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "lesson-c7991263-82ec-466e-b454-952da0f71048",
+            "title": "Introduction"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788760226079",
+              "title": "Introduction"
+            }
+          ],
+          "classificationCode": "A",
+          "classification": "EXACT / HIGH-CONFIDENCE SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "Exact title.",
+            "Both introduce the same Unit before Family Tree."
+          ],
+          "risk": "SP lacks TMR content metadata and provenance ID.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "lesson-c913759e-a856-495e-adf7-936152feac06",
+            "title": "Family Tree"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788760345727",
+              "title": "Family Tree"
+            }
+          ],
+          "classificationCode": "A",
+          "classification": "EXACT / HIGH-CONFIDENCE SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "Exact distinctive title.",
+            "Both follow Introduction."
+          ],
+          "risk": "SP lacks TMR content metadata and provenance ID.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "lesson-93f2899f-5790-4fae-8cf0-58118aa32fcb",
+            "title": "My family has five people."
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788760440092",
+              "title": "My family has five people."
+            }
+          ],
+          "classificationCode": "H",
+          "classification": "MOVED / REORDERED",
+          "confidence": "High evidence",
+          "evidence": [
+            "Exact distinctive title.",
+            "TMR Family Tree II appears immediately before it and explains the L3→L4 shift."
+          ],
+          "risk": "Position changed because of an apparent TMR insertion.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "lesson-8381da89-e8f2-40ef-8d92-e398c87911af",
+            "title": "I have ... (in my family)."
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788760525217",
+              "title": "My family has ...."
+            }
+          ],
+          "classificationCode": "B",
+          "classification": "LIKELY RENAMED SAME LESSON",
+          "confidence": "Moderate evidence",
+          "evidence": [
+            "Both describe who is in the learner’s family.",
+            "Both follow the family-size Lesson."
+          ],
+          "risk": "Wording differs and SP has no learning intention; owner confirmation is required.",
+          "ownerDecisionRequired": true
+        }
+      ],
+      "tmrOnlyLessons": [
+        {
+          "id": "lesson-1788761602623",
+          "title": "Family Tree II",
+          "mappingStatus": "none",
+          "classification": "TMR-ONLY LESSON"
+        }
+      ],
+      "likelyIssues": [
+        "TMR Family Tree II is absent from SP.",
+        "SP L3 matches TMR L4 by distinctive title, proving position is not identity.",
+        "Family Tree is current operational truth for two classes and checkpointed."
+      ]
+    },
+    {
+      "spUnit": {
+        "id": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+        "title": "Fruit",
+        "createdAt": "2026-09-15T01:49:34.789Z",
+        "updatedAt": "2026-09-15T01:49:34.789Z",
+        "lessonCount": 3,
+        "lastSyncedTitle": "Fruit"
+      },
+      "tmrUnit": {
+        "id": "year-3-fruit",
+        "title": "Fruit",
+        "yearLevel": 3,
+        "lessonCount": 5
+      },
+      "unitTitleMatches": true,
+      "provenance": {
+        "classification": "later Unit-linked SP-native",
+        "evidence": [
+          "The UUID-shaped Unit and Lesson IDs match the former SP setup creation workflow.",
+          "The three-Lesson SP sequence is operationally referenced and structurally shorter than TMR.",
+          "A later Unit-level TMR link exists, but no Lesson was mapped."
+        ]
+      },
+      "stableLessonMappings": [],
+      "stableLessonMappingCount": 0,
+      "unmappedSpLessonCount": 3,
+      "tmrLessonsWithoutStableSpMapping": 5,
+      "structuralDivergence": true,
+      "structuralDivergenceStatus": "present-or-suspected",
+      "currentOperationalTruth": {
+        "currentClassIds": [
+          "3a",
+          "3b"
+        ],
+        "cohortReferenceYearLevelIds": [
+          "year-3"
+        ]
+      },
+      "historicalTeachingTruth": {
+        "teachingSessionCount": 2,
+        "historicallyReferencedSpLessons": 2
+      },
+      "spLessons": [
+        {
+          "position": 1,
+          "id": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+          "title": "Introduction",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 1,
+            "progressBaselineRefs": 2,
+            "progressCheckpointRefs": 2,
+            "teachingSessionRefs": 2,
+            "historicalClassIds": [
+              "3a",
+              "3b"
+            ],
+            "historicalTitleSnapshots": [
+              "Introduction"
+            ],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 2,
+          "id": "lesson-a1431c95-c3e9-46e2-91f8-d198d88a3a82",
+          "title": "Vocabulary Reinforcement",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 2,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 3,
+          "id": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8",
+          "title": "I like ... and ...",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "unresolved",
+          "existingTmrLessonId": null,
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        }
+      ],
+      "tmrLessons": [
+        {
+          "position": 1,
+          "id": "lesson-1788761840165",
+          "title": "Introduction",
+          "learningIntention": null,
+          "vocabularySetId": "year3-fruit",
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": "https://www.youtube.com/watch?v=iz_Z4-fVoZA&list=RDiz_Z4-fVoZA&start_radio=1",
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 2,
+          "id": "lesson-1788761848014",
+          "title": "Vocabulary Reinforcement",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 3,
+          "id": "lesson-1788761903322",
+          "title": "I like ... and ...",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "candidate-only",
+          "classification": null
+        },
+        {
+          "position": 4,
+          "id": "lesson-1788761926730",
+          "title": "I don't like ... or ...",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "none",
+          "classification": "TMR-ONLY LESSON"
+        },
+        {
+          "position": 5,
+          "id": "lesson-1788761947230",
+          "title": "Revision",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "none",
+          "classification": "TMR-ONLY LESSON"
+        }
+      ],
+      "sideBySide": [
+        {
+          "spPosition": 1,
+          "spLessonId": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+          "spTitle": "Introduction",
+          "tmrPosition": 1,
+          "tmrLessonId": "lesson-1788761840165",
+          "tmrTitle": "Introduction",
+          "observation": "Titles match, but position/title alone is not identity."
+        },
+        {
+          "spPosition": 2,
+          "spLessonId": "lesson-a1431c95-c3e9-46e2-91f8-d198d88a3a82",
+          "spTitle": "Vocabulary Reinforcement",
+          "tmrPosition": 2,
+          "tmrLessonId": "lesson-1788761848014",
+          "tmrTitle": "Vocabulary Reinforcement",
+          "observation": "Titles match, but position/title alone is not identity."
+        },
+        {
+          "spPosition": 3,
+          "spLessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8",
+          "spTitle": "I like ... and ...",
+          "tmrPosition": 3,
+          "tmrLessonId": "lesson-1788761903322",
+          "tmrTitle": "I like ... and ...",
+          "observation": "Titles match, but position/title alone is not identity."
+        },
+        {
+          "spPosition": null,
+          "spLessonId": null,
+          "spTitle": null,
+          "tmrPosition": 4,
+          "tmrLessonId": "lesson-1788761926730",
+          "tmrTitle": "I don't like ... or ...",
+          "observation": "TMR-only at this position; inspect candidate/unmatched analysis."
+        },
+        {
+          "spPosition": null,
+          "spLessonId": null,
+          "spTitle": null,
+          "tmrPosition": 5,
+          "tmrLessonId": "lesson-1788761947230",
+          "tmrTitle": "Revision",
+          "observation": "TMR-only at this position; inspect candidate/unmatched analysis."
+        }
+      ],
+      "candidateRelationships": [
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+            "title": "Introduction"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788761840165",
+              "title": "Introduction"
+            }
+          ],
+          "classificationCode": "A",
+          "classification": "EXACT / HIGH-CONFIDENCE SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "Exact title.",
+            "It begins an otherwise matching three-Lesson SP sequence."
+          ],
+          "risk": "SP lacks TMR content metadata and provenance ID.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "lesson-a1431c95-c3e9-46e2-91f8-d198d88a3a82",
+            "title": "Vocabulary Reinforcement"
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788761848014",
+              "title": "Vocabulary Reinforcement"
+            }
+          ],
+          "classificationCode": "A",
+          "classification": "EXACT / HIGH-CONFIDENCE SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "Exact distinctive title.",
+            "It follows the same Introduction."
+          ],
+          "risk": "SP lacks TMR content metadata and provenance ID.",
+          "ownerDecisionRequired": true
+        },
+        {
+          "mappingStatus": "candidate-only",
+          "approved": false,
+          "spLesson": {
+            "id": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8",
+            "title": "I like ... and ..."
+          },
+          "tmrLessons": [
+            {
+              "id": "lesson-1788761903322",
+              "title": "I like ... and ..."
+            }
+          ],
+          "classificationCode": "A",
+          "classification": "EXACT / HIGH-CONFIDENCE SAME LESSON",
+          "confidence": "High evidence",
+          "evidence": [
+            "Exact distinctive title.",
+            "It completes the same initial three-Lesson sequence."
+          ],
+          "risk": "SP lacks TMR content metadata and provenance ID.",
+          "ownerDecisionRequired": true
+        }
+      ],
+      "tmrOnlyLessons": [
+        {
+          "id": "lesson-1788761926730",
+          "title": "I don't like ... or ...",
+          "mappingStatus": "none",
+          "classification": "TMR-ONLY LESSON"
+        },
+        {
+          "id": "lesson-1788761947230",
+          "title": "Revision",
+          "mappingStatus": "none",
+          "classification": "TMR-ONLY LESSON"
+        }
+      ],
+      "likelyIssues": [
+        "SP has the first three Lessons; TMR adds I don't like and Revision.",
+        "Introduction and Vocabulary Reinforcement carry operational dependencies."
+      ]
+    },
+    {
+      "spUnit": {
+        "id": "unit-library-year-6-family-ii",
+        "title": "Family II",
+        "createdAt": "2026-10-02T07:05:19.123Z",
+        "updatedAt": "2026-10-02T07:05:19.123Z",
+        "lessonCount": 2,
+        "lastSyncedTitle": "Family II"
+      },
+      "tmrUnit": {
+        "id": "year-6-family-ii",
+        "title": "Family II",
+        "yearLevel": 6,
+        "lessonCount": 2
+      },
+      "unitTitleMatches": true,
+      "provenance": {
+        "classification": "TMR-imported legacy",
+        "evidence": [
+          "The Unit was created on 2 Oct after library materialisation existed.",
+          "Both Lessons have stable TMR IDs and matching parent references.",
+          "Unit and Lessons share one creation timestamp and were created as a complete linked set."
+        ]
+      },
+      "stableLessonMappings": [
+        {
+          "mappingStatus": "existing-stable",
+          "spLessonId": "lesson-library-year-6-family-ii-1",
+          "spTitle": "There are five people in my family.",
+          "tmrLessonId": "lesson-1790909455090",
+          "tmrTitle": "There are five people in my family."
+        },
+        {
+          "mappingStatus": "existing-stable",
+          "spLessonId": "lesson-library-year-6-family-ii-2",
+          "spTitle": "I have two older brothers.",
+          "tmrLessonId": "lesson-1790920751476",
+          "tmrTitle": "I have two older brothers."
+        }
+      ],
+      "stableLessonMappingCount": 2,
+      "unmappedSpLessonCount": 0,
+      "tmrLessonsWithoutStableSpMapping": 0,
+      "structuralDivergence": false,
+      "structuralDivergenceStatus": "not-detected",
+      "currentOperationalTruth": {
+        "currentClassIds": [
+          "6b",
+          "6d"
+        ],
+        "cohortReferenceYearLevelIds": [
+          "year-6"
+        ]
+      },
+      "historicalTeachingTruth": {
+        "teachingSessionCount": 0,
+        "historicallyReferencedSpLessons": 1
+      },
+      "spLessons": [
+        {
+          "position": 1,
+          "id": "lesson-library-year-6-family-ii-1",
+          "title": "There are five people in my family.",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "existingTmrLessonId": "lesson-1790909455090",
+          "dependencies": {
+            "currentClassRefs": 2,
+            "cohortReferenceRefs": 1,
+            "progressBaselineRefs": 2,
+            "progressCheckpointRefs": 2,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 2,
+          "id": "lesson-library-year-6-family-ii-2",
+          "title": "I have two older brothers.",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "existingTmrLessonId": "lesson-1790920751476",
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        }
+      ],
+      "tmrLessons": [
+        {
+          "position": 1,
+          "id": "lesson-1790909455090",
+          "title": "There are five people in my family.",
+          "learningIntention": "We are revising family words from Year 2.\nWe are learning to use the counter word 个 when counting people.\nWe are learning to describe how many people there are in our family.",
+          "vocabularySetId": "year2-family",
+          "speakingPracticeId": "year6-my-family-has-five-people",
+          "notes": "1. Warm Up - Mini Whiteboard \nStudents practise writing basic Chinese characters with the teacher: 一～十, 人, 个, 大, 太, 天, 女生，男生，女人，男人, *family words\n2. Use 个 when counting people\n我家有五个人。\n3. Speaking Practice - Business Cards\nStudents walk around to practise the core sentence with their peers.\n4. Share\n谁家有四个人？谁家有五个人？哈德森家有几个人？丽丽家有几个人？\n5. Apply\nStudents write a sentence about their own family in their books. ",
+          "resources": "https://www.youtube.com/watch?v=BWx3wvhc-Fo",
+          "mappingStatus": "existing-stable",
+          "classification": null
+        },
+        {
+          "position": 2,
+          "id": "lesson-1790920751476",
+          "title": "I have two older brothers.",
+          "learningIntention": "We are revising family words from Year 2.\nWe are reinforcing the use of 个 when counting people.\nWe are learning to describe who our family are in a full sentence.",
+          "vocabularySetId": "year2-family",
+          "speakingPracticeId": "year6-my-family-has-five-people",
+          "notes": "1. Warm Up - Calligraphy\nStudents practise writing basic Chinese characters with the teacher: 一～十, 人, 个, 大, 太, 天, 女生，男生，女人，男人, *family words\n2. Use 个 when counting people\n十一个男生，九个女生，一个妹妹，两个哥哥，三个弟弟，四个姐姐\n3. Read and Match\n4. Apply\nStudents use the prescribed template to complete two sentences about their own family. ",
+          "resources": "https://www.youtube.com/watch?v=BWx3wvhc-Fo",
+          "mappingStatus": "existing-stable",
+          "classification": null
+        }
+      ],
+      "sideBySide": [
+        {
+          "spPosition": 1,
+          "spLessonId": "lesson-library-year-6-family-ii-1",
+          "spTitle": "There are five people in my family.",
+          "tmrPosition": 1,
+          "tmrLessonId": "lesson-1790909455090",
+          "tmrTitle": "There are five people in my family.",
+          "observation": "Existing stable mapping."
+        },
+        {
+          "spPosition": 2,
+          "spLessonId": "lesson-library-year-6-family-ii-2",
+          "spTitle": "I have two older brothers.",
+          "tmrPosition": 2,
+          "tmrLessonId": "lesson-1790920751476",
+          "tmrTitle": "I have two older brothers.",
+          "observation": "Existing stable mapping."
+        }
+      ],
+      "candidateRelationships": [],
+      "tmrOnlyLessons": [],
+      "likelyIssues": [
+        "No current structural divergence; serves as the stable-mapping control."
+      ]
+    },
+    {
+      "spUnit": {
+        "id": "unit-6cb8ecc9-9a22-4be5-95d1-3641ade882d5",
+        "title": "Places at School",
+        "createdAt": "2026-10-03T10:32:55.659Z",
+        "updatedAt": "2026-10-03T10:32:55.659Z",
+        "lessonCount": 1,
+        "lastSyncedTitle": "Places at School"
+      },
+      "tmrUnit": {
+        "id": "year4-australian-states-territories",
+        "title": "Places at School",
+        "yearLevel": 4,
+        "lessonCount": 1
+      },
+      "unitTitleMatches": true,
+      "provenance": {
+        "classification": "TMR-imported legacy",
+        "evidence": [
+          "Created on 3 Oct after live Unit materialisation existed.",
+          "Every Lesson has a stable TMR reference.",
+          "Unit and Lessons share one creation timestamp."
+        ]
+      },
+      "stableLessonMappings": [
+        {
+          "mappingStatus": "existing-stable",
+          "spLessonId": "lesson-b7fca415-3f22-4b8b-b97d-326849025e73",
+          "spTitle": "Introduction",
+          "tmrLessonId": "lesson-1791020089176",
+          "tmrTitle": "Introduction"
+        }
+      ],
+      "stableLessonMappingCount": 1,
+      "unmappedSpLessonCount": 0,
+      "tmrLessonsWithoutStableSpMapping": 0,
+      "structuralDivergence": false,
+      "structuralDivergenceStatus": "not-detected",
+      "currentOperationalTruth": {
+        "currentClassIds": [
+          "4c",
+          "4e",
+          "4b"
+        ],
+        "cohortReferenceYearLevelIds": [
+          "year-4"
+        ]
+      },
+      "historicalTeachingTruth": {
+        "teachingSessionCount": 0,
+        "historicallyReferencedSpLessons": 1
+      },
+      "spLessons": [
+        {
+          "position": 1,
+          "id": "lesson-b7fca415-3f22-4b8b-b97d-326849025e73",
+          "title": "Introduction",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "existingTmrLessonId": "lesson-1791020089176",
+          "dependencies": {
+            "currentClassRefs": 3,
+            "cohortReferenceRefs": 1,
+            "progressBaselineRefs": 3,
+            "progressCheckpointRefs": 3,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        }
+      ],
+      "tmrLessons": [
+        {
+          "position": 1,
+          "id": "lesson-1791020089176",
+          "title": "Introduction",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "classification": null
+        }
+      ],
+      "sideBySide": [
+        {
+          "spPosition": 1,
+          "spLessonId": "lesson-b7fca415-3f22-4b8b-b97d-326849025e73",
+          "spTitle": "Introduction",
+          "tmrPosition": 1,
+          "tmrLessonId": "lesson-1791020089176",
+          "tmrTitle": "Introduction",
+          "observation": "Existing stable mapping."
+        }
+      ],
+      "candidateRelationships": [],
+      "tmrOnlyLessons": [],
+      "likelyIssues": [
+        "No current structural divergence; one stable mapped Lesson."
+      ]
+    },
+    {
+      "spUnit": {
+        "id": "unit-9b90b90c-3f2e-4348-834a-225fb9b8addd",
+        "title": "Nationalities",
+        "createdAt": "2026-10-03T10:39:22.069Z",
+        "updatedAt": "2026-10-03T10:39:22.069Z",
+        "lessonCount": 4,
+        "lastSyncedTitle": "Nationalities"
+      },
+      "tmrUnit": {
+        "id": "year-5-nationalities",
+        "title": "Nationalities",
+        "yearLevel": 5,
+        "lessonCount": 4
+      },
+      "unitTitleMatches": true,
+      "provenance": {
+        "classification": "TMR-imported legacy",
+        "evidence": [
+          "Created on 3 Oct after live Unit materialisation existed.",
+          "All four Lessons have stable TMR references.",
+          "Unit and Lessons share one creation timestamp."
+        ]
+      },
+      "stableLessonMappings": [
+        {
+          "mappingStatus": "existing-stable",
+          "spLessonId": "lesson-5a9a88bf-d49f-44de-9c78-3ba7994cb002",
+          "spTitle": "Introduction",
+          "tmrLessonId": "lesson-1791023666235",
+          "tmrTitle": "Introduction"
+        },
+        {
+          "mappingStatus": "existing-stable",
+          "spLessonId": "lesson-3685879b-dd16-4ed7-86c1-180680b99c2b",
+          "spTitle": "Reinforcement",
+          "tmrLessonId": "lesson-1791023683160",
+          "tmrTitle": "Reinforcement"
+        },
+        {
+          "mappingStatus": "existing-stable",
+          "spLessonId": "lesson-716bfb22-fd51-4de7-8184-7843f8e0672a",
+          "spTitle": "What country are you from?",
+          "tmrLessonId": "lesson-1791023717813",
+          "tmrTitle": "What country are you from?"
+        },
+        {
+          "mappingStatus": "existing-stable",
+          "spLessonId": "lesson-98a71479-2606-47b1-8306-fe144ff6fdfa",
+          "spTitle": "Review",
+          "tmrLessonId": "lesson-1791023795475",
+          "tmrTitle": "Review"
+        }
+      ],
+      "stableLessonMappingCount": 4,
+      "unmappedSpLessonCount": 0,
+      "tmrLessonsWithoutStableSpMapping": 0,
+      "structuralDivergence": false,
+      "structuralDivergenceStatus": "not-detected",
+      "currentOperationalTruth": {
+        "currentClassIds": [
+          "5c",
+          "5e"
+        ],
+        "cohortReferenceYearLevelIds": [
+          "year-5"
+        ]
+      },
+      "historicalTeachingTruth": {
+        "teachingSessionCount": 0,
+        "historicallyReferencedSpLessons": 1
+      },
+      "spLessons": [
+        {
+          "position": 1,
+          "id": "lesson-5a9a88bf-d49f-44de-9c78-3ba7994cb002",
+          "title": "Introduction",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "existingTmrLessonId": "lesson-1791023666235",
+          "dependencies": {
+            "currentClassRefs": 2,
+            "cohortReferenceRefs": 1,
+            "progressBaselineRefs": 2,
+            "progressCheckpointRefs": 2,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 2,
+          "id": "lesson-3685879b-dd16-4ed7-86c1-180680b99c2b",
+          "title": "Reinforcement",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "existingTmrLessonId": "lesson-1791023683160",
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        },
+        {
+          "position": 3,
+          "id": "lesson-716bfb22-fd51-4de7-8184-7843f8e0672a",
+          "title": "What country are you from?",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "existingTmrLessonId": "lesson-1791023717813",
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        },
+        {
+          "position": 4,
+          "id": "lesson-98a71479-2606-47b1-8306-fe144ff6fdfa",
+          "title": "Review",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "existingTmrLessonId": "lesson-1791023795475",
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        }
+      ],
+      "tmrLessons": [
+        {
+          "position": 1,
+          "id": "lesson-1791023666235",
+          "title": "Introduction",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "classification": null
+        },
+        {
+          "position": 2,
+          "id": "lesson-1791023683160",
+          "title": "Reinforcement",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "classification": null
+        },
+        {
+          "position": 3,
+          "id": "lesson-1791023717813",
+          "title": "What country are you from?",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "classification": null
+        },
+        {
+          "position": 4,
+          "id": "lesson-1791023795475",
+          "title": "Review",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "classification": null
+        }
+      ],
+      "sideBySide": [
+        {
+          "spPosition": 1,
+          "spLessonId": "lesson-5a9a88bf-d49f-44de-9c78-3ba7994cb002",
+          "spTitle": "Introduction",
+          "tmrPosition": 1,
+          "tmrLessonId": "lesson-1791023666235",
+          "tmrTitle": "Introduction",
+          "observation": "Existing stable mapping."
+        },
+        {
+          "spPosition": 2,
+          "spLessonId": "lesson-3685879b-dd16-4ed7-86c1-180680b99c2b",
+          "spTitle": "Reinforcement",
+          "tmrPosition": 2,
+          "tmrLessonId": "lesson-1791023683160",
+          "tmrTitle": "Reinforcement",
+          "observation": "Existing stable mapping."
+        },
+        {
+          "spPosition": 3,
+          "spLessonId": "lesson-716bfb22-fd51-4de7-8184-7843f8e0672a",
+          "spTitle": "What country are you from?",
+          "tmrPosition": 3,
+          "tmrLessonId": "lesson-1791023717813",
+          "tmrTitle": "What country are you from?",
+          "observation": "Existing stable mapping."
+        },
+        {
+          "spPosition": 4,
+          "spLessonId": "lesson-98a71479-2606-47b1-8306-fe144ff6fdfa",
+          "spTitle": "Review",
+          "tmrPosition": 4,
+          "tmrLessonId": "lesson-1791023795475",
+          "tmrTitle": "Review",
+          "observation": "Existing stable mapping."
+        }
+      ],
+      "candidateRelationships": [],
+      "tmrOnlyLessons": [],
+      "likelyIssues": [
+        "No current structural divergence; four stable mapped Lessons."
+      ]
+    },
+    {
+      "spUnit": {
+        "id": "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+        "title": "Colours",
+        "createdAt": "2026-10-03T10:44:52.668Z",
+        "updatedAt": "2026-10-03T10:44:52.668Z",
+        "lessonCount": 3,
+        "lastSyncedTitle": "Colours"
+      },
+      "tmrUnit": {
+        "id": "prep-colours",
+        "title": "Colours",
+        "yearLevel": 0,
+        "lessonCount": 3
+      },
+      "unitTitleMatches": true,
+      "provenance": {
+        "classification": "TMR-imported legacy",
+        "evidence": [
+          "Created on 3 Oct after live Unit materialisation existed.",
+          "All three Lessons have stable TMR references.",
+          "Unit and Lessons share one creation timestamp."
+        ]
+      },
+      "stableLessonMappings": [
+        {
+          "mappingStatus": "existing-stable",
+          "spLessonId": "lesson-ab2aa64e-1f77-4087-9239-42fc53e5bb40",
+          "spTitle": "Introduction",
+          "tmrLessonId": "lesson-1791024070742",
+          "tmrTitle": "Introduction"
+        },
+        {
+          "mappingStatus": "existing-stable",
+          "spLessonId": "lesson-6a6a2af0-bb10-4f07-bf75-35f52f887995",
+          "spTitle": "Reinforcement",
+          "tmrLessonId": "lesson-1791024079654",
+          "tmrTitle": "Reinforcement"
+        },
+        {
+          "mappingStatus": "existing-stable",
+          "spLessonId": "lesson-6542ff20-3ffb-47a3-a91c-53c89f34241c",
+          "spTitle": "I Can Draw a Rainbow",
+          "tmrLessonId": "lesson-1791024104024",
+          "tmrTitle": "I Can Draw a Rainbow"
+        }
+      ],
+      "stableLessonMappingCount": 3,
+      "unmappedSpLessonCount": 0,
+      "tmrLessonsWithoutStableSpMapping": 0,
+      "structuralDivergence": false,
+      "structuralDivergenceStatus": "not-detected",
+      "currentOperationalTruth": {
+        "currentClassIds": [
+          "prep-b",
+          "prep-c",
+          "prep-e"
+        ],
+        "cohortReferenceYearLevelIds": [
+          "prep"
+        ]
+      },
+      "historicalTeachingTruth": {
+        "teachingSessionCount": 0,
+        "historicallyReferencedSpLessons": 1
+      },
+      "spLessons": [
+        {
+          "position": 1,
+          "id": "lesson-ab2aa64e-1f77-4087-9239-42fc53e5bb40",
+          "title": "Introduction",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "existingTmrLessonId": "lesson-1791024070742",
+          "dependencies": {
+            "currentClassRefs": 3,
+            "cohortReferenceRefs": 1,
+            "progressBaselineRefs": 3,
+            "progressCheckpointRefs": 3,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 2,
+          "id": "lesson-6a6a2af0-bb10-4f07-bf75-35f52f887995",
+          "title": "Reinforcement",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "existingTmrLessonId": "lesson-1791024079654",
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        },
+        {
+          "position": 3,
+          "id": "lesson-6542ff20-3ffb-47a3-a91c-53c89f34241c",
+          "title": "I Can Draw a Rainbow",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "existingTmrLessonId": "lesson-1791024104024",
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        }
+      ],
+      "tmrLessons": [
+        {
+          "position": 1,
+          "id": "lesson-1791024070742",
+          "title": "Introduction",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "classification": null
+        },
+        {
+          "position": 2,
+          "id": "lesson-1791024079654",
+          "title": "Reinforcement",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "classification": null
+        },
+        {
+          "position": 3,
+          "id": "lesson-1791024104024",
+          "title": "I Can Draw a Rainbow",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "classification": null
+        }
+      ],
+      "sideBySide": [
+        {
+          "spPosition": 1,
+          "spLessonId": "lesson-ab2aa64e-1f77-4087-9239-42fc53e5bb40",
+          "spTitle": "Introduction",
+          "tmrPosition": 1,
+          "tmrLessonId": "lesson-1791024070742",
+          "tmrTitle": "Introduction",
+          "observation": "Existing stable mapping."
+        },
+        {
+          "spPosition": 2,
+          "spLessonId": "lesson-6a6a2af0-bb10-4f07-bf75-35f52f887995",
+          "spTitle": "Reinforcement",
+          "tmrPosition": 2,
+          "tmrLessonId": "lesson-1791024079654",
+          "tmrTitle": "Reinforcement",
+          "observation": "Existing stable mapping."
+        },
+        {
+          "spPosition": 3,
+          "spLessonId": "lesson-6542ff20-3ffb-47a3-a91c-53c89f34241c",
+          "spTitle": "I Can Draw a Rainbow",
+          "tmrPosition": 3,
+          "tmrLessonId": "lesson-1791024104024",
+          "tmrTitle": "I Can Draw a Rainbow",
+          "observation": "Existing stable mapping."
+        }
+      ],
+      "candidateRelationships": [],
+      "tmrOnlyLessons": [],
+      "likelyIssues": [
+        "No current structural divergence; three stable mapped Lessons."
+      ]
+    },
+    {
+      "spUnit": {
+        "id": "unit-fb2195b5-3a83-405e-b5a8-7926303c32b4",
+        "title": "Mountains and Water",
+        "createdAt": "2026-10-03T10:48:51.416Z",
+        "updatedAt": "2026-10-03T10:48:51.416Z",
+        "lessonCount": 2,
+        "lastSyncedTitle": "Mountains and Water"
+      },
+      "tmrUnit": {
+        "id": "year-1-mountains-and-water",
+        "title": "Mountains and Water",
+        "yearLevel": 1,
+        "lessonCount": 2
+      },
+      "unitTitleMatches": true,
+      "provenance": {
+        "classification": "TMR-imported legacy",
+        "evidence": [
+          "Created on 3 Oct after live Unit materialisation existed.",
+          "Both Lessons have stable TMR references.",
+          "Unit and Lessons share one creation timestamp."
+        ]
+      },
+      "stableLessonMappings": [
+        {
+          "mappingStatus": "existing-stable",
+          "spLessonId": "lesson-82e17fe4-99e5-419d-ae9f-471d530bffa1",
+          "spTitle": "Sun and Moon",
+          "tmrLessonId": "lesson-1791024389573",
+          "tmrTitle": "Sun and Moon"
+        },
+        {
+          "mappingStatus": "existing-stable",
+          "spLessonId": "lesson-4466e9d6-d5b8-4ed4-988f-9afd2d00ad59",
+          "spTitle": "Mountain and Water",
+          "tmrLessonId": "lesson-1791024395273",
+          "tmrTitle": "Mountain and Water"
+        }
+      ],
+      "stableLessonMappingCount": 2,
+      "unmappedSpLessonCount": 0,
+      "tmrLessonsWithoutStableSpMapping": 0,
+      "structuralDivergence": false,
+      "structuralDivergenceStatus": "not-detected",
+      "currentOperationalTruth": {
+        "currentClassIds": [
+          "1d",
+          "1c"
+        ],
+        "cohortReferenceYearLevelIds": [
+          "year-1"
+        ]
+      },
+      "historicalTeachingTruth": {
+        "teachingSessionCount": 0,
+        "historicallyReferencedSpLessons": 1
+      },
+      "spLessons": [
+        {
+          "position": 1,
+          "id": "lesson-82e17fe4-99e5-419d-ae9f-471d530bffa1",
+          "title": "Sun and Moon",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "existingTmrLessonId": "lesson-1791024389573",
+          "dependencies": {
+            "currentClassRefs": 2,
+            "cohortReferenceRefs": 1,
+            "progressBaselineRefs": 2,
+            "progressCheckpointRefs": 2,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": true
+          }
+        },
+        {
+          "position": 2,
+          "id": "lesson-4466e9d6-d5b8-4ed4-988f-9afd2d00ad59",
+          "title": "Mountain and Water",
+          "description": null,
+          "teacherNotes": null,
+          "vocabularySetId": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "existingTmrLessonId": "lesson-1791024395273",
+          "dependencies": {
+            "currentClassRefs": 0,
+            "cohortReferenceRefs": 0,
+            "progressBaselineRefs": 0,
+            "progressCheckpointRefs": 0,
+            "teachingSessionRefs": 0,
+            "historicalClassIds": [],
+            "historicalTitleSnapshots": [],
+            "timetableLessonRefs": 0,
+            "historicallyReferenced": false
+          }
+        }
+      ],
+      "tmrLessons": [
+        {
+          "position": 1,
+          "id": "lesson-1791024389573",
+          "title": "Sun and Moon",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "classification": null
+        },
+        {
+          "position": 2,
+          "id": "lesson-1791024395273",
+          "title": "Mountain and Water",
+          "learningIntention": null,
+          "vocabularySetId": null,
+          "speakingPracticeId": null,
+          "notes": null,
+          "resources": null,
+          "mappingStatus": "existing-stable",
+          "classification": null
+        }
+      ],
+      "sideBySide": [
+        {
+          "spPosition": 1,
+          "spLessonId": "lesson-82e17fe4-99e5-419d-ae9f-471d530bffa1",
+          "spTitle": "Sun and Moon",
+          "tmrPosition": 1,
+          "tmrLessonId": "lesson-1791024389573",
+          "tmrTitle": "Sun and Moon",
+          "observation": "Existing stable mapping."
+        },
+        {
+          "spPosition": 2,
+          "spLessonId": "lesson-4466e9d6-d5b8-4ed4-988f-9afd2d00ad59",
+          "spTitle": "Mountain and Water",
+          "tmrPosition": 2,
+          "tmrLessonId": "lesson-1791024395273",
+          "tmrTitle": "Mountain and Water",
+          "observation": "Existing stable mapping."
+        }
+      ],
+      "candidateRelationships": [],
+      "tmrOnlyLessons": [],
+      "likelyIssues": [
+        "No current structural divergence; two stable mapped Lessons."
+      ]
+    }
+  ],
+  "year2FamilyConclusion": {
+    "conclusion": "The evidence strongly suggests TMR Family Tree II was inserted into the current TMR sequence after or independently of the four-Lesson SP-native sequence. SP L3 corresponds as a candidate to TMR L4 by exact distinctive title, not to TMR L3. TMR L3 must not be mapped to SP L3.",
+    "reasonsTmrL3IsNotSpL3": [
+      "TMR L3 is Family Tree II; SP L3 is My family has five people.",
+      "SP L3 has an exact distinctive-title candidate at TMR L4.",
+      "The old SP editor allowed independent Lesson authoring and the Family Unit has no Lesson provenance IDs.",
+      "Array position is explicitly non-authoritative and the structure is 4 SP Lessons versus 5 TMR Lessons."
+    ],
+    "currentOperationalDependencies": [
+      {
+        "id": "lesson-c7991263-82ec-466e-b454-952da0f71048",
+        "title": "Introduction",
+        "dependencies": {
+          "currentClassRefs": 0,
+          "cohortReferenceRefs": 1,
+          "progressBaselineRefs": 0,
+          "progressCheckpointRefs": 0,
+          "teachingSessionRefs": 2,
+          "historicalClassIds": [
+            "2c",
+            "2a"
+          ],
+          "historicalTitleSnapshots": [
+            "Introduction"
+          ],
+          "timetableLessonRefs": 0,
+          "historicallyReferenced": true
+        }
+      },
+      {
+        "id": "lesson-c913759e-a856-495e-adf7-936152feac06",
+        "title": "Family Tree",
+        "dependencies": {
+          "currentClassRefs": 2,
+          "cohortReferenceRefs": 0,
+          "progressBaselineRefs": 2,
+          "progressCheckpointRefs": 2,
+          "teachingSessionRefs": 2,
+          "historicalClassIds": [
+            "2c",
+            "2a"
+          ],
+          "historicalTitleSnapshots": [
+            "Family Tree"
+          ],
+          "timetableLessonRefs": 0,
+          "historicallyReferenced": true
+        }
+      },
+      {
+        "id": "lesson-93f2899f-5790-4fae-8cf0-58118aa32fcb",
+        "title": "My family has five people.",
+        "dependencies": {
+          "currentClassRefs": 0,
+          "cohortReferenceRefs": 0,
+          "progressBaselineRefs": 0,
+          "progressCheckpointRefs": 0,
+          "teachingSessionRefs": 0,
+          "historicalClassIds": [],
+          "historicalTitleSnapshots": [],
+          "timetableLessonRefs": 0,
+          "historicallyReferenced": false
+        }
+      },
+      {
+        "id": "lesson-8381da89-e8f2-40ef-8d92-e398c87911af",
+        "title": "I have ... (in my family).",
+        "dependencies": {
+          "currentClassRefs": 0,
+          "cohortReferenceRefs": 0,
+          "progressBaselineRefs": 0,
+          "progressCheckpointRefs": 0,
+          "teachingSessionRefs": 0,
+          "historicalClassIds": [],
+          "historicalTitleSnapshots": [],
+          "timetableLessonRefs": 0,
+          "historicallyReferenced": false
+        }
+      }
+    ]
+  },
+  "migrationBlockers": [
+    {
+      "issue": "Six SP-native Units have no Lesson provenance contract.",
+      "units": [
+        "hello-friends",
+        "weather",
+        "nationalities",
+        "travel",
+        "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e"
+      ],
+      "resolution": "BOTH"
+    },
+    {
+      "issue": "Family, Fruit, Countries and Australian States have structural divergence (insertions, extensions or possible splits).",
+      "units": [
+        "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+        "nationalities",
+        "weather"
+      ],
+      "resolution": "OWNER CONTENT DECISION"
+    },
+    {
+      "issue": "Historically referenced SP Lessons cannot be deleted or replaced without orphaning operational/history references.",
+      "units": [
+        "hello-friends",
+        "weather",
+        "nationalities",
+        "travel",
+        "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e"
+      ],
+      "resolution": "ENGINEERING DECISION"
+    },
+    {
+      "issue": "Title/position similarity is candidate evidence only and cannot create identity.",
+      "units": [
+        "hello-friends",
+        "weather",
+        "nationalities",
+        "travel",
+        "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e"
+      ],
+      "resolution": "BOTH"
+    },
+    {
+      "issue": "Two distinct TMR Unit IDs use similar Australia/States naming but represent different current Units.",
+      "units": [
+        "weather",
+        "unit-6cb8ecc9-9a22-4be5-95d1-3641ade882d5"
+      ],
+      "resolution": "BOTH"
+    },
+    {
+      "issue": "TMR-only Lessons need owner decisions on whether they are new curriculum, split content or future-only extensions.",
+      "units": [
+        "weather",
+        "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e"
+      ],
+      "resolution": "OWNER CONTENT DECISION"
+    }
+  ],
+  "provenanceVsDivergenceVsDefect": {
+    "provenanceProblem": "Legacy Lessons lack evidence of TMR origin because they were SP-native and linked later at Unit level.",
+    "curriculumDivergence": "Several current TMR sequences have evolved beyond the older SP-native operational sequences.",
+    "synchronizationDefect": "No synchronization defect was demonstrated for these legacy Lessons. The Family II hotfix behaves correctly where stable Lesson IDs exist; refusing to reconcile unmapped legacy Lessons is expected safety behaviour."
+  },
+  "futureApproaches": [
+    {
+      "option": "A",
+      "description": "Backfill TMR provenance only for owner-approved, clearly matched SP Lessons.",
+      "advantages": [
+        "Preserves SP stable IDs.",
+        "Enables safe future metadata reconciliation for approved pairs."
+      ],
+      "risks": [
+        "Can falsely rewrite provenance.",
+        "Splits/reorders require more than one-to-one IDs."
+      ],
+      "potentiallySuitableUnits": [
+        "Chinese Names",
+        "Numbers for individually verified Lessons"
+      ],
+      "implementationStatus": "not-chosen-not-implemented"
+    },
+    {
+      "option": "B",
+      "description": "Use an explicit one-time mapping table during authority migration without writing provenance onto every legacy Lesson first.",
+      "advantages": [
+        "Keeps audit decisions explicit and reversible before migration.",
+        "Can represent split/reorder exceptions."
+      ],
+      "risks": [
+        "Migration code becomes more complex.",
+        "Mapping table still requires owner approval."
+      ],
+      "potentiallySuitableUnits": [
+        "Chinese Names",
+        "Numbers",
+        "Countries"
+      ],
+      "implementationStatus": "not-chosen-not-implemented"
+    },
+    {
+      "option": "C",
+      "description": "Preserve SP-native Lessons as historical operational records and create new SP-authoritative curriculum Lessons separately.",
+      "advantages": [
+        "Protects historical truth.",
+        "Avoids pretending new curriculum is identical to old teaching records."
+      ],
+      "risks": [
+        "Requires a clear active-vs-legacy lifecycle model.",
+        "Current class transitions need explicit checkpoints."
+      ],
+      "potentiallySuitableUnits": [
+        "Family",
+        "Fruit",
+        "Australian States and Territories",
+        "Countries"
+      ],
+      "implementationStatus": "not-chosen-not-implemented"
+    },
+    {
+      "option": "D",
+      "description": "Use a Unit-specific hybrid of A/B/C.",
+      "advantages": [
+        "Fits the materially different provenance and divergence patterns."
+      ],
+      "risks": [
+        "Requires per-Unit owner decisions and engineering safeguards."
+      ],
+      "potentiallySuitableUnits": [
+        "All six legacy Units"
+      ],
+      "implementationStatus": "not-chosen-not-implemented"
+    }
+  ],
+  "shouldLegacyLessonsReceiveTmrIds": "Not categorically. Provenance IDs should only be backfilled for owner-approved pairs whose historical identity is established by multiple signals. Structurally divergent SP-native Lessons should remain historical operational records or be handled by an explicit migration table/lifecycle model.",
+  "familyIIHotfixBoundary": {
+    "appropriateFor": "New-style linked Units with stable Unit and Lesson IDs, such as Family II and the four 3 Oct imports.",
+    "inappropriateFor": "SP-native legacy Lessons without stable Lesson provenance IDs.",
+    "year2FamilyCause": "B — expected limitation caused by missing legacy Lesson identity and structural divergence, not a Family II reconciliation defect."
+  },
+  "noModificationConfirmation": "No SP/TMR data, source code, mappings, Firebase rules, Storage, deployment or backups were modified. Only these two local audit reports were generated."
+}

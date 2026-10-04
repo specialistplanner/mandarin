@@ -44,15 +44,15 @@ function weekSummary(planner, anchor) {
 }
 
 test("release metadata has one stable production version source", async () => {
-  assert.equal(APP_VERSION, "v0.7.1");
-  assert.equal(RELEASE_DATE, "2026-09-23");
-  assert.equal(RELEASE_NAME, "Progress Lifecycle & Term Overview");
-  assert.equal(RELEASE_TITLE, "Specialist Planner v0.7.1 — Progress Lifecycle & Term Overview");
+  assert.equal(APP_VERSION, "v0.8.0");
+  assert.equal(RELEASE_DATE, "2026-10-04");
+  assert.equal(RELEASE_NAME, "Teacher Workspace & Unit Authority Cutover");
+  assert.equal(RELEASE_TITLE, "Specialist Planner v0.8.0 — Teacher Workspace & Unit Authority Cutover");
   assert.equal(SITE_ORIGIN, "https://specialistplanner.github.io/mandarin/");
   assert.equal(SITE_BASE_PATH, "/mandarin/");
   assert.equal(STORAGE_KEY, "specialist-planner.data.v10");
   const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
-  assert.equal(packageJson.version, "0.7.1");
+  assert.equal(packageJson.version, "0.8.0");
 });
 
 test("GitHub Pages production entry and workflow preserve the project base path", async () => {
@@ -77,21 +77,21 @@ test("GitHub Pages production entry and workflow preserve the project base path"
   assert.doesNotMatch(entry, /chatgpt\.site/i);
 });
 
-test("the temporary v0.7 Pages staging build is isolated from production", async () => {
+test("the temporary v0.8 Pages staging build is isolated from production", async () => {
   const [config, packageJson] = await Promise.all([
     readFile(new URL("../vite.github-pages-staging.config.ts", import.meta.url), "utf8"),
     readFile(new URL("../package.json", import.meta.url), "utf8").then(JSON.parse),
   ]);
   assert.match(config, /envDir:\s*projectRoot/);
-  assert.match(config, /base:\s*["']\/mandarin-v07-staging\/["']/);
+  assert.match(config, /base:\s*["']\/mandarin-v08-staging\/["']/);
   assert.match(config, /dist-pages-staging/);
   assert.equal(packageJson.scripts["build:pages:staging"], "vite build --mode staging --config vite.github-pages-staging.config.ts");
 });
 
-test("the GitHub Pages entry advertises the current v0.7.1 release", async () => {
+test("the GitHub Pages entry advertises the current v0.8.0 release", async () => {
   const entry = await readFile(new URL("../github-pages/index.html", import.meta.url), "utf8");
-  assert.match(entry, /Specialist Planner v0\.7\.1 — Progress Lifecycle &amp; Term Overview/);
-  assert.doesNotMatch(entry, /Specialist Planner v0\.7\.0/);
+  assert.match(entry, /Specialist Planner v0\.8\.0 — Teacher Workspace &amp; Unit Authority Cutover/);
+  assert.doesNotMatch(entry, /Specialist Planner v0\.7\.[01]/);
 });
 
 test("authoritative imports mark every one-time migration as already handled", () => {

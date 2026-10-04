@@ -1,0 +1,406 @@
+{
+  "status": "recovered-post-write-verification-and-verified",
+  "projectId": "specialist-planner-staging",
+  "programId": "program-ff3c47db-26e6-4e64-8236-976cbcee9b91",
+  "revisionBefore": 89,
+  "revisionAfter": 90,
+  "firestoreUpdateTimeBefore": "2026-10-04T01:31:29.839461Z",
+  "firestoreUpdateTimeAfter": "2026-10-04T03:25:04.307970Z",
+  "mutationId": "v080-authority-cutover-family-fruit-revision-89",
+  "cloudDocumentFieldsChanged": [
+    "data",
+    "revision",
+    "lastMutationId",
+    "updatedAt"
+  ],
+  "programDataChanges": {
+    "family": {
+      "before": {
+        "id": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "title": "Family",
+        "externalResourceRef": {
+          "provider": "the-mandarin-room-unit-library",
+          "resourceType": "unit",
+          "resourceId": "year-2-family",
+          "label": "Family",
+          "lastSyncedTitle": "Family",
+          "url": "https://themandarinroom.github.io/units/view.html?unit=year-2-family"
+        },
+        "lessons": [
+          {
+            "id": "lesson-c7991263-82ec-466e-b454-952da0f71048",
+            "sequence": 1,
+            "title": "Introduction",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          },
+          {
+            "id": "lesson-c913759e-a856-495e-adf7-936152feac06",
+            "sequence": 2,
+            "title": "Family Tree",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          },
+          {
+            "id": "lesson-93f2899f-5790-4fae-8cf0-58118aa32fcb",
+            "sequence": 3,
+            "title": "My family has five people.",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          },
+          {
+            "id": "lesson-8381da89-e8f2-40ef-8d92-e398c87911af",
+            "sequence": 4,
+            "title": "I have ... (in my family).",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          }
+        ]
+      },
+      "after": {
+        "id": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "title": "Family",
+        "externalResourceRef": {
+          "provider": "the-mandarin-room-unit-library",
+          "resourceType": "unit",
+          "resourceId": "year-2-family",
+          "label": "Family",
+          "lastSyncedTitle": "Family",
+          "url": "https://themandarinroom.github.io/units/view.html?unit=year-2-family"
+        },
+        "lessons": [
+          {
+            "id": "lesson-c7991263-82ec-466e-b454-952da0f71048",
+            "sequence": 1,
+            "title": "Introduction",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          },
+          {
+            "id": "lesson-c913759e-a856-495e-adf7-936152feac06",
+            "sequence": 2,
+            "title": "Family Tree",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          },
+          {
+            "id": "lesson-v080-year-2-family-tree-ii",
+            "sequence": 3,
+            "title": "Family Tree II",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          },
+          {
+            "id": "lesson-93f2899f-5790-4fae-8cf0-58118aa32fcb",
+            "sequence": 4,
+            "title": "My family has five people.",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          },
+          {
+            "id": "lesson-8381da89-e8f2-40ef-8d92-e398c87911af",
+            "sequence": 5,
+            "title": "My family has ....",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          }
+        ]
+      }
+    },
+    "fruit": {
+      "before": {
+        "id": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+        "title": "Fruit",
+        "externalResourceRef": {
+          "provider": "the-mandarin-room-unit-library",
+          "resourceType": "unit",
+          "resourceId": "year-3-fruit",
+          "label": "Fruit",
+          "lastSyncedTitle": "Fruit",
+          "url": "https://themandarinroom.github.io/units/view.html?unit=year-3-fruit"
+        },
+        "lessons": [
+          {
+            "id": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+            "sequence": 1,
+            "title": "Introduction",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          },
+          {
+            "id": "lesson-a1431c95-c3e9-46e2-91f8-d198d88a3a82",
+            "sequence": 2,
+            "title": "Vocabulary Reinforcement",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          },
+          {
+            "id": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8",
+            "sequence": 3,
+            "title": "I like ... and ...",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          }
+        ]
+      },
+      "after": {
+        "id": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+        "title": "Fruit",
+        "externalResourceRef": {
+          "provider": "the-mandarin-room-unit-library",
+          "resourceType": "unit",
+          "resourceId": "year-3-fruit",
+          "label": "Fruit",
+          "lastSyncedTitle": "Fruit",
+          "url": "https://themandarinroom.github.io/units/view.html?unit=year-3-fruit"
+        },
+        "lessons": [
+          {
+            "id": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+            "sequence": 1,
+            "title": "Introduction",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          },
+          {
+            "id": "lesson-a1431c95-c3e9-46e2-91f8-d198d88a3a82",
+            "sequence": 2,
+            "title": "Vocabulary Reinforcement",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          },
+          {
+            "id": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8",
+            "sequence": 3,
+            "title": "I like ... and ...",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          },
+          {
+            "id": "lesson-v080-year-3-fruit-dislike",
+            "sequence": 4,
+            "title": "I don't like ... or ...",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          },
+          {
+            "id": "lesson-v080-year-3-fruit-revision",
+            "sequence": 5,
+            "title": "Revision",
+            "externalResourceRef": null,
+            "vocabularySetId": null
+          }
+        ]
+      }
+    },
+    "addedLessonIds": [
+      "lesson-v080-year-2-family-tree-ii",
+      "lesson-v080-year-3-fruit-dislike",
+      "lesson-v080-year-3-fruit-revision"
+    ],
+    "preservedExistingLessonIds": [
+      "lesson-c7991263-82ec-466e-b454-952da0f71048",
+      "lesson-c913759e-a856-495e-adf7-936152feac06",
+      "lesson-93f2899f-5790-4fae-8cf0-58118aa32fcb",
+      "lesson-8381da89-e8f2-40ef-8d92-e398c87911af",
+      "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+      "lesson-a1431c95-c3e9-46e2-91f8-d198d88a3a82",
+      "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8"
+    ],
+    "unaffectedUnitIds": [
+      "hello-friends",
+      "my-family",
+      "animals",
+      "daily-life",
+      "weather",
+      "nationalities",
+      "travel",
+      "unit-a9575282-5817-45d6-b478-d2711396b44e",
+      "unit-07d95c1c-aa96-4071-9e6a-cb99aa3c0114",
+      "unit-library-year-6-family-ii",
+      "unit-6cb8ecc9-9a22-4be5-95d1-3641ade882d5",
+      "unit-9b90b90c-3f2e-4348-834a-225fb9b8addd",
+      "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+      "unit-fb2195b5-3a83-405e-b5a8-7926303c32b4"
+    ]
+  },
+  "classPositionsBefore": {
+    "2a": {
+      "progress": {
+        "classId": "2a",
+        "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06"
+      },
+      "baseline": {
+        "classId": "2a",
+        "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06"
+      },
+      "checkpoint": {
+        "classId": "2a",
+        "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06",
+        "effectiveDate": "2026-10-03",
+        "createdAt": "2026-10-03T10:53:37.533Z",
+        "reason": "Manual progress correction"
+      }
+    },
+    "2c": {
+      "progress": {
+        "classId": "2c",
+        "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06"
+      },
+      "baseline": {
+        "classId": "2c",
+        "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06"
+      },
+      "checkpoint": {
+        "classId": "2c",
+        "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06",
+        "effectiveDate": "2026-10-03",
+        "createdAt": "2026-10-03T10:53:35.264Z",
+        "reason": "Manual progress correction"
+      }
+    },
+    "3a": {
+      "progress": {
+        "classId": "3a",
+        "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+        "lessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8"
+      },
+      "baseline": {
+        "classId": "3a",
+        "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+        "lessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8"
+      },
+      "checkpoint": {
+        "classId": "3a",
+        "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+        "lessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8",
+        "effectiveDate": "2026-10-04",
+        "createdAt": "2026-10-04T01:26:03.831Z",
+        "reason": "Manual progress correction"
+      }
+    },
+    "3b": {
+      "progress": {
+        "classId": "3b",
+        "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+        "lessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8"
+      },
+      "baseline": {
+        "classId": "3b",
+        "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+        "lessonId": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440"
+      },
+      "checkpoint": {
+        "classId": "3b",
+        "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+        "lessonId": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+        "effectiveDate": "2026-09-07",
+        "createdAt": "2026-09-07T07:39:32.183Z",
+        "reason": "Manual progress correction"
+      }
+    }
+  },
+  "classPositionsAfter": {
+    "2a": {
+      "progress": {
+        "classId": "2a",
+        "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06"
+      },
+      "baseline": {
+        "classId": "2a",
+        "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06"
+      },
+      "checkpoint": {
+        "classId": "2a",
+        "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06",
+        "effectiveDate": "2026-10-03",
+        "createdAt": "2026-10-03T10:53:37.533Z",
+        "reason": "Manual progress correction"
+      }
+    },
+    "2c": {
+      "progress": {
+        "classId": "2c",
+        "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06"
+      },
+      "baseline": {
+        "classId": "2c",
+        "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06"
+      },
+      "checkpoint": {
+        "classId": "2c",
+        "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+        "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06",
+        "effectiveDate": "2026-10-03",
+        "createdAt": "2026-10-03T10:53:35.264Z",
+        "reason": "Manual progress correction"
+      }
+    },
+    "3a": {
+      "progress": {
+        "classId": "3a",
+        "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+        "lessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8"
+      },
+      "baseline": {
+        "classId": "3a",
+        "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+        "lessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8"
+      },
+      "checkpoint": {
+        "classId": "3a",
+        "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+        "lessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8",
+        "effectiveDate": "2026-10-04",
+        "createdAt": "2026-10-04T01:26:03.831Z",
+        "reason": "Manual progress correction"
+      }
+    },
+    "3b": {
+      "progress": {
+        "classId": "3b",
+        "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+        "lessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8"
+      },
+      "baseline": {
+        "classId": "3b",
+        "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+        "lessonId": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440"
+      },
+      "checkpoint": {
+        "classId": "3b",
+        "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+        "lessonId": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+        "effectiveDate": "2026-09-07",
+        "createdAt": "2026-09-07T07:39:32.183Z",
+        "reason": "Manual progress correction"
+      }
+    }
+  },
+  "protectedStateCanonicalSha256Before": "9cf90979ada28da44f1fdbd3469c14bf23278a721d49e17b1ca005b3be3d7b8f",
+  "protectedStateCanonicalSha256After": "9cf90979ada28da44f1fdbd3469c14bf23278a721d49e17b1ca005b3be3d7b8f",
+  "teachingSnapshotSha256Before": "de69086ad8fc3d204c3fc84447f64d15416bd4f197d16877cae2e50d3f68be60",
+  "teachingSnapshotSha256After": "de69086ad8fc3d204c3fc84447f64d15416bd4f197d16877cae2e50d3f68be60",
+  "teachingSessionCountBefore": 58,
+  "teachingSessionCountAfter": 58,
+  "preWriteBackup": {
+    "path": "/Users/weiwang/Documents/ChatGPT/Specialist%20Planner/backups/specialist-planner-backup-staging-pre-v080-authority-cutover-2026-10-04-rev-89.json",
+    "sha256": "9d4cbef4b50b531746094476256fe780944465438dc880d4a012a83372a4c552",
+    "canonicalPlannerSha256": "2b13d094ea7aa49dfbfb1963d11e78a8ad2df2543345a27ced6b430ab8310d23",
+    "restorePath": "Settings → Backup & Restore → Import planner backup"
+  },
+  "idempotentReadBackVerified": true,
+  "productionModified": false,
+  "tmrModified": false
+}

@@ -1,0 +1,2343 @@
+{
+  "reportType": "Specialist Planner v0.8.0 Phase A migration dry-run",
+  "status": "dry-run-only-stop-before-write",
+  "generatedAt": "2026-10-04T02:19:24.092Z",
+  "projectId": "specialist-planner-staging",
+  "programId": "program-ff3c47db-26e6-4e64-8236-976cbcee9b91",
+  "programName": "Mandarin",
+  "currentRevision": 89,
+  "currentLastMutationId": "save-56c84a84-ca50-443e-bf43-241d5ee7c70a",
+  "firestoreUpdateTime": "2026-10-04T01:31:29.839461Z",
+  "sourceCommit": "dae2759",
+  "liveLibrary": {
+    "source": "https://australia-southeast1-the-mandarin-room.cloudfunctions.net/unitLibraryIndex",
+    "generatedAt": "2026-10-04T02:19:24.155Z"
+  },
+  "backup": {
+    "path": "/Users/weiwang/Documents/ChatGPT/Specialist Planner/backups/specialist-planner-backup-staging-pre-v080-authority-cutover-2026-10-04-rev-89.json",
+    "format": "existing Specialist Planner exportPlannerData JSON",
+    "sha256": "9d4cbef4b50b531746094476256fe780944465438dc880d4a012a83372a4c552",
+    "roundTripVerified": true,
+    "restorePath": "Settings → Backup & Restore → Import planner backup",
+    "canonicalPlannerSha256": "2b13d094ea7aa49dfbfb1963d11e78a8ad2df2543345a27ced6b430ab8310d23"
+  },
+  "protectedState": {
+    "definition": "ownership, classes, cohort references, progress, baselines, checkpoints, timetable, Teaching Sessions, historical snapshots, calendar, colours and teacher notes",
+    "sha256": "9cf90979ada28da44f1fdbd3469c14bf23278a721d49e17b1ca005b3be3d7b8f",
+    "teachingSnapshotsSha256": "de69086ad8fc3d204c3fc84447f64d15416bd4f197d16877cae2e50d3f68be60",
+    "currentUnitLessonIdentitySha256": "0d226568d9194b1d0b8406e6f20d7be9a8fa96108e1916f4473e4c80c535c871",
+    "guarantees": [
+      "No classProgress change",
+      "No progressBaselines change",
+      "No progressCheckpoints change",
+      "No Teaching Session creation/update/deletion",
+      "No historical title snapshot change",
+      "No year-level cohort reference change",
+      "No ownership, timetable, calendar or teacher-note change"
+    ]
+  },
+  "currentProgramCounts": {
+    "units": 16,
+    "lessons": 58,
+    "classes": 16,
+    "teachingSessions": 58,
+    "checkpoints": 16,
+    "baselines": 16
+  },
+  "proposedCurrentTerm4Units": [
+    {
+      "id": "hello-friends",
+      "title": "Numbers",
+      "yearLevelIds": [
+        "prep"
+      ],
+      "lessons": [
+        {
+          "id": "hello-friends-lesson-1",
+          "sequence": 1,
+          "title": "Match and sequence",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "hello-friends-lesson-2",
+          "sequence": 2,
+          "title": "Pegs and play-dough numbers",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "hello-friends-lesson-3",
+          "sequence": 3,
+          "title": "Paper strip numbers I",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "hello-friends-lesson-4",
+          "sequence": 4,
+          "title": "Paper strip numbers II",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "hello-friends-lesson-5",
+          "sequence": 5,
+          "title": "Writing Number 1",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-6e530491-1226-4369-8b08-27e50ef1ee2f",
+          "sequence": 6,
+          "title": "Writing Number 2",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-059f5031-6eb6-4b34-b609-ab0f9cce0780",
+          "sequence": 7,
+          "title": "Writing Number 3",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        }
+      ],
+      "changeProposed": false
+    },
+    {
+      "id": "my-family",
+      "title": "Body Parts",
+      "yearLevelIds": [
+        "year-1"
+      ],
+      "lessons": [
+        {
+          "id": "my-family-lesson-1",
+          "sequence": 1,
+          "title": "Sing and label",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "my-family-lesson-2",
+          "sequence": 2,
+          "title": "Label and draw",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "my-family-lesson-3",
+          "sequence": 3,
+          "title": "Mandarin labels",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        }
+      ],
+      "changeProposed": false
+    },
+    {
+      "id": "animals",
+      "title": "How are you",
+      "yearLevelIds": [
+        "year-2"
+      ],
+      "lessons": [
+        {
+          "id": "animals-lesson-1",
+          "sequence": 1,
+          "title": "Sing and make",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "animals-lesson-2",
+          "sequence": 2,
+          "title": "Say and draw",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "animals-lesson-3",
+          "sequence": 3,
+          "title": "Add Mandarin labels",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        }
+      ],
+      "changeProposed": false
+    },
+    {
+      "id": "daily-life",
+      "title": "Mini Self-intro",
+      "yearLevelIds": [
+        "year-3"
+      ],
+      "lessons": [
+        {
+          "id": "daily-life-lesson-1",
+          "sequence": 1,
+          "title": "I'm 9 years old.",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "daily-life-lesson-2",
+          "sequence": 2,
+          "title": "What's your name?",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "daily-life-lesson-3",
+          "sequence": 3,
+          "title": "My name is... ",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-44565933-2040-4bef-a309-efd7663910e6",
+          "sequence": 4,
+          "title": "Review",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        }
+      ],
+      "changeProposed": false
+    },
+    {
+      "id": "weather",
+      "title": "Australian States and Territories",
+      "yearLevelIds": [
+        "year-4"
+      ],
+      "lessons": [
+        {
+          "id": "weather-lesson-1",
+          "sequence": 1,
+          "title": "States and territories",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "weather-lesson-2",
+          "sequence": 2,
+          "title": "I've been to...",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "weather-lesson-3",
+          "sequence": 3,
+          "title": "I want to go to...",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "weather-lesson-4",
+          "sequence": 4,
+          "title": "Have you been to ...?",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "weather-lesson-5",
+          "sequence": 5,
+          "title": "Have you been to ...? II",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "weather-lesson-6",
+          "sequence": 6,
+          "title": "Review",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        }
+      ],
+      "changeProposed": false
+    },
+    {
+      "id": "nationalities",
+      "title": "Countries",
+      "yearLevelIds": [
+        "year-5"
+      ],
+      "lessons": [
+        {
+          "id": "nationalities-lesson-1",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "nationalities-lesson-2",
+          "sequence": 2,
+          "title": "Countries I",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "nationalities-lesson-3",
+          "sequence": 3,
+          "title": "Where is China?",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "nationalities-lesson-4",
+          "sequence": 4,
+          "title": "Countries II",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "nationalities-lesson-5",
+          "sequence": 5,
+          "title": "Countries III",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "nationalities-lesson-6",
+          "sequence": 6,
+          "title": "Review",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        }
+      ],
+      "changeProposed": false
+    },
+    {
+      "id": "travel",
+      "title": "Chinese Names",
+      "yearLevelIds": [
+        "year-6"
+      ],
+      "lessons": [
+        {
+          "id": "travel-lesson-1",
+          "sequence": 1,
+          "title": "Typing Chinese characters",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "travel-lesson-2",
+          "sequence": 2,
+          "title": "Homophones",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "travel-lesson-3",
+          "sequence": 3,
+          "title": "My Chinese Name I",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "travel-lesson-4",
+          "sequence": 4,
+          "title": "My Chinese Name II",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "travel-lesson-5",
+          "sequence": 5,
+          "title": "Mini Self-introduction I",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        }
+      ],
+      "changeProposed": false
+    },
+    {
+      "id": "unit-a9575282-5817-45d6-b478-d2711396b44e",
+      "title": "Pets",
+      "yearLevelIds": [
+        "year-1"
+      ],
+      "lessons": [
+        {
+          "id": "lesson-5caad8af-34dc-4ccb-ad1c-8853e94fead1",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-53a954a5-cc5e-4b34-a061-d8beccbe6cf8",
+          "sequence": 2,
+          "title": "Vocabulary Reinforcement",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-09b6af30-5bf8-4740-8153-fd4e45b0409d",
+          "sequence": 3,
+          "title": "I love my pets.",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        }
+      ],
+      "changeProposed": false
+    },
+    {
+      "id": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+      "title": "Family",
+      "yearLevelIds": [
+        "year-2"
+      ],
+      "lessons": [
+        {
+          "id": "lesson-c7991263-82ec-466e-b454-952da0f71048",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; current title already aligned; no TMR Lesson provenance assigned"
+        },
+        {
+          "id": "lesson-c913759e-a856-495e-adf7-936152feac06",
+          "sequence": 2,
+          "title": "Family Tree",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID and 2A/2C stable position; no TMR Lesson provenance assigned"
+        },
+        {
+          "id": "lesson-v080-year-2-family-tree-ii",
+          "sequence": 3,
+          "title": "Family Tree II",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "new SP-owned current Lesson; no historical outcome and no inferred TMR provenance"
+        },
+        {
+          "id": "lesson-93f2899f-5790-4fae-8cf0-58118aa32fcb",
+          "sequence": 4,
+          "title": "My family has five people.",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; move current presentation sequence only; historical snapshots unchanged"
+        },
+        {
+          "id": "lesson-8381da89-e8f2-40ef-8d92-e398c87911af",
+          "sequence": 5,
+          "title": "My family has ....",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; adopt current display title only after owner approval; historical snapshots unchanged"
+        }
+      ],
+      "changeProposed": true
+    },
+    {
+      "id": "unit-07d95c1c-aa96-4071-9e6a-cb99aa3c0114",
+      "title": "How old are you II",
+      "yearLevelIds": [
+        "year-6"
+      ],
+      "lessons": [
+        {
+          "id": "lesson-c77b0fa2-5c34-437a-b9b0-71f826895482",
+          "sequence": 1,
+          "title": "Revision",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-2968ef37-a78e-4136-8a8d-07fabeca592b",
+          "sequence": 2,
+          "title": "How old my family are",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        }
+      ],
+      "changeProposed": false
+    },
+    {
+      "id": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+      "title": "Fruit",
+      "yearLevelIds": [
+        "year-3"
+      ],
+      "lessons": [
+        {
+          "id": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; current title/order already aligned; no TMR Lesson provenance assigned"
+        },
+        {
+          "id": "lesson-a1431c95-c3e9-46e2-91f8-d198d88a3a82",
+          "sequence": 2,
+          "title": "Vocabulary Reinforcement",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; current title/order already aligned; no TMR Lesson provenance assigned"
+        },
+        {
+          "id": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8",
+          "sequence": 3,
+          "title": "I like ... and ...",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; current title/order already aligned; no TMR Lesson provenance assigned"
+        },
+        {
+          "id": "lesson-v080-year-3-fruit-dislike",
+          "sequence": 4,
+          "title": "I don't like ... or ...",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "new SP-owned current Lesson; no historical outcome and no inferred TMR provenance"
+        },
+        {
+          "id": "lesson-v080-year-3-fruit-revision",
+          "sequence": 5,
+          "title": "Revision",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "new SP-owned current Lesson; no historical outcome and no inferred TMR provenance"
+        }
+      ],
+      "changeProposed": true
+    },
+    {
+      "id": "unit-library-year-6-family-ii",
+      "title": "Family II",
+      "yearLevelIds": [
+        "year-6"
+      ],
+      "lessons": [
+        {
+          "id": "lesson-library-year-6-family-ii-1",
+          "sequence": 1,
+          "title": "There are five people in my family.",
+          "externalResourceId": "lesson-1790909455090",
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-library-year-6-family-ii-2",
+          "sequence": 2,
+          "title": "I have two older brothers.",
+          "externalResourceId": "lesson-1790920751476",
+          "vocabularySetId": null
+        }
+      ],
+      "changeProposed": false
+    },
+    {
+      "id": "unit-6cb8ecc9-9a22-4be5-95d1-3641ade882d5",
+      "title": "Places at School",
+      "yearLevelIds": [
+        "year-4"
+      ],
+      "lessons": [
+        {
+          "id": "lesson-b7fca415-3f22-4b8b-b97d-326849025e73",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": "lesson-1791020089176",
+          "vocabularySetId": null
+        }
+      ],
+      "changeProposed": false
+    },
+    {
+      "id": "unit-9b90b90c-3f2e-4348-834a-225fb9b8addd",
+      "title": "Nationalities",
+      "yearLevelIds": [
+        "year-5"
+      ],
+      "lessons": [
+        {
+          "id": "lesson-5a9a88bf-d49f-44de-9c78-3ba7994cb002",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": "lesson-1791023666235",
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-3685879b-dd16-4ed7-86c1-180680b99c2b",
+          "sequence": 2,
+          "title": "Reinforcement",
+          "externalResourceId": "lesson-1791023683160",
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-716bfb22-fd51-4de7-8184-7843f8e0672a",
+          "sequence": 3,
+          "title": "What's your nationality?",
+          "externalResourceId": "lesson-1791023717813",
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-98a71479-2606-47b1-8306-fe144ff6fdfa",
+          "sequence": 4,
+          "title": "Review",
+          "externalResourceId": "lesson-1791023795475",
+          "vocabularySetId": null
+        }
+      ],
+      "changeProposed": false
+    },
+    {
+      "id": "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+      "title": "Colours",
+      "yearLevelIds": [
+        "prep"
+      ],
+      "lessons": [
+        {
+          "id": "lesson-ab2aa64e-1f77-4087-9239-42fc53e5bb40",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": "lesson-1791024070742",
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-6a6a2af0-bb10-4f07-bf75-35f52f887995",
+          "sequence": 2,
+          "title": "Reinforcement",
+          "externalResourceId": "lesson-1791024079654",
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-6542ff20-3ffb-47a3-a91c-53c89f34241c",
+          "sequence": 3,
+          "title": "I Can Draw a Rainbow",
+          "externalResourceId": "lesson-1791024104024",
+          "vocabularySetId": null
+        }
+      ],
+      "changeProposed": false
+    },
+    {
+      "id": "unit-fb2195b5-3a83-405e-b5a8-7926303c32b4",
+      "title": "Mountains and Water",
+      "yearLevelIds": [
+        "year-1"
+      ],
+      "lessons": [
+        {
+          "id": "lesson-82e17fe4-99e5-419d-ae9f-471d530bffa1",
+          "sequence": 1,
+          "title": "Sun and Moon",
+          "externalResourceId": "lesson-1791024389573",
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-4466e9d6-d5b8-4ed4-988f-9afd2d00ad59",
+          "sequence": 2,
+          "title": "Mountain and Water",
+          "externalResourceId": "lesson-1791024395273",
+          "vocabularySetId": null
+        }
+      ],
+      "changeProposed": false
+    }
+  ],
+  "legacyUnits": [
+    {
+      "id": "hello-friends",
+      "externalId": "prep-numbers",
+      "title": "Numbers",
+      "provenance": "later Unit-linked SP-native",
+      "strategy": "unresolved / owner decision required",
+      "reason": "The seven-Lesson SP-native structure and current TMR structure use materially different titles. No stable Lesson provenance IDs exist.",
+      "historicalLessons": [
+        {
+          "id": "hello-friends-lesson-1",
+          "sequence": 1,
+          "title": "Match and sequence",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "hello-friends-lesson-2",
+          "sequence": 2,
+          "title": "Pegs and play-dough numbers",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "hello-friends-lesson-3",
+          "sequence": 3,
+          "title": "Paper strip numbers I",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "hello-friends-lesson-4",
+          "sequence": 4,
+          "title": "Paper strip numbers II",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "hello-friends-lesson-5",
+          "sequence": 5,
+          "title": "Writing Number 1",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-6e530491-1226-4369-8b08-27e50ef1ee2f",
+          "sequence": 6,
+          "title": "Writing Number 2",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-059f5031-6eb6-4b34-b609-ab0f9cce0780",
+          "sequence": 7,
+          "title": "Writing Number 3",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        }
+      ],
+      "proposedCurrentLessons": null,
+      "preservedUnitId": "hello-friends",
+      "preservedLessonIds": [
+        "hello-friends-lesson-1",
+        "hello-friends-lesson-2",
+        "hello-friends-lesson-3",
+        "hello-friends-lesson-4",
+        "hello-friends-lesson-5",
+        "lesson-6e530491-1226-4369-8b08-27e50ef1ee2f",
+        "lesson-059f5031-6eb6-4b34-b609-ab0f9cce0780"
+      ],
+      "newLessonIds": [],
+      "dependencies": {
+        "currentClasses": [],
+        "cohortReferences": [],
+        "historicalTeachingSessionCount": 11,
+        "historicalOutcomeCounts": {
+          "planned": 0,
+          "completed": 11,
+          "partial": 0,
+          "not-taught": 0
+        },
+        "historicalLessonIds": [
+          "hello-friends-lesson-4",
+          "hello-friends-lesson-3",
+          "hello-friends-lesson-5",
+          "lesson-6e530491-1226-4369-8b08-27e50ef1ee2f"
+        ],
+        "historicalSnapshotHash": "eb3d9ffe7b880295dd64e461820eebe6cd6bcd83dc085c3316382b6f6016a7ac"
+      },
+      "baselineCheckpointImplication": "No baseline/checkpoint write is proposed. Existing stable Lesson identities remain valid; no class is advanced."
+    },
+    {
+      "id": "weather",
+      "externalId": "year-4-australia-states-and-territories",
+      "title": "Australian States and Territories",
+      "provenance": "later Unit-linked SP-native",
+      "strategy": "unresolved / owner decision required",
+      "reason": "The SP-native Unit has six Lessons while the current library has seven, including insertions and renamed concepts. No safe automatic mapping exists.",
+      "historicalLessons": [
+        {
+          "id": "weather-lesson-1",
+          "sequence": 1,
+          "title": "States and territories",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "weather-lesson-2",
+          "sequence": 2,
+          "title": "I've been to...",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "weather-lesson-3",
+          "sequence": 3,
+          "title": "I want to go to...",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "weather-lesson-4",
+          "sequence": 4,
+          "title": "Have you been to ...?",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "weather-lesson-5",
+          "sequence": 5,
+          "title": "Have you been to ...? II",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "weather-lesson-6",
+          "sequence": 6,
+          "title": "Review",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        }
+      ],
+      "proposedCurrentLessons": null,
+      "preservedUnitId": "weather",
+      "preservedLessonIds": [
+        "weather-lesson-1",
+        "weather-lesson-2",
+        "weather-lesson-3",
+        "weather-lesson-4",
+        "weather-lesson-5",
+        "weather-lesson-6"
+      ],
+      "newLessonIds": [],
+      "dependencies": {
+        "currentClasses": [],
+        "cohortReferences": [],
+        "historicalTeachingSessionCount": 11,
+        "historicalOutcomeCounts": {
+          "planned": 2,
+          "completed": 7,
+          "partial": 0,
+          "not-taught": 2
+        },
+        "historicalLessonIds": [
+          "weather-lesson-4",
+          "weather-lesson-3",
+          "weather-lesson-5",
+          "weather-lesson-6"
+        ],
+        "historicalSnapshotHash": "5d8ff6b8efc960bd0cf45cb0535e530110ef9522766a2b7bdae6b2ccee7ba254"
+      },
+      "baselineCheckpointImplication": "No baseline/checkpoint write is proposed. Existing stable Lesson identities remain valid; no class is advanced."
+    },
+    {
+      "id": "nationalities",
+      "externalId": "year-5-countries",
+      "title": "Countries",
+      "provenance": "later Unit-linked SP-native",
+      "strategy": "unresolved / owner decision required",
+      "reason": "The current library splits Where is China into two Lessons and shifts later Lessons. No safe automatic mapping exists.",
+      "historicalLessons": [
+        {
+          "id": "nationalities-lesson-1",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "nationalities-lesson-2",
+          "sequence": 2,
+          "title": "Countries I",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "nationalities-lesson-3",
+          "sequence": 3,
+          "title": "Where is China?",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "nationalities-lesson-4",
+          "sequence": 4,
+          "title": "Countries II",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "nationalities-lesson-5",
+          "sequence": 5,
+          "title": "Countries III",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "nationalities-lesson-6",
+          "sequence": 6,
+          "title": "Review",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        }
+      ],
+      "proposedCurrentLessons": null,
+      "preservedUnitId": "nationalities",
+      "preservedLessonIds": [
+        "nationalities-lesson-1",
+        "nationalities-lesson-2",
+        "nationalities-lesson-3",
+        "nationalities-lesson-4",
+        "nationalities-lesson-5",
+        "nationalities-lesson-6"
+      ],
+      "newLessonIds": [],
+      "dependencies": {
+        "currentClasses": [],
+        "cohortReferences": [],
+        "historicalTeachingSessionCount": 6,
+        "historicalOutcomeCounts": {
+          "planned": 0,
+          "completed": 6,
+          "partial": 0,
+          "not-taught": 0
+        },
+        "historicalLessonIds": [
+          "nationalities-lesson-2",
+          "nationalities-lesson-3",
+          "nationalities-lesson-4"
+        ],
+        "historicalSnapshotHash": "61a0a6756daed24533418df2883272b98098a4af6bc1b7bd986f7a5c035feb10"
+      },
+      "baselineCheckpointImplication": "No baseline/checkpoint write is proposed. Existing stable Lesson identities remain valid; no class is advanced."
+    },
+    {
+      "id": "travel",
+      "externalId": "year-6-chinese-names",
+      "title": "Chinese Names",
+      "provenance": "later Unit-linked SP-native",
+      "strategy": "preserve existing SP structure",
+      "reason": "The five current titles and order already match. Preserve the SP-native stable IDs and do not fabricate TMR Lesson provenance.",
+      "historicalLessons": [
+        {
+          "id": "travel-lesson-1",
+          "sequence": 1,
+          "title": "Typing Chinese characters",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "travel-lesson-2",
+          "sequence": 2,
+          "title": "Homophones",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "travel-lesson-3",
+          "sequence": 3,
+          "title": "My Chinese Name I",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "travel-lesson-4",
+          "sequence": 4,
+          "title": "My Chinese Name II",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "travel-lesson-5",
+          "sequence": 5,
+          "title": "Mini Self-introduction I",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        }
+      ],
+      "proposedCurrentLessons": null,
+      "preservedUnitId": "travel",
+      "preservedLessonIds": [
+        "travel-lesson-1",
+        "travel-lesson-2",
+        "travel-lesson-3",
+        "travel-lesson-4",
+        "travel-lesson-5"
+      ],
+      "newLessonIds": [],
+      "dependencies": {
+        "currentClasses": [],
+        "cohortReferences": [],
+        "historicalTeachingSessionCount": 4,
+        "historicalOutcomeCounts": {
+          "planned": 2,
+          "completed": 2,
+          "partial": 0,
+          "not-taught": 0
+        },
+        "historicalLessonIds": [
+          "travel-lesson-5"
+        ],
+        "historicalSnapshotHash": "72554fcd04835622363b027e5e9e1b1092a50a8b8143692a95a554f45447c58d"
+      },
+      "baselineCheckpointImplication": "No baseline/checkpoint write is proposed. Existing stable Lesson identities remain valid; no class is advanced."
+    },
+    {
+      "id": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+      "externalId": "year-2-family",
+      "title": "Family",
+      "provenance": "later Unit-linked SP-native",
+      "strategy": "preserve legacy historical structure + create current Term 4 structure",
+      "reason": "Keep the four SP-native IDs, insert a new SP-owned Family Tree II ID, and adopt the current five-Lesson sequence without assigning unproven TMR Lesson provenance.",
+      "historicalLessons": [
+        {
+          "id": "lesson-c7991263-82ec-466e-b454-952da0f71048",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-c913759e-a856-495e-adf7-936152feac06",
+          "sequence": 2,
+          "title": "Family Tree",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-93f2899f-5790-4fae-8cf0-58118aa32fcb",
+          "sequence": 3,
+          "title": "My family has five people.",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-8381da89-e8f2-40ef-8d92-e398c87911af",
+          "sequence": 4,
+          "title": "I have ... (in my family).",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        }
+      ],
+      "proposedCurrentLessons": [
+        {
+          "id": "lesson-c7991263-82ec-466e-b454-952da0f71048",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; current title already aligned; no TMR Lesson provenance assigned"
+        },
+        {
+          "id": "lesson-c913759e-a856-495e-adf7-936152feac06",
+          "sequence": 2,
+          "title": "Family Tree",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID and 2A/2C stable position; no TMR Lesson provenance assigned"
+        },
+        {
+          "id": "lesson-v080-year-2-family-tree-ii",
+          "sequence": 3,
+          "title": "Family Tree II",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "new SP-owned current Lesson; no historical outcome and no inferred TMR provenance"
+        },
+        {
+          "id": "lesson-93f2899f-5790-4fae-8cf0-58118aa32fcb",
+          "sequence": 4,
+          "title": "My family has five people.",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; move current presentation sequence only; historical snapshots unchanged"
+        },
+        {
+          "id": "lesson-8381da89-e8f2-40ef-8d92-e398c87911af",
+          "sequence": 5,
+          "title": "My family has ....",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; adopt current display title only after owner approval; historical snapshots unchanged"
+        }
+      ],
+      "preservedUnitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+      "preservedLessonIds": [
+        "lesson-c7991263-82ec-466e-b454-952da0f71048",
+        "lesson-c913759e-a856-495e-adf7-936152feac06",
+        "lesson-93f2899f-5790-4fae-8cf0-58118aa32fcb",
+        "lesson-8381da89-e8f2-40ef-8d92-e398c87911af"
+      ],
+      "newLessonIds": [
+        "lesson-v080-year-2-family-tree-ii"
+      ],
+      "dependencies": {
+        "currentClasses": [
+          {
+            "classId": "2c",
+            "className": "2C",
+            "actual": {
+              "classId": "2c",
+              "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+              "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06"
+            },
+            "baseline": {
+              "classId": "2c",
+              "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+              "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06"
+            },
+            "checkpoint": {
+              "classId": "2c",
+              "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+              "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06",
+              "effectiveDate": "2026-10-03",
+              "createdAt": "2026-10-03T10:53:35.264Z",
+              "reason": "Manual progress correction"
+            }
+          },
+          {
+            "classId": "2a",
+            "className": "2A",
+            "actual": {
+              "classId": "2a",
+              "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+              "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06"
+            },
+            "baseline": {
+              "classId": "2a",
+              "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+              "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06"
+            },
+            "checkpoint": {
+              "classId": "2a",
+              "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+              "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06",
+              "effectiveDate": "2026-10-03",
+              "createdAt": "2026-10-03T10:53:37.533Z",
+              "reason": "Manual progress correction"
+            }
+          }
+        ],
+        "cohortReferences": [
+          {
+            "id": "year-2",
+            "label": "Year 2",
+            "currentUnitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+            "expectedLessonId": "lesson-c7991263-82ec-466e-b454-952da0f71048"
+          }
+        ],
+        "historicalTeachingSessionCount": 4,
+        "historicalOutcomeCounts": {
+          "planned": 0,
+          "completed": 4,
+          "partial": 0,
+          "not-taught": 0
+        },
+        "historicalLessonIds": [
+          "lesson-c7991263-82ec-466e-b454-952da0f71048",
+          "lesson-c913759e-a856-495e-adf7-936152feac06"
+        ],
+        "historicalSnapshotHash": "effec26e55c5ebd0474e65cf7da33c170b47ac4a44bb1eb8002973ab852399b1"
+      },
+      "baselineCheckpointImplication": "No baseline/checkpoint write is proposed. Existing stable Lesson identities remain valid; no class is advanced."
+    },
+    {
+      "id": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+      "externalId": "year-3-fruit",
+      "title": "Fruit",
+      "provenance": "later Unit-linked SP-native",
+      "strategy": "preserve legacy historical structure + create current Term 4 structure",
+      "reason": "Keep the three SP-native IDs and add two new SP-owned IDs for the current five-Lesson sequence without fabricating historical outcomes or TMR provenance.",
+      "historicalLessons": [
+        {
+          "id": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-a1431c95-c3e9-46e2-91f8-d198d88a3a82",
+          "sequence": 2,
+          "title": "Vocabulary Reinforcement",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8",
+          "sequence": 3,
+          "title": "I like ... and ...",
+          "externalResourceId": null,
+          "vocabularySetId": null
+        }
+      ],
+      "proposedCurrentLessons": [
+        {
+          "id": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; current title/order already aligned; no TMR Lesson provenance assigned"
+        },
+        {
+          "id": "lesson-a1431c95-c3e9-46e2-91f8-d198d88a3a82",
+          "sequence": 2,
+          "title": "Vocabulary Reinforcement",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; current title/order already aligned; no TMR Lesson provenance assigned"
+        },
+        {
+          "id": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8",
+          "sequence": 3,
+          "title": "I like ... and ...",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; current title/order already aligned; no TMR Lesson provenance assigned"
+        },
+        {
+          "id": "lesson-v080-year-3-fruit-dislike",
+          "sequence": 4,
+          "title": "I don't like ... or ...",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "new SP-owned current Lesson; no historical outcome and no inferred TMR provenance"
+        },
+        {
+          "id": "lesson-v080-year-3-fruit-revision",
+          "sequence": 5,
+          "title": "Revision",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "new SP-owned current Lesson; no historical outcome and no inferred TMR provenance"
+        }
+      ],
+      "preservedUnitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+      "preservedLessonIds": [
+        "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+        "lesson-a1431c95-c3e9-46e2-91f8-d198d88a3a82",
+        "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8"
+      ],
+      "newLessonIds": [
+        "lesson-v080-year-3-fruit-dislike",
+        "lesson-v080-year-3-fruit-revision"
+      ],
+      "dependencies": {
+        "currentClasses": [
+          {
+            "classId": "3a",
+            "className": "3A",
+            "actual": {
+              "classId": "3a",
+              "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+              "lessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8"
+            },
+            "baseline": {
+              "classId": "3a",
+              "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+              "lessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8"
+            },
+            "checkpoint": {
+              "classId": "3a",
+              "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+              "lessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8",
+              "effectiveDate": "2026-10-04",
+              "createdAt": "2026-10-04T01:26:03.831Z",
+              "reason": "Manual progress correction"
+            }
+          },
+          {
+            "classId": "3b",
+            "className": "3B",
+            "actual": {
+              "classId": "3b",
+              "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+              "lessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8"
+            },
+            "baseline": {
+              "classId": "3b",
+              "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+              "lessonId": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440"
+            },
+            "checkpoint": {
+              "classId": "3b",
+              "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+              "lessonId": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+              "effectiveDate": "2026-09-07",
+              "createdAt": "2026-09-07T07:39:32.183Z",
+              "reason": "Manual progress correction"
+            }
+          }
+        ],
+        "cohortReferences": [
+          {
+            "id": "year-3",
+            "label": "Year 3",
+            "currentUnitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+            "expectedLessonId": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440"
+          }
+        ],
+        "historicalTeachingSessionCount": 4,
+        "historicalOutcomeCounts": {
+          "planned": 0,
+          "completed": 4,
+          "partial": 0,
+          "not-taught": 0
+        },
+        "historicalLessonIds": [
+          "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+          "lesson-a1431c95-c3e9-46e2-91f8-d198d88a3a82"
+        ],
+        "historicalSnapshotHash": "cec7233def3bcefc5194ca2e002791bdcb0e54f48c7d92b2d63b07d867fd42f7"
+      },
+      "baselineCheckpointImplication": "No baseline/checkpoint write is proposed. Existing stable Lesson identities remain valid; no class is advanced."
+    }
+  ],
+  "priorityProposals": [
+    {
+      "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+      "unitTitle": "Family",
+      "sourceLibraryId": "year-2-family",
+      "lessons": [
+        {
+          "id": "lesson-c7991263-82ec-466e-b454-952da0f71048",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; current title already aligned; no TMR Lesson provenance assigned"
+        },
+        {
+          "id": "lesson-c913759e-a856-495e-adf7-936152feac06",
+          "sequence": 2,
+          "title": "Family Tree",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID and 2A/2C stable position; no TMR Lesson provenance assigned"
+        },
+        {
+          "id": "lesson-v080-year-2-family-tree-ii",
+          "sequence": 3,
+          "title": "Family Tree II",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "new SP-owned current Lesson; no historical outcome and no inferred TMR provenance"
+        },
+        {
+          "id": "lesson-93f2899f-5790-4fae-8cf0-58118aa32fcb",
+          "sequence": 4,
+          "title": "My family has five people.",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; move current presentation sequence only; historical snapshots unchanged"
+        },
+        {
+          "id": "lesson-8381da89-e8f2-40ef-8d92-e398c87911af",
+          "sequence": 5,
+          "title": "My family has ....",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; adopt current display title only after owner approval; historical snapshots unchanged"
+        }
+      ],
+      "dependencies": {
+        "currentClasses": [
+          {
+            "classId": "2c",
+            "className": "2C",
+            "actual": {
+              "classId": "2c",
+              "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+              "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06"
+            },
+            "baseline": {
+              "classId": "2c",
+              "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+              "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06"
+            },
+            "checkpoint": {
+              "classId": "2c",
+              "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+              "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06",
+              "effectiveDate": "2026-10-03",
+              "createdAt": "2026-10-03T10:53:35.264Z",
+              "reason": "Manual progress correction"
+            }
+          },
+          {
+            "classId": "2a",
+            "className": "2A",
+            "actual": {
+              "classId": "2a",
+              "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+              "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06"
+            },
+            "baseline": {
+              "classId": "2a",
+              "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+              "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06"
+            },
+            "checkpoint": {
+              "classId": "2a",
+              "unitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+              "lessonId": "lesson-c913759e-a856-495e-adf7-936152feac06",
+              "effectiveDate": "2026-10-03",
+              "createdAt": "2026-10-03T10:53:37.533Z",
+              "reason": "Manual progress correction"
+            }
+          }
+        ],
+        "cohortReferences": [
+          {
+            "id": "year-2",
+            "label": "Year 2",
+            "currentUnitId": "unit-f89fcb17-f9b5-4038-9955-be2e2a461c55",
+            "expectedLessonId": "lesson-c7991263-82ec-466e-b454-952da0f71048"
+          }
+        ],
+        "historicalTeachingSessionCount": 4,
+        "historicalOutcomeCounts": {
+          "planned": 0,
+          "completed": 4,
+          "partial": 0,
+          "not-taught": 0
+        },
+        "historicalLessonIds": [
+          "lesson-c7991263-82ec-466e-b454-952da0f71048",
+          "lesson-c913759e-a856-495e-adf7-936152feac06"
+        ],
+        "historicalSnapshotHash": "effec26e55c5ebd0474e65cf7da33c170b47ac4a44bb1eb8002973ab852399b1"
+      }
+    },
+    {
+      "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+      "unitTitle": "Fruit",
+      "sourceLibraryId": "year-3-fruit",
+      "lessons": [
+        {
+          "id": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; current title/order already aligned; no TMR Lesson provenance assigned"
+        },
+        {
+          "id": "lesson-a1431c95-c3e9-46e2-91f8-d198d88a3a82",
+          "sequence": 2,
+          "title": "Vocabulary Reinforcement",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; current title/order already aligned; no TMR Lesson provenance assigned"
+        },
+        {
+          "id": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8",
+          "sequence": 3,
+          "title": "I like ... and ...",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "preserve SP ID; current title/order already aligned; no TMR Lesson provenance assigned"
+        },
+        {
+          "id": "lesson-v080-year-3-fruit-dislike",
+          "sequence": 4,
+          "title": "I don't like ... or ...",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "new SP-owned current Lesson; no historical outcome and no inferred TMR provenance"
+        },
+        {
+          "id": "lesson-v080-year-3-fruit-revision",
+          "sequence": 5,
+          "title": "Revision",
+          "externalResourceId": null,
+          "vocabularySetId": null,
+          "treatment": "new SP-owned current Lesson; no historical outcome and no inferred TMR provenance"
+        }
+      ],
+      "dependencies": {
+        "currentClasses": [
+          {
+            "classId": "3a",
+            "className": "3A",
+            "actual": {
+              "classId": "3a",
+              "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+              "lessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8"
+            },
+            "baseline": {
+              "classId": "3a",
+              "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+              "lessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8"
+            },
+            "checkpoint": {
+              "classId": "3a",
+              "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+              "lessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8",
+              "effectiveDate": "2026-10-04",
+              "createdAt": "2026-10-04T01:26:03.831Z",
+              "reason": "Manual progress correction"
+            }
+          },
+          {
+            "classId": "3b",
+            "className": "3B",
+            "actual": {
+              "classId": "3b",
+              "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+              "lessonId": "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8"
+            },
+            "baseline": {
+              "classId": "3b",
+              "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+              "lessonId": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440"
+            },
+            "checkpoint": {
+              "classId": "3b",
+              "unitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+              "lessonId": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+              "effectiveDate": "2026-09-07",
+              "createdAt": "2026-09-07T07:39:32.183Z",
+              "reason": "Manual progress correction"
+            }
+          }
+        ],
+        "cohortReferences": [
+          {
+            "id": "year-3",
+            "label": "Year 3",
+            "currentUnitId": "unit-b5e690a6-3d13-4bde-9690-e451065d6f9e",
+            "expectedLessonId": "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440"
+          }
+        ],
+        "historicalTeachingSessionCount": 4,
+        "historicalOutcomeCounts": {
+          "planned": 0,
+          "completed": 4,
+          "partial": 0,
+          "not-taught": 0
+        },
+        "historicalLessonIds": [
+          "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+          "lesson-a1431c95-c3e9-46e2-91f8-d198d88a3a82"
+        ],
+        "historicalSnapshotHash": "cec7233def3bcefc5194ca2e002791bdcb0e54f48c7d92b2d63b07d867fd42f7"
+      }
+    }
+  ],
+  "newStyleLinkedUnits": [
+    {
+      "id": "unit-library-year-6-family-ii",
+      "title": "Family II",
+      "externalId": "year-6-family-ii",
+      "strategy": "preserve current SP structure; external link becomes non-authoritative provenance/rollback metadata",
+      "lessons": [
+        {
+          "id": "lesson-library-year-6-family-ii-1",
+          "sequence": 1,
+          "title": "There are five people in my family.",
+          "externalResourceId": "lesson-1790909455090",
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-library-year-6-family-ii-2",
+          "sequence": 2,
+          "title": "I have two older brothers.",
+          "externalResourceId": "lesson-1790920751476",
+          "vocabularySetId": null
+        }
+      ],
+      "dependencies": {
+        "currentClasses": [
+          {
+            "classId": "6b",
+            "className": "6B",
+            "actual": {
+              "classId": "6b",
+              "unitId": "unit-library-year-6-family-ii",
+              "lessonId": "lesson-library-year-6-family-ii-1"
+            },
+            "baseline": {
+              "classId": "6b",
+              "unitId": "unit-library-year-6-family-ii",
+              "lessonId": "lesson-library-year-6-family-ii-1"
+            },
+            "checkpoint": {
+              "classId": "6b",
+              "unitId": "unit-library-year-6-family-ii",
+              "lessonId": "lesson-library-year-6-family-ii-1",
+              "effectiveDate": "2026-10-03",
+              "createdAt": "2026-10-03T09:24:05.276Z",
+              "reason": "Started Year 6 together at Family II · There are five people in my family.. The previous teaching cycle ended without inferred completion."
+            }
+          },
+          {
+            "classId": "6d",
+            "className": "6D",
+            "actual": {
+              "classId": "6d",
+              "unitId": "unit-library-year-6-family-ii",
+              "lessonId": "lesson-library-year-6-family-ii-1"
+            },
+            "baseline": {
+              "classId": "6d",
+              "unitId": "unit-library-year-6-family-ii",
+              "lessonId": "lesson-library-year-6-family-ii-1"
+            },
+            "checkpoint": {
+              "classId": "6d",
+              "unitId": "unit-library-year-6-family-ii",
+              "lessonId": "lesson-library-year-6-family-ii-1",
+              "effectiveDate": "2026-10-03",
+              "createdAt": "2026-10-03T09:24:05.276Z",
+              "reason": "Started Year 6 together at Family II · There are five people in my family.. The previous teaching cycle ended without inferred completion."
+            }
+          }
+        ],
+        "cohortReferences": [
+          {
+            "id": "year-6",
+            "label": "Year 6",
+            "currentUnitId": "unit-library-year-6-family-ii",
+            "expectedLessonId": "lesson-library-year-6-family-ii-1"
+          }
+        ],
+        "historicalTeachingSessionCount": 0,
+        "historicalOutcomeCounts": {
+          "planned": 0,
+          "completed": 0,
+          "partial": 0,
+          "not-taught": 0
+        },
+        "historicalLessonIds": [],
+        "historicalSnapshotHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "unit-6cb8ecc9-9a22-4be5-95d1-3641ade882d5",
+      "title": "Places at School",
+      "externalId": "year4-australian-states-territories",
+      "strategy": "preserve current SP structure; external link becomes non-authoritative provenance/rollback metadata",
+      "lessons": [
+        {
+          "id": "lesson-b7fca415-3f22-4b8b-b97d-326849025e73",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": "lesson-1791020089176",
+          "vocabularySetId": null
+        }
+      ],
+      "dependencies": {
+        "currentClasses": [
+          {
+            "classId": "4c",
+            "className": "4C",
+            "actual": {
+              "classId": "4c",
+              "unitId": "unit-6cb8ecc9-9a22-4be5-95d1-3641ade882d5",
+              "lessonId": "lesson-b7fca415-3f22-4b8b-b97d-326849025e73"
+            },
+            "baseline": {
+              "classId": "4c",
+              "unitId": "unit-6cb8ecc9-9a22-4be5-95d1-3641ade882d5",
+              "lessonId": "lesson-b7fca415-3f22-4b8b-b97d-326849025e73"
+            },
+            "checkpoint": {
+              "classId": "4c",
+              "unitId": "unit-6cb8ecc9-9a22-4be5-95d1-3641ade882d5",
+              "lessonId": "lesson-b7fca415-3f22-4b8b-b97d-326849025e73",
+              "effectiveDate": "2026-10-03",
+              "createdAt": "2026-10-03T10:33:38.532Z",
+              "reason": "Started Year 4 together at Places at School · Introduction. The previous teaching cycle ended without inferred completion."
+            }
+          },
+          {
+            "classId": "4b",
+            "className": "4B",
+            "actual": {
+              "classId": "4b",
+              "unitId": "unit-6cb8ecc9-9a22-4be5-95d1-3641ade882d5",
+              "lessonId": "lesson-b7fca415-3f22-4b8b-b97d-326849025e73"
+            },
+            "baseline": {
+              "classId": "4b",
+              "unitId": "unit-6cb8ecc9-9a22-4be5-95d1-3641ade882d5",
+              "lessonId": "lesson-b7fca415-3f22-4b8b-b97d-326849025e73"
+            },
+            "checkpoint": {
+              "classId": "4b",
+              "unitId": "unit-6cb8ecc9-9a22-4be5-95d1-3641ade882d5",
+              "lessonId": "lesson-b7fca415-3f22-4b8b-b97d-326849025e73",
+              "effectiveDate": "2026-10-03",
+              "createdAt": "2026-10-03T10:33:38.532Z",
+              "reason": "Started Year 4 together at Places at School · Introduction. The previous teaching cycle ended without inferred completion."
+            }
+          },
+          {
+            "classId": "4e",
+            "className": "4E",
+            "actual": {
+              "classId": "4e",
+              "unitId": "unit-6cb8ecc9-9a22-4be5-95d1-3641ade882d5",
+              "lessonId": "lesson-b7fca415-3f22-4b8b-b97d-326849025e73"
+            },
+            "baseline": {
+              "classId": "4e",
+              "unitId": "unit-6cb8ecc9-9a22-4be5-95d1-3641ade882d5",
+              "lessonId": "lesson-b7fca415-3f22-4b8b-b97d-326849025e73"
+            },
+            "checkpoint": {
+              "classId": "4e",
+              "unitId": "unit-6cb8ecc9-9a22-4be5-95d1-3641ade882d5",
+              "lessonId": "lesson-b7fca415-3f22-4b8b-b97d-326849025e73",
+              "effectiveDate": "2026-10-03",
+              "createdAt": "2026-10-03T10:33:38.532Z",
+              "reason": "Started Year 4 together at Places at School · Introduction. The previous teaching cycle ended without inferred completion."
+            }
+          }
+        ],
+        "cohortReferences": [
+          {
+            "id": "year-4",
+            "label": "Year 4",
+            "currentUnitId": "unit-6cb8ecc9-9a22-4be5-95d1-3641ade882d5",
+            "expectedLessonId": "lesson-b7fca415-3f22-4b8b-b97d-326849025e73"
+          }
+        ],
+        "historicalTeachingSessionCount": 0,
+        "historicalOutcomeCounts": {
+          "planned": 0,
+          "completed": 0,
+          "partial": 0,
+          "not-taught": 0
+        },
+        "historicalLessonIds": [],
+        "historicalSnapshotHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "unit-9b90b90c-3f2e-4348-834a-225fb9b8addd",
+      "title": "Nationalities",
+      "externalId": "year-5-nationalities",
+      "strategy": "preserve current SP structure; external link becomes non-authoritative provenance/rollback metadata",
+      "lessons": [
+        {
+          "id": "lesson-5a9a88bf-d49f-44de-9c78-3ba7994cb002",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": "lesson-1791023666235",
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-3685879b-dd16-4ed7-86c1-180680b99c2b",
+          "sequence": 2,
+          "title": "Reinforcement",
+          "externalResourceId": "lesson-1791023683160",
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-716bfb22-fd51-4de7-8184-7843f8e0672a",
+          "sequence": 3,
+          "title": "What's your nationality?",
+          "externalResourceId": "lesson-1791023717813",
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-98a71479-2606-47b1-8306-fe144ff6fdfa",
+          "sequence": 4,
+          "title": "Review",
+          "externalResourceId": "lesson-1791023795475",
+          "vocabularySetId": null
+        }
+      ],
+      "dependencies": {
+        "currentClasses": [
+          {
+            "classId": "5e",
+            "className": "5E",
+            "actual": {
+              "classId": "5e",
+              "unitId": "unit-9b90b90c-3f2e-4348-834a-225fb9b8addd",
+              "lessonId": "lesson-5a9a88bf-d49f-44de-9c78-3ba7994cb002"
+            },
+            "baseline": {
+              "classId": "5e",
+              "unitId": "unit-9b90b90c-3f2e-4348-834a-225fb9b8addd",
+              "lessonId": "lesson-5a9a88bf-d49f-44de-9c78-3ba7994cb002"
+            },
+            "checkpoint": {
+              "classId": "5e",
+              "unitId": "unit-9b90b90c-3f2e-4348-834a-225fb9b8addd",
+              "lessonId": "lesson-5a9a88bf-d49f-44de-9c78-3ba7994cb002",
+              "effectiveDate": "2026-10-03",
+              "createdAt": "2026-10-03T10:39:38.065Z",
+              "reason": "Started Year 5 together at Nationalities · Introduction. The previous teaching cycle ended without inferred completion."
+            }
+          },
+          {
+            "classId": "5c",
+            "className": "5C",
+            "actual": {
+              "classId": "5c",
+              "unitId": "unit-9b90b90c-3f2e-4348-834a-225fb9b8addd",
+              "lessonId": "lesson-5a9a88bf-d49f-44de-9c78-3ba7994cb002"
+            },
+            "baseline": {
+              "classId": "5c",
+              "unitId": "unit-9b90b90c-3f2e-4348-834a-225fb9b8addd",
+              "lessonId": "lesson-5a9a88bf-d49f-44de-9c78-3ba7994cb002"
+            },
+            "checkpoint": {
+              "classId": "5c",
+              "unitId": "unit-9b90b90c-3f2e-4348-834a-225fb9b8addd",
+              "lessonId": "lesson-5a9a88bf-d49f-44de-9c78-3ba7994cb002",
+              "effectiveDate": "2026-10-03",
+              "createdAt": "2026-10-03T10:39:38.065Z",
+              "reason": "Started Year 5 together at Nationalities · Introduction. The previous teaching cycle ended without inferred completion."
+            }
+          }
+        ],
+        "cohortReferences": [
+          {
+            "id": "year-5",
+            "label": "Year 5",
+            "currentUnitId": "unit-9b90b90c-3f2e-4348-834a-225fb9b8addd",
+            "expectedLessonId": "lesson-5a9a88bf-d49f-44de-9c78-3ba7994cb002"
+          }
+        ],
+        "historicalTeachingSessionCount": 0,
+        "historicalOutcomeCounts": {
+          "planned": 0,
+          "completed": 0,
+          "partial": 0,
+          "not-taught": 0
+        },
+        "historicalLessonIds": [],
+        "historicalSnapshotHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+      "title": "Colours",
+      "externalId": "prep-colours",
+      "strategy": "preserve current SP structure; external link becomes non-authoritative provenance/rollback metadata",
+      "lessons": [
+        {
+          "id": "lesson-ab2aa64e-1f77-4087-9239-42fc53e5bb40",
+          "sequence": 1,
+          "title": "Introduction",
+          "externalResourceId": "lesson-1791024070742",
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-6a6a2af0-bb10-4f07-bf75-35f52f887995",
+          "sequence": 2,
+          "title": "Reinforcement",
+          "externalResourceId": "lesson-1791024079654",
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-6542ff20-3ffb-47a3-a91c-53c89f34241c",
+          "sequence": 3,
+          "title": "I Can Draw a Rainbow",
+          "externalResourceId": "lesson-1791024104024",
+          "vocabularySetId": null
+        }
+      ],
+      "dependencies": {
+        "currentClasses": [
+          {
+            "classId": "prep-e",
+            "className": "Prep E",
+            "actual": {
+              "classId": "prep-e",
+              "unitId": "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+              "lessonId": "lesson-ab2aa64e-1f77-4087-9239-42fc53e5bb40"
+            },
+            "baseline": {
+              "classId": "prep-e",
+              "unitId": "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+              "lessonId": "lesson-ab2aa64e-1f77-4087-9239-42fc53e5bb40"
+            },
+            "checkpoint": {
+              "classId": "prep-e",
+              "unitId": "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+              "lessonId": "lesson-ab2aa64e-1f77-4087-9239-42fc53e5bb40",
+              "effectiveDate": "2026-10-03",
+              "createdAt": "2026-10-03T10:49:20.492Z",
+              "reason": "Started Prep together at Colours · Introduction. The previous teaching cycle ended without inferred completion."
+            }
+          },
+          {
+            "classId": "prep-c",
+            "className": "Prep C",
+            "actual": {
+              "classId": "prep-c",
+              "unitId": "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+              "lessonId": "lesson-ab2aa64e-1f77-4087-9239-42fc53e5bb40"
+            },
+            "baseline": {
+              "classId": "prep-c",
+              "unitId": "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+              "lessonId": "lesson-ab2aa64e-1f77-4087-9239-42fc53e5bb40"
+            },
+            "checkpoint": {
+              "classId": "prep-c",
+              "unitId": "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+              "lessonId": "lesson-ab2aa64e-1f77-4087-9239-42fc53e5bb40",
+              "effectiveDate": "2026-10-03",
+              "createdAt": "2026-10-03T10:49:20.492Z",
+              "reason": "Started Prep together at Colours · Introduction. The previous teaching cycle ended without inferred completion."
+            }
+          },
+          {
+            "classId": "prep-b",
+            "className": "Prep B",
+            "actual": {
+              "classId": "prep-b",
+              "unitId": "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+              "lessonId": "lesson-ab2aa64e-1f77-4087-9239-42fc53e5bb40"
+            },
+            "baseline": {
+              "classId": "prep-b",
+              "unitId": "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+              "lessonId": "lesson-ab2aa64e-1f77-4087-9239-42fc53e5bb40"
+            },
+            "checkpoint": {
+              "classId": "prep-b",
+              "unitId": "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+              "lessonId": "lesson-ab2aa64e-1f77-4087-9239-42fc53e5bb40",
+              "effectiveDate": "2026-10-03",
+              "createdAt": "2026-10-03T10:49:20.492Z",
+              "reason": "Started Prep together at Colours · Introduction. The previous teaching cycle ended without inferred completion."
+            }
+          }
+        ],
+        "cohortReferences": [
+          {
+            "id": "prep",
+            "label": "Prep",
+            "currentUnitId": "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+            "expectedLessonId": "lesson-ab2aa64e-1f77-4087-9239-42fc53e5bb40"
+          }
+        ],
+        "historicalTeachingSessionCount": 0,
+        "historicalOutcomeCounts": {
+          "planned": 0,
+          "completed": 0,
+          "partial": 0,
+          "not-taught": 0
+        },
+        "historicalLessonIds": [],
+        "historicalSnapshotHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    },
+    {
+      "id": "unit-fb2195b5-3a83-405e-b5a8-7926303c32b4",
+      "title": "Mountains and Water",
+      "externalId": "year-1-mountains-and-water",
+      "strategy": "preserve current SP structure; external link becomes non-authoritative provenance/rollback metadata",
+      "lessons": [
+        {
+          "id": "lesson-82e17fe4-99e5-419d-ae9f-471d530bffa1",
+          "sequence": 1,
+          "title": "Sun and Moon",
+          "externalResourceId": "lesson-1791024389573",
+          "vocabularySetId": null
+        },
+        {
+          "id": "lesson-4466e9d6-d5b8-4ed4-988f-9afd2d00ad59",
+          "sequence": 2,
+          "title": "Mountain and Water",
+          "externalResourceId": "lesson-1791024395273",
+          "vocabularySetId": null
+        }
+      ],
+      "dependencies": {
+        "currentClasses": [
+          {
+            "classId": "1c",
+            "className": "1C",
+            "actual": {
+              "classId": "1c",
+              "unitId": "unit-fb2195b5-3a83-405e-b5a8-7926303c32b4",
+              "lessonId": "lesson-82e17fe4-99e5-419d-ae9f-471d530bffa1"
+            },
+            "baseline": {
+              "classId": "1c",
+              "unitId": "unit-fb2195b5-3a83-405e-b5a8-7926303c32b4",
+              "lessonId": "lesson-82e17fe4-99e5-419d-ae9f-471d530bffa1"
+            },
+            "checkpoint": {
+              "classId": "1c",
+              "unitId": "unit-fb2195b5-3a83-405e-b5a8-7926303c32b4",
+              "lessonId": "lesson-82e17fe4-99e5-419d-ae9f-471d530bffa1",
+              "effectiveDate": "2026-10-03",
+              "createdAt": "2026-10-03T10:49:25.933Z",
+              "reason": "Started Year 1 together at Mountains and Water · Sun and Moon. The previous teaching cycle ended without inferred completion."
+            }
+          },
+          {
+            "classId": "1d",
+            "className": "1D",
+            "actual": {
+              "classId": "1d",
+              "unitId": "unit-fb2195b5-3a83-405e-b5a8-7926303c32b4",
+              "lessonId": "lesson-82e17fe4-99e5-419d-ae9f-471d530bffa1"
+            },
+            "baseline": {
+              "classId": "1d",
+              "unitId": "unit-fb2195b5-3a83-405e-b5a8-7926303c32b4",
+              "lessonId": "lesson-82e17fe4-99e5-419d-ae9f-471d530bffa1"
+            },
+            "checkpoint": {
+              "classId": "1d",
+              "unitId": "unit-fb2195b5-3a83-405e-b5a8-7926303c32b4",
+              "lessonId": "lesson-82e17fe4-99e5-419d-ae9f-471d530bffa1",
+              "effectiveDate": "2026-10-03",
+              "createdAt": "2026-10-03T10:49:25.933Z",
+              "reason": "Started Year 1 together at Mountains and Water · Sun and Moon. The previous teaching cycle ended without inferred completion."
+            }
+          }
+        ],
+        "cohortReferences": [
+          {
+            "id": "year-1",
+            "label": "Year 1",
+            "currentUnitId": "unit-fb2195b5-3a83-405e-b5a8-7926303c32b4",
+            "expectedLessonId": "lesson-82e17fe4-99e5-419d-ae9f-471d530bffa1"
+          }
+        ],
+        "historicalTeachingSessionCount": 0,
+        "historicalOutcomeCounts": {
+          "planned": 0,
+          "completed": 0,
+          "partial": 0,
+          "not-taught": 0
+        },
+        "historicalLessonIds": [],
+        "historicalSnapshotHash": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      }
+    }
+  ],
+  "tmrResourceReferencesPreserved": [
+    {
+      "unitId": "unit-library-year-6-family-ii",
+      "lessonId": "lesson-library-year-6-family-ii-1",
+      "vocabularySetId": null,
+      "externalResourceRef": {
+        "provider": "the-mandarin-room-unit-library",
+        "resourceType": "lesson",
+        "resourceId": "lesson-1790909455090",
+        "parentResourceId": "year-6-family-ii",
+        "label": "There are five people in my family.",
+        "lastSyncedTitle": "There are five people in my family.",
+        "url": "https://themandarinroom.github.io/units/view.html?unit=year-6-family-ii&lesson=lesson-1790909455090"
+      }
+    },
+    {
+      "unitId": "unit-library-year-6-family-ii",
+      "lessonId": "lesson-library-year-6-family-ii-2",
+      "vocabularySetId": null,
+      "externalResourceRef": {
+        "provider": "the-mandarin-room-unit-library",
+        "resourceType": "lesson",
+        "resourceId": "lesson-1790920751476",
+        "parentResourceId": "year-6-family-ii",
+        "label": "I have two older brothers.",
+        "lastSyncedTitle": "I have two older brothers.",
+        "url": "https://themandarinroom.github.io/units/view.html?unit=year-6-family-ii&lesson=lesson-1790920751476"
+      }
+    },
+    {
+      "unitId": "unit-6cb8ecc9-9a22-4be5-95d1-3641ade882d5",
+      "lessonId": "lesson-b7fca415-3f22-4b8b-b97d-326849025e73",
+      "vocabularySetId": null,
+      "externalResourceRef": {
+        "provider": "the-mandarin-room-unit-library",
+        "resourceType": "lesson",
+        "resourceId": "lesson-1791020089176",
+        "parentResourceId": "year4-australian-states-territories",
+        "label": "Introduction",
+        "lastSyncedTitle": "Introduction",
+        "url": "https://themandarinroom.github.io/units/view.html?unit=year4-australian-states-territories&lesson=lesson-1791020089176"
+      }
+    },
+    {
+      "unitId": "unit-9b90b90c-3f2e-4348-834a-225fb9b8addd",
+      "lessonId": "lesson-5a9a88bf-d49f-44de-9c78-3ba7994cb002",
+      "vocabularySetId": null,
+      "externalResourceRef": {
+        "provider": "the-mandarin-room-unit-library",
+        "resourceType": "lesson",
+        "resourceId": "lesson-1791023666235",
+        "parentResourceId": "year-5-nationalities",
+        "label": "Introduction",
+        "lastSyncedTitle": "Introduction",
+        "url": "https://themandarinroom.github.io/units/view.html?unit=year-5-nationalities&lesson=lesson-1791023666235"
+      }
+    },
+    {
+      "unitId": "unit-9b90b90c-3f2e-4348-834a-225fb9b8addd",
+      "lessonId": "lesson-3685879b-dd16-4ed7-86c1-180680b99c2b",
+      "vocabularySetId": null,
+      "externalResourceRef": {
+        "provider": "the-mandarin-room-unit-library",
+        "resourceType": "lesson",
+        "resourceId": "lesson-1791023683160",
+        "parentResourceId": "year-5-nationalities",
+        "label": "Reinforcement",
+        "lastSyncedTitle": "Reinforcement",
+        "url": "https://themandarinroom.github.io/units/view.html?unit=year-5-nationalities&lesson=lesson-1791023683160"
+      }
+    },
+    {
+      "unitId": "unit-9b90b90c-3f2e-4348-834a-225fb9b8addd",
+      "lessonId": "lesson-716bfb22-fd51-4de7-8184-7843f8e0672a",
+      "vocabularySetId": null,
+      "externalResourceRef": {
+        "provider": "the-mandarin-room-unit-library",
+        "resourceType": "lesson",
+        "resourceId": "lesson-1791023717813",
+        "parentResourceId": "year-5-nationalities",
+        "label": "What's your nationality?",
+        "lastSyncedTitle": "What's your nationality?",
+        "url": "https://themandarinroom.github.io/units/view.html?unit=year-5-nationalities&lesson=lesson-1791023717813"
+      }
+    },
+    {
+      "unitId": "unit-9b90b90c-3f2e-4348-834a-225fb9b8addd",
+      "lessonId": "lesson-98a71479-2606-47b1-8306-fe144ff6fdfa",
+      "vocabularySetId": null,
+      "externalResourceRef": {
+        "provider": "the-mandarin-room-unit-library",
+        "resourceType": "lesson",
+        "resourceId": "lesson-1791023795475",
+        "parentResourceId": "year-5-nationalities",
+        "label": "Review",
+        "lastSyncedTitle": "Review",
+        "url": "https://themandarinroom.github.io/units/view.html?unit=year-5-nationalities&lesson=lesson-1791023795475"
+      }
+    },
+    {
+      "unitId": "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+      "lessonId": "lesson-ab2aa64e-1f77-4087-9239-42fc53e5bb40",
+      "vocabularySetId": null,
+      "externalResourceRef": {
+        "provider": "the-mandarin-room-unit-library",
+        "resourceType": "lesson",
+        "resourceId": "lesson-1791024070742",
+        "parentResourceId": "prep-colours",
+        "label": "Introduction",
+        "lastSyncedTitle": "Introduction",
+        "url": "https://themandarinroom.github.io/units/view.html?unit=prep-colours&lesson=lesson-1791024070742"
+      }
+    },
+    {
+      "unitId": "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+      "lessonId": "lesson-6a6a2af0-bb10-4f07-bf75-35f52f887995",
+      "vocabularySetId": null,
+      "externalResourceRef": {
+        "provider": "the-mandarin-room-unit-library",
+        "resourceType": "lesson",
+        "resourceId": "lesson-1791024079654",
+        "parentResourceId": "prep-colours",
+        "label": "Reinforcement",
+        "lastSyncedTitle": "Reinforcement",
+        "url": "https://themandarinroom.github.io/units/view.html?unit=prep-colours&lesson=lesson-1791024079654"
+      }
+    },
+    {
+      "unitId": "unit-a25aa50c-a2f6-4035-bef6-e39e46e0b615",
+      "lessonId": "lesson-6542ff20-3ffb-47a3-a91c-53c89f34241c",
+      "vocabularySetId": null,
+      "externalResourceRef": {
+        "provider": "the-mandarin-room-unit-library",
+        "resourceType": "lesson",
+        "resourceId": "lesson-1791024104024",
+        "parentResourceId": "prep-colours",
+        "label": "I Can Draw a Rainbow",
+        "lastSyncedTitle": "I Can Draw a Rainbow",
+        "url": "https://themandarinroom.github.io/units/view.html?unit=prep-colours&lesson=lesson-1791024104024"
+      }
+    },
+    {
+      "unitId": "unit-fb2195b5-3a83-405e-b5a8-7926303c32b4",
+      "lessonId": "lesson-82e17fe4-99e5-419d-ae9f-471d530bffa1",
+      "vocabularySetId": null,
+      "externalResourceRef": {
+        "provider": "the-mandarin-room-unit-library",
+        "resourceType": "lesson",
+        "resourceId": "lesson-1791024389573",
+        "parentResourceId": "year-1-mountains-and-water",
+        "label": "Sun and Moon",
+        "lastSyncedTitle": "Sun and Moon",
+        "url": "https://themandarinroom.github.io/units/view.html?unit=year-1-mountains-and-water&lesson=lesson-1791024389573"
+      }
+    },
+    {
+      "unitId": "unit-fb2195b5-3a83-405e-b5a8-7926303c32b4",
+      "lessonId": "lesson-4466e9d6-d5b8-4ed4-988f-9afd2d00ad59",
+      "vocabularySetId": null,
+      "externalResourceRef": {
+        "provider": "the-mandarin-room-unit-library",
+        "resourceType": "lesson",
+        "resourceId": "lesson-1791024395273",
+        "parentResourceId": "year-1-mountains-and-water",
+        "label": "Mountain and Water",
+        "lastSyncedTitle": "Mountain and Water",
+        "url": "https://themandarinroom.github.io/units/view.html?unit=year-1-mountains-and-water&lesson=lesson-1791024395273"
+      }
+    }
+  ],
+  "ownerDecisionsRequired": [
+    {
+      "unit": "Numbers",
+      "reason": "The seven-Lesson SP-native structure and current TMR structure use materially different titles. No stable Lesson provenance IDs exist."
+    },
+    {
+      "unit": "Australian States and Territories",
+      "reason": "The SP-native Unit has six Lessons while the current library has seven, including insertions and renamed concepts. No safe automatic mapping exists."
+    },
+    {
+      "unit": "Countries",
+      "reason": "The current library splits Where is China into two Lessons and shifts later Lessons. No safe automatic mapping exists."
+    }
+  ],
+  "exactProposedWrites": [
+    {
+      "operation": "reorder current curriculum array",
+      "path": "data.units[8].lessons order",
+      "before": [
+        "lesson-c7991263-82ec-466e-b454-952da0f71048",
+        "lesson-c913759e-a856-495e-adf7-936152feac06",
+        "lesson-93f2899f-5790-4fae-8cf0-58118aa32fcb",
+        "lesson-8381da89-e8f2-40ef-8d92-e398c87911af"
+      ],
+      "after": [
+        "lesson-c7991263-82ec-466e-b454-952da0f71048",
+        "lesson-c913759e-a856-495e-adf7-936152feac06",
+        "lesson-v080-year-2-family-tree-ii",
+        "lesson-93f2899f-5790-4fae-8cf0-58118aa32fcb",
+        "lesson-8381da89-e8f2-40ef-8d92-e398c87911af"
+      ],
+      "approvalRequired": true
+    },
+    {
+      "operation": "add SP-owned current Lesson",
+      "path": "data.units[8].lessons[id=lesson-v080-year-2-family-tree-ii]",
+      "before": null,
+      "after": {
+        "id": "lesson-v080-year-2-family-tree-ii",
+        "title": "Family Tree II",
+        "sequence": 3,
+        "schemaVersion": 1,
+        "createdAt": "<migration timestamp>",
+        "updatedAt": "<migration timestamp>"
+      },
+      "approvalRequired": true
+    },
+    {
+      "operation": "change current sequence",
+      "path": "data.units[8].lessons[id=lesson-93f2899f-5790-4fae-8cf0-58118aa32fcb].sequence",
+      "before": 3,
+      "after": 4,
+      "approvalRequired": true
+    },
+    {
+      "operation": "change current sequence",
+      "path": "data.units[8].lessons[id=lesson-8381da89-e8f2-40ef-8d92-e398c87911af].sequence",
+      "before": 4,
+      "after": 5,
+      "approvalRequired": true
+    },
+    {
+      "operation": "change current display title",
+      "path": "data.units[8].lessons[id=lesson-8381da89-e8f2-40ef-8d92-e398c87911af].title",
+      "before": "I have ... (in my family).",
+      "after": "My family has ....",
+      "approvalRequired": true
+    },
+    {
+      "path": "data.units[8].updatedAt",
+      "before": "2026-09-15T01:49:34.789Z",
+      "after": "<migration timestamp>",
+      "approvalRequired": true
+    },
+    {
+      "operation": "reorder current curriculum array",
+      "path": "data.units[10].lessons order",
+      "before": [
+        "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+        "lesson-a1431c95-c3e9-46e2-91f8-d198d88a3a82",
+        "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8"
+      ],
+      "after": [
+        "lesson-746ae4ac-ce6a-4f2e-9393-e8f1ce7df440",
+        "lesson-a1431c95-c3e9-46e2-91f8-d198d88a3a82",
+        "lesson-6abd117d-f5bf-4934-9d25-240f9e8c89d8",
+        "lesson-v080-year-3-fruit-dislike",
+        "lesson-v080-year-3-fruit-revision"
+      ],
+      "approvalRequired": true
+    },
+    {
+      "operation": "add SP-owned current Lesson",
+      "path": "data.units[10].lessons[id=lesson-v080-year-3-fruit-dislike]",
+      "before": null,
+      "after": {
+        "id": "lesson-v080-year-3-fruit-dislike",
+        "title": "I don't like ... or ...",
+        "sequence": 4,
+        "schemaVersion": 1,
+        "createdAt": "<migration timestamp>",
+        "updatedAt": "<migration timestamp>"
+      },
+      "approvalRequired": true
+    },
+    {
+      "operation": "add SP-owned current Lesson",
+      "path": "data.units[10].lessons[id=lesson-v080-year-3-fruit-revision]",
+      "before": null,
+      "after": {
+        "id": "lesson-v080-year-3-fruit-revision",
+        "title": "Revision",
+        "sequence": 5,
+        "schemaVersion": 1,
+        "createdAt": "<migration timestamp>",
+        "updatedAt": "<migration timestamp>"
+      },
+      "approvalRequired": true
+    },
+    {
+      "path": "data.units[10].updatedAt",
+      "before": "2026-09-15T01:49:34.789Z",
+      "after": "<migration timestamp>",
+      "approvalRequired": true
+    },
+    {
+      "path": "data.updatedAt",
+      "before": "2026-10-04T01:31:28.288Z",
+      "after": "<migration timestamp>",
+      "approvalRequired": true
+    },
+    {
+      "path": "revision",
+      "before": 89,
+      "after": 90,
+      "approvalRequired": true
+    },
+    {
+      "path": "lastMutationId",
+      "before": "save-56c84a84-ca50-443e-bf43-241d5ee7c70a",
+      "after": "v080-authority-cutover-revision-89",
+      "approvalRequired": true
+    },
+    {
+      "path": "updatedAt",
+      "before": "2026-10-04T01:31:29.763Z",
+      "after": "<migration timestamp>",
+      "approvalRequired": true
+    }
+  ],
+  "prohibitedWrites": [
+    "production Firebase or production GitHub Pages",
+    "TMR Unit or Lesson data",
+    "historical Teaching Sessions or snapshots",
+    "class positions, cohort references, baselines or checkpoints",
+    "legacy Lesson provenance IDs"
+  ],
+  "executionConfirmation": {
+    "cloudWritePerformed": false,
+    "deploymentPerformed": false,
+    "productionModified": false,
+    "tmrModified": false
+  }
+}
