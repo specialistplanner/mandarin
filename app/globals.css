@@ -131,6 +131,9 @@ nav { display: flex; align-self: stretch; }
 .week-card.has-class-colour .week-card-detail { background: color-mix(in srgb, var(--class-card-bg) 72%, white); }
 .week-card-summary { width: 100%; min-height: 96px; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-content: start; gap: 1px 6px; border: 0; background: transparent; color: var(--ink); padding: 7px 8px; text-align: left; cursor: pointer; }
 .week-card-summary:hover { background: rgba(220,230,216,.24); }
+.week-card.has-plan-action .week-card-summary { padding-bottom: 27px; }
+.week-plan-trigger { position: absolute; right: 7px; bottom: 6px; z-index: 1; min-height: 20px; border: 1px solid color-mix(in srgb, var(--class-card-accent, #809b8b) 55%, #d5dbd5); border-radius: 999px; background: rgba(255,255,255,.72); color: var(--forest); padding: 1px 7px; font-size: 7px; font-weight: 850; cursor: pointer; }
+.week-plan-trigger:hover { background: white; }
 .week-card-kind { color: var(--muted); text-transform: uppercase; letter-spacing: .07em; font-size: 7px; font-weight: 800; }
 .week-card-state { max-width: 120px; border-radius: 999px; background: #edeee9; color: var(--muted); padding: 3px 6px; font-size: 7px; font-weight: 850; text-align: center; }
 .week-card-state.outcome-completed { background: #dcecdf; color: #315e48; }
@@ -169,6 +172,14 @@ nav { display: flex; align-self: stretch; }
 .week-empty { margin-top: 0; border: 1px dashed #b8c4bc; border-radius: 0 0 18px 18px; background: var(--white); padding: 50px 24px; text-align: center; }
 .week-empty strong { font-family: var(--font-display), serif; font-size: 24px; }
 .week-empty p { color: var(--muted); }
+.week-planning-modal { width: min(470px, 100%); border-radius: 20px; background: var(--paper-light); padding: 23px; box-shadow: var(--shadow); }
+.week-planning-modal h2 { margin: 20px 0 6px; font-family: var(--font-display), serif; font-size: 27px; }
+.week-planning-modal > p { color: var(--muted); font-size: 12px; line-height: 1.5; }
+.week-planning-modal > label { display: grid; gap: 5px; margin-top: 13px; }
+.week-planning-modal > label > span { color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-size: 9px; font-weight: 850; }
+.week-planning-modal select { width: 100%; }
+.week-planning-safety { display: flex; flex-direction: column; gap: 2px; margin-top: 14px; border-radius: 10px; background: #edf4ee; color: var(--forest); padding: 10px 12px; font-size: 10px; }
+.week-planning-safety span { color: var(--muted); }
 
 main { width: min(1260px, calc(100% - 44px)); margin: 0 auto; padding-bottom: 70px; }
 .intro { display: flex; justify-content: space-between; align-items: end; gap: 32px; padding: 54px 0 34px; }

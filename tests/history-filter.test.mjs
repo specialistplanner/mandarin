@@ -16,8 +16,8 @@ test("Term Overview replaces History navigation while retaining multi-class Teac
   assert.match(dashboard, />Unit Library<\/button>/);
   assert.doesNotMatch(dashboard, /setView\("progress"\)/);
   assert.match(dashboard, /progressView={<ProgressView/);
-  assert.match(dashboard, /<ProgramUnitLibrary planner={planner} onChange={setPlanner} library={unitLibrary} \/>/);
-  assert.match(dashboard, /initialSection="program"/);
+  assert.match(dashboard, /<ProgramUnitLibrary planner={planner} onChange={setPlanner} library={unitLibrary}/);
+  assert.match(dashboard, /initialSection={route\.view === "settings" \? route\.section : "program"}/);
   assert.match(setup, /\['cohorts', 'Classes'\]/);
   assert.doesNotMatch(setup, /\['cohorts', 'Classes & Unit Library'\]/);
   assert.doesNotMatch(setup, /Unit Library · live/);

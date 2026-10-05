@@ -982,6 +982,35 @@ export function setClassPosition(
   return applyManualProgressCorrection(planner, { classId, unitId, lessonId });
 }
 
+/**
+ * Changes the class's current operational teaching position without treating
+ * that planning decision as historical evidence. Cohort references, progress
+ * baselines, checkpoints and Teaching Sessions remain untouched.
+ */
+export function setClassPlanningPosition(
+  planner: PlannerData,
+  classId: string,
+  unitId: string,
+  lessonId: string,
+): PlannerData {
+  const item = planner.classes.find((candidate) => candidate.id === classId);
+  const unit = planner.units.find((candidate) =>
+    candidate.id === unitId &&
+    unitAppliesToYearLevel(candidate, item?.yearLevelId) &&
+    candidate.lessons.some((lesson) => lesson.id === lessonId),
+  );
+  if (!item || !unit) throw new Error("Choose a valid unit and lesson for this class.");
+  const existing = planner.classProgress[classId];
+  if (existing?.unitId === unitId && existing.lessonId === lessonId && !existing.unitComplete) return planner;
+  return touchPlanner({
+    ...planner,
+    classProgress: {
+      ...planner.classProgress,
+      [classId]: { classId, unitId, lessonId },
+    },
+  });
+}
+
 function establishProgressBaseline(
   planner: PlannerData,
   progress: ClassProgress,

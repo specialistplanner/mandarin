@@ -201,15 +201,23 @@ function ProgramUnitEditor({ planner, unit, library, onChange, onClose }: {
   </div>;
 }
 
-export function ProgramUnitLibrary({ planner, onChange, library }: { planner: PlannerData; onChange: (planner: PlannerData) => void; library: UnitLibraryState }) {
-  const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
+export function ProgramUnitLibrary({ planner, onChange, library, selectedUnitId, onSelectUnit }: {
+  planner: PlannerData;
+  onChange: (planner: PlannerData) => void;
+  library: UnitLibraryState;
+  selectedUnitId?: string;
+  onSelectUnit?: (unitId?: string) => void;
+}) {
+  const [internalSelectedUnitId, setInternalSelectedUnitId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newSecondaryTitle, setNewSecondaryTitle] = useState("");
   const [newYearLevelId, setNewYearLevelId] = useState(planner.yearLevels[0]?.id ?? "");
   const [message, setMessage] = useState("");
   const columns = buildProgramUnitLibraryColumns(planner);
-  const selectedUnit = selectedUnitId ? planner.units.find((unit) => unit.id === selectedUnitId) : undefined;
+  const activeSelectedUnitId = onSelectUnit ? selectedUnitId : internalSelectedUnitId ?? undefined;
+  const selectedUnit = activeSelectedUnitId ? planner.units.find((unit) => unit.id === activeSelectedUnitId) : undefined;
+  const selectUnit = (unitId?: string) => onSelectUnit ? onSelectUnit(unitId) : setInternalSelectedUnitId(unitId ?? null);
 
   function createUnit() {
     if (!newTitle.trim() || !newYearLevelId) return setMessage("Choose a year level and enter a Unit title.");
@@ -227,7 +235,7 @@ export function ProgramUnitLibrary({ planner, onChange, library }: { planner: Pl
       setCreating(false);
       setNewTitle("");
       setNewSecondaryTitle("");
-      setSelectedUnitId(id);
+      selectUnit(id);
       setMessage("Unit created without changing cohort or class progress.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "That Unit could not be created.");
@@ -241,7 +249,7 @@ export function ProgramUnitLibrary({ planner, onChange, library }: { planner: Pl
       {columns.map(({ yearLevel, units }) => <section className="program-library-column" key={yearLevel.id} aria-labelledby={`program-library-${yearLevel.id}`}>
         <header><span className="year-badge">{yearLevel.shortLabel}</span><div><h2 id={`program-library-${yearLevel.id}`}>{yearLevel.label}</h2><small>{units.length} {units.length === 1 ? "Unit" : "Units"}</small></div></header>
         <div className="program-library-column-list">
-          {units.map((unit) => <button className="program-library-card" type="button" key={unit.id} onClick={() => setSelectedUnitId(unit.id)} aria-label={`Edit ${unit.title}`}>
+          {units.map((unit) => <button className="program-library-card" type="button" key={unit.id} onClick={() => selectUnit(unit.id)} aria-label={`Edit ${unit.title}`}>
             <span className="program-library-card-title">{unit.title}</span>
             {unit.secondaryTitle && <span className="program-library-card-secondary" lang="zh-Hans">{unit.secondaryTitle}</span>}
             <span className="program-library-card-meta">{unit.lessons.length} {unit.lessons.length === 1 ? "Lesson" : "Lessons"}</span>
@@ -251,6 +259,6 @@ export function ProgramUnitLibrary({ planner, onChange, library }: { planner: Pl
       </section>)}
     </section>
     {creating && <div className="modal-layer" role="presentation" onMouseDown={(event) => event.currentTarget === event.target && setCreating(false)}><section className="program-create-unit" role="dialog" aria-modal="true" aria-labelledby="create-unit-title"><div className="drawer-topline"><span>Program-owned curriculum</span><button className="close-button" type="button" onClick={() => setCreating(false)} aria-label="Close new Unit form">×</button></div><h2 id="create-unit-title">Create a Unit</h2><label><span>Year level</span><select value={newYearLevelId} onChange={(event) => setNewYearLevelId(event.target.value)}>{planner.yearLevels.map((level) => <option value={level.id} key={level.id}>{level.label}</option>)}</select></label><label><span>Unit title</span><input value={newTitle} onChange={(event) => setNewTitle(event.target.value)} /></label><label><span>Secondary title <i>optional</i></span><input value={newSecondaryTitle} onChange={(event) => setNewSecondaryTitle(event.target.value)} /></label><p>Creation does not set cohort progress. The Unit begins with one editable placeholder Lesson.</p><div className="modal-actions"><button className="secondary-button" type="button" onClick={() => setCreating(false)}>Cancel</button><button className="primary-button" type="button" onClick={createUnit}>Create Unit</button></div></section></div>}
-    {selectedUnit && <ProgramUnitEditor key={selectedUnit.id} planner={planner} unit={selectedUnit} library={library} onChange={onChange} onClose={() => setSelectedUnitId(null)} />}
+    {selectedUnit && <ProgramUnitEditor key={selectedUnit.id} planner={planner} unit={selectedUnit} library={library} onChange={onChange} onClose={() => selectUnit(undefined)} />}
   </main>;
 }

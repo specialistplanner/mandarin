@@ -54,8 +54,9 @@ import {
 } from "@/lib/unit-library";
 import { ResourceLinkAction } from "./resource-link";
 import type { UnitLibraryState } from "./use-unit-library";
+import type { SettingsSection } from "@/lib/app-route";
 
-type SetupSection = "program" | "cohorts" | "library" | "timetable" | "calendar" | "holidays" | "notes" | "data" | "account";
+type SetupSection = SettingsSection | "library";
 const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const outcomeLabels = { planned: "Planned", completed: "Completed", partial: "Partial", "not-taught": "Not taught" } as const;
 const classColourOptions = Object.entries(CLASS_COLOUR_PRESETS);
@@ -92,7 +93,7 @@ function downloadBackup(planner: PlannerData) {
   URL.revokeObjectURL(url);
 }
 
-export function SetupView({ planner, onChange, onBack, unitLibrary, initialSection = "program", persistenceMode = "local", onImportBackup }: {
+export function SetupView({ planner, onChange, onBack, unitLibrary, initialSection = "program", persistenceMode = "local", onImportBackup, onSectionChange }: {
   planner: PlannerData;
   onChange: (planner: PlannerData) => void;
   onBack: () => void;
@@ -100,6 +101,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
   initialSection?: SetupSection;
   persistenceMode?: "local" | "cloud";
   onImportBackup?: (planner: PlannerData) => Promise<void>;
+  onSectionChange?: (section: SettingsSection) => void;
 }) {
   const [section, setSection] = useState<SetupSection>(initialSection);
   const libraryOnly = initialSection === "library";
@@ -125,6 +127,11 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
   function apply(action: () => PlannerData) {
     try { onChange(action()); setMessage(""); }
     catch (error) { setMessage(error instanceof Error ? error.message : "That change could not be saved."); }
+  }
+
+  function changeSection(next: SettingsSection) {
+    setSection(next);
+    onSectionChange?.(next);
   }
 
   function addYearLevel() {
@@ -336,7 +343,7 @@ export function SetupView({ planner, onChange, onBack, unitLibrary, initialSecti
             <small>{persistenceMode === "cloud" ? "Program-owned Unit Library" : "Single-subject local mode"}</small>
           </div>
           {([['program', 'Program'], ['cohorts', 'Classes'], ['timetable', 'Timetable'], ['calendar', 'School Year & Terms'], ['holidays', 'Holidays / non-teaching'], ['notes', `Notes (${planner.trialNotes.length})`], ['data', 'Backup & Restore'], ['account', 'Account & cloud']] as [SetupSection, string][]).map(([id, label]) => (
-            <button type="button" key={id} className={section === id ? "active" : ""} onClick={() => setSection(id)}>{label}<span>→</span></button>
+            <button type="button" key={id} className={section === id ? "active" : ""} onClick={() => changeSection(id as SettingsSection)}>{label}<span>→</span></button>
           ))}
         </aside>}
 

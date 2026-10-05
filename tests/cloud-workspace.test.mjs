@@ -122,7 +122,8 @@ test("v0.6 entry is authentication-first and established Programs launch into We
   assert.match(cloudSource, /Existing Planner found/);
   assert.match(cloudSource, /Use this same Google account on every device/);
   assert.doesNotMatch(cloudSource, /Start a blank one/);
-  assert.match(dashboardSource, /useState<AppView>\("week"\)/);
+  assert.match(dashboardSource, /useState<AppRoute>\(\{ view: "week" \}\)/);
+  assert.match(dashboardSource, /parseAppRoute\(window\.location\.hash/);
   assert.match(cloudSource, /Synced to cloud/);
   assert.match(cloudSource, /Offline · changes saved locally/);
   assert.match(cloudSource, /pending: cached\.pending/);

@@ -16,8 +16,13 @@ function TermCell({ cell }: { cell: TermOverviewCell }) {
   </div>;
 }
 
-export function TermOverview({ planner, onOpenSettings, progressView }: { planner: PlannerData; onOpenSettings: () => void; progressView: ReactNode }) {
-  const [section, setSection] = useState<"overview" | "progress">("overview");
+export function TermOverview({ planner, onOpenSettings, progressView, section = "overview", onSectionChange }: {
+  planner: PlannerData;
+  onOpenSettings: () => void;
+  progressView: ReactNode;
+  section?: "overview" | "progress";
+  onSectionChange?: (section: "overview" | "progress") => void;
+}) {
   const sortedYears = useMemo(() => [...planner.schoolYears].sort((a, b) => b.startDate.localeCompare(a.startDate)), [planner.schoolYears]);
   const [schoolYearId, setSchoolYearId] = useState(() => sortedYears[0]?.id ?? "");
   const availableTerms = useMemo(() => planner.terms.filter((term) => term.schoolYearId === schoolYearId).sort((a, b) => a.sequence - b.sequence), [planner.terms, schoolYearId]);
@@ -35,8 +40,8 @@ export function TermOverview({ planner, onOpenSettings, progressView }: { planne
     URL.revokeObjectURL(url);
   }
   const sectionTabs = <div className="term-workspace-tabs" role="tablist" aria-label="Term workspace">
-    <button type="button" role="tab" aria-selected={section === "overview"} className={section === "overview" ? "active" : ""} onClick={() => setSection("overview")}>Term Overview</button>
-    <button type="button" role="tab" aria-selected={section === "progress"} className={section === "progress" ? "active" : ""} onClick={() => setSection("progress")}>Progress</button>
+    <button type="button" role="tab" aria-selected={section === "overview"} className={section === "overview" ? "active" : ""} onClick={() => onSectionChange?.("overview")}>Term Overview</button>
+    <button type="button" role="tab" aria-selected={section === "progress"} className={section === "progress" ? "active" : ""} onClick={() => onSectionChange?.("progress")}>Progress</button>
   </div>;
 
   if (section === "progress") return <main className="term-overview-main" id="top">{sectionTabs}{progressView}</main>;

@@ -7,6 +7,8 @@ import {
   markAllTaughtAsPlanned,
   materializeTeachingSessionsForDate,
   recordTeachingSessionOutcome,
+  setClassPlanningPosition,
+  unitAppliesToYearLevel,
   type PlannerData,
   type TeachingSessionOutcome,
 } from "@/lib/domain";
@@ -58,6 +60,7 @@ export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onQui
   const [expanded, setExpanded] = useState<string | null>(null);
   const [showNonTeaching, setShowNonTeaching] = useState(true);
   const [outcomeDraft, setOutcomeDraft] = useState<{ entry: WeekEntry; outcome: "partial" | "not-taught"; detail: string } | null>(null);
+  const [planningDraft, setPlanningDraft] = useState<{ entry: WeekEntry; unitId: string; lessonId: string } | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const todayKey = localDateKey(new Date());
   const week = useMemo(() => deriveTeachingWeek(planner, weekStart, new Date(`${todayKey}T12:00:00`)), [planner, weekStart, todayKey]);
@@ -98,6 +101,34 @@ export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onQui
 
   const weekLabel = `${rangeFormatter.format(week.start)} – ${rangeFormatter.format(week.end)}`;
   const slots = [...planner.sessionSlots].sort((a, b) => a.startTime.localeCompare(b.startTime));
+  const planningClass = planningDraft?.entry.specialistClass;
+  const planningUnits = planningClass ? planner.units.filter((unit) => unitAppliesToYearLevel(unit, planningClass.yearLevelId)) : [];
+  const planningUnit = planningDraft ? planningUnits.find((unit) => unit.id === planningDraft.unitId) : undefined;
+
+  function openPlanning(entry: WeekEntry) {
+    const specialistClass = entry.specialistClass;
+    if (!specialistClass) return;
+    const current = planner.classProgress[specialistClass.id];
+    const units = planner.units.filter((unit) => unitAppliesToYearLevel(unit, specialistClass.yearLevelId));
+    const unit = units.find((candidate) => candidate.id === current?.unitId) ?? units[0];
+    const lesson = unit?.lessons.find((candidate) => candidate.id === current?.lessonId) ?? unit?.lessons[0];
+    if (!unit || !lesson) return;
+    setPlanningDraft({ entry, unitId: unit.id, lessonId: lesson.id });
+  }
+
+  function savePlanningPosition() {
+    if (!planningDraft?.entry.specialistClass || !planningUnit) return;
+    const classId = planningDraft.entry.specialistClass.id;
+    const current = planner.classProgress[classId];
+    if (current?.unitId === planningDraft.unitId && current.lessonId === planningDraft.lessonId && !current.unitComplete) {
+      setPlanningDraft(null);
+      return;
+    }
+    if (current?.unitId && current.unitId !== planningDraft.unitId && !window.confirm(`Change ${planningDraft.entry.specialistClass.name} to ${planningUnit.title}? This changes the class’s current planning and Progress position, but does not rewrite teaching history.`)) return;
+    const next = setClassPlanningPosition(planner, classId, planningDraft.unitId, planningDraft.lessonId);
+    if (next !== planner) onChange(next);
+    setPlanningDraft(null);
+  }
 
   function renderEntry(entry: WeekEntry) {
     if (entry.kind === "generalist-teaching") return <div className="week-context-block context-generalist-teaching" key={entry.key}><span>Teaching</span><strong>{entry.label}</strong>{entry.contextClassName && <small>{entry.contextClassName}</small>}<small>Generalist curriculum</small></div>;
@@ -105,7 +136,8 @@ export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onQui
     const lessonLabel = `${entry.lessonNumber ? `L${entry.lessonNumber} · ` : ""}${entry.session?.outcome !== "planned" && entry.session ? entry.session.plannedLessonTitle : entry.lesson?.title ?? (entry.state === "unit-complete" ? "Choose next Unit" : "Lesson not assigned")}`;
     const positionLabel = `${entry.unit?.title ?? "Not assigned"}${entry.lessonNumber ? ` · Lesson ${entry.lessonNumber}` : ""}`;
     const linkedLesson = resolveLinkedLessonReference(unitLibrary.index, entry.unit?.externalResourceRef, entry.lesson?.externalResourceRef, entry.lessonNumber);
-    return <article className={`week-card state-${entry.state} ${entry.classColourId ? "has-class-colour" : ""} ${entry.progressStatus && entry.progressStatus.kind !== "on-track" ? "has-attention" : ""} ${entry.session?.outcome === "partial" || entry.session?.outcome === "not-taught" ? "has-attention" : ""}`} style={classColourStyle(entry.classColourId)} key={entry.key}>
+    const canPlan = Boolean(entry.specialistClass && entry.state !== "actual" && entry.state !== "legacy");
+    return <article className={`week-card state-${entry.state} ${canPlan ? "has-plan-action" : ""} ${entry.classColourId ? "has-class-colour" : ""} ${entry.progressStatus && entry.progressStatus.kind !== "on-track" ? "has-attention" : ""} ${entry.session?.outcome === "partial" || entry.session?.outcome === "not-taught" ? "has-attention" : ""}`} style={classColourStyle(entry.classColourId)} key={entry.key}>
       <button className="week-card-summary" type="button" aria-expanded={expanded === entry.key} onClick={() => setExpanded(expanded === entry.key ? null : entry.key)}>
         <span className="week-card-kind">Teaching</span><span className={`week-card-state outcome-${entry.session?.outcome ?? entry.state}`}>{stateLabel(entry)}</span>
         <strong className="week-card-class">{entry.specialistClass?.name ?? entry.label}</strong>
@@ -114,6 +146,7 @@ export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onQui
         <b className="week-card-lesson">{lessonLabel}</b>
         {(entry.session?.reason || entry.session?.note) && <span className="week-card-note">{entry.session.reason ?? entry.session.note}</span>}
       </button>
+      {canPlan && <button className="week-plan-trigger" type="button" onClick={() => openPlanning(entry)} aria-label={`Change Unit or Lesson for ${entry.specialistClass!.name}`}>Change</button>}
       {expanded === entry.key && <div className="week-card-detail">
         {entry.lesson?.description && <p>{entry.lesson.description}</p>}
         <dl><div><dt>Current class position</dt><dd>{linkedLesson ? <ResourceLinkAction reference={linkedLesson} library={unitLibrary} label={positionLabel} unavailableLabel={positionLabel} className="week-position-link" /> : positionLabel}</dd></div></dl>
@@ -141,5 +174,6 @@ export function WeekView({ planner, onChange, onOpenClass, onOpenSettings, onQui
     </div>}
 
     {outcomeDraft && <div className="modal-layer" role="presentation" onMouseDown={(event) => event.currentTarget === event.target && setOutcomeDraft(null)}><section className="quick-note-modal outcome-modal" role="dialog" aria-modal="true" aria-labelledby="week-outcome-title"><div className="drawer-topline"><span>Teaching outcome</span><button className="close-button" type="button" onClick={() => setOutcomeDraft(null)} aria-label="Close outcome detail">×</button></div><h2 id="week-outcome-title">{outcomeDraft.entry.label} · {outcomeDraft.outcome === "partial" ? "Partial" : "Not taught"}</h2><p>{outcomeDraft.outcome === "partial" ? "Optionally note where the lesson stopped." : "Optionally record why the lesson did not happen."}</p><textarea rows={3} value={outcomeDraft.detail} onChange={(event) => setOutcomeDraft({ ...outcomeDraft, detail: event.target.value })} placeholder={outcomeDraft.outcome === "partial" ? "Stopped after Activity 3" : "Year 4 Camp"} /><div className="modal-actions"><button className="secondary-button" type="button" onClick={() => setOutcomeDraft(null)}>Cancel</button><button className="primary-button" type="button" onClick={() => saveOutcome(outcomeDraft.entry, outcomeDraft.outcome, outcomeDraft.detail)}>Save {outcomeLabels[outcomeDraft.outcome]}</button></div></section></div>}
+    {planningDraft && planningClass && planningUnit && <div className="modal-layer" role="presentation" onMouseDown={(event) => event.currentTarget === event.target && setPlanningDraft(null)}><section className="week-planning-modal" role="dialog" aria-modal="true" aria-labelledby="week-planning-title"><div className="drawer-topline"><span>Current class planning</span><button className="close-button" type="button" onClick={() => setPlanningDraft(null)} aria-label="Close planning selector">×</button></div><h2 id="week-planning-title">{planningClass.name} · Change Unit / Lesson</h2><p>This changes the class’s current operational position across Week and Progress. It does not mark anything taught or rewrite teaching history.</p><label><span>Unit</span><select value={planningDraft.unitId} onChange={(event) => { const unit = planningUnits.find((candidate) => candidate.id === event.target.value)!; setPlanningDraft({ ...planningDraft, unitId: unit.id, lessonId: unit.lessons[0].id }); }}>{planningUnits.map((unit) => <option key={unit.id} value={unit.id}>{unit.title}</option>)}</select></label><label><span>Teach next</span><select value={planningDraft.lessonId} onChange={(event) => setPlanningDraft({ ...planningDraft, lessonId: event.target.value })}>{planningUnit.lessons.map((lesson, index) => <option key={lesson.id} value={lesson.id}>L{index + 1} · {lesson.title}</option>)}</select></label><div className="week-planning-safety"><strong>Planning only</strong><span>No Completed, Partial or Not taught outcome will be created.</span></div><div className="modal-actions"><button className="secondary-button" type="button" onClick={() => setPlanningDraft(null)}>Cancel</button><button className="primary-button" type="button" onClick={savePlanningPosition}>Update current position</button></div></section></div>}
   </main>;
 }
